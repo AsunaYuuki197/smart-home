@@ -1,0 +1,17 @@
+# System and IDE files
+.DS_Store
+.vscode/
+**/*.log.*
+
+# Node.js
+node_modules/
+build/
+
+# Python
+venv/
+**/__pycache__/
+**/*.pyc
+
+# Environment and credentials
+.env
+serviceAccountKey.json

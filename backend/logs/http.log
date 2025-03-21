@@ -1,0 +1,4 @@
+2025-03-21 08:49:41,693 - F:\material\University\DADN\code\smart-home\backend\middleware\http.py - INFO - 127.0.0.1 - "GET /openapi.json 1.1" 200 0.01s
+2025-03-21 08:51:10,146 - F:\material\University\DADN\code\smart-home\backend\middleware\http.py - INFO - 127.0.0.1 - "GET /openapi.json 1.1" 200 0.00s
+2025-03-21 08:52:01,877 - F:\material\University\DADN\code\smart-home\backend\middleware\http.py - INFO - 127.0.0.1 - "GET /docs 1.1" 200 0.00s
+2025-03-21 08:52:02,033 - F:\material\University\DADN\code\smart-home\backend\middleware\http.py - INFO - 127.0.0.1 - "GET /openapi.json 1.1" 200 0.00s
