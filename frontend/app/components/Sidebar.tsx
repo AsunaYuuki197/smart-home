@@ -1,20 +1,24 @@
 "use client";
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Home, Bell, BarChart2, Settings } from "lucide-react"
-import { useRouter } from "next/navigation";
+import { useRouter ,usePathname} from "next/navigation";
 
 export default function Sidebar() {
-  const [isActive, setIsActive] = useState(0)
+  const pathname = usePathname();
   const router = useRouter();
   const routes = ["/dashboard", "/dashboard", "/statistical", "/setting"];
+
+  const [isActive, setIsActive] = useState(()=>routes.findIndex(route => route === pathname) ?? 0);
   
+
+
   function hanldeClick(index: number) {
     setIsActive(index),
     router.push(routes[index]);
   }
   return (
-    <div className=" bg-[#E9E9E9] rounded-3xl flex flex-col gap-4 pb-4 w-fit mx-auto">
+    <div className=" bg-[#E9E9E9] rounded-3xl flex flex-col gap-4 pb-4 w-fit mx-auto ml-5">
       <div className=" rounded-full p-2 flex items-center justify-center">
         <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center hover:bg-blue-400 transition-colors duration-200 ease-in-out
          cursor-pointer">
@@ -35,9 +39,9 @@ function SidebarButton({ icon, active = false, onClick }: { icon: React.ReactNod
     <div className="flex justify-center w-full">
       <button
         className={`w-12 h-12 rounded-2xl flex items-center justify-center
-         ${active ? "bg-[#AEC7EE] text-white hover:bg-blue-400"  : " text-gray-400"}
+         ${active ? "bg-[#AEC7EE] text-white hover:bg-blue-400 transition-colors duration-300 ease-in-out" : " text-gray-400"}
+         transition-all duration-300 ease-in-out
          hover:bg-[#AEC7EE] hover:text-white
-         transition-colors duration-200 ease-in-out
          cursor-pointer`}
         onClick={onClick}
       >

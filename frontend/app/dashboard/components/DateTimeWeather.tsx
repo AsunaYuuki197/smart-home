@@ -26,7 +26,7 @@ export default function DateTimeWeather() {
           }}
         >
       <div className="text-left">
-        <div className="text-xl">{time}</div>
+        <div className="text-xl">{date}</div>
         <div className="text-4xl font-bold">
            {time}
         </div>

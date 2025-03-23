@@ -23,7 +23,7 @@ export default function Dashboard() {
   }, [])
 
   return (
-    <div className="grid grid-cols-1 gap-8 h-full">
+    <div className="grid grid-cols-1 gap-8 h-full ml-5 mr-5">
       {/* Row trên: dành cho desktop sẽ hiển thị 3 cột theo grid 12 cột */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
         {/* Cột trái: UserGreeting và StatusMessage */}
@@ -61,6 +61,7 @@ export default function Dashboard() {
           <StatsBar title="Đèn" date={formattedDate} color="pink" />
         </div>
       </div>
+      
     </div>
   )
 }

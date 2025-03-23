@@ -4,14 +4,14 @@ import { useState, useEffect } from "react"
 
 export default function Timer() {
   const [isPaused, setIsPaused] = useState(true)
-  //TODO: Call API lấy thời gian hẹn giờ tự động
+  //TODO: Call API lấy thời gian hẹn giờ tự động init
   const [seconds, setSeconds] = useState(900) //15:00
 
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
 
-    if (!isPaused) {
+    if (!isPaused && seconds > 0) {
       interval = setInterval(() => {
         setSeconds((prev) => prev - 1)
       }, 1000)
@@ -20,7 +20,7 @@ export default function Timer() {
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [isPaused])
+  }, [isPaused, seconds])
 
   const minutes = Math.floor(seconds / 60)
   const remainingSeconds = seconds % 60
@@ -35,15 +35,17 @@ export default function Timer() {
 
       <button
         onClick={() => setIsPaused(!isPaused)}
-        className="w-18 h-18 bg-white rounded-full border-3 border-red-600 flex items-center justify-center text-red-600 my-4"
+        className="w-18 h-18 bg-white rounded-full border-3 border-red-600 flex items-center justify-center 
+                  text-red-600 my-4 transition-transform transform hover:scale-110"
       >
         {!isPaused ? (
-          <div className="w-8 h-8 flex items-center justify-center">
+          <div className="w-8 h-8 flex items-center justify-center ">
             <div className="w-3 h-10 bg-red-600 mx-1"></div>
             <div className="w-3 h-10 bg-red-600 mx-1"></div>
           </div>
         ) : (
-          <div className="w-0 h-0 border-l-30 border-l-red-600 border-t-20 border-t-transparent border-b-20 border-b-transparent ml-2.5"></div>
+          <div className="w-0 h-0 border-l-30 border-l-red-600 border-t-20 border-t-transparent border-b-20 border-b-transparent ml-2.5">
+          </div>
         )}
       </button>
 

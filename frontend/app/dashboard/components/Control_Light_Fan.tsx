@@ -5,9 +5,6 @@ import { ChevronDown } from "lucide-react";
 
 const rooms = ["Tất cả", "Phòng khách", "Phòng ngủ", "Phòng bếp", "Phòng tắm"]
 const lightColors =["Trắng", "Vàng", "Xanh"]
-const fanSpeeds = [10,20,30,40,50,60,70,80,90,100]
-const lightLevels = [1,2,3,4]
-
 
 export default function Control({ name }: {name: string}) {
   const [isOn, setIsOn] = useState(true);
@@ -61,9 +58,10 @@ function ControlRoom({ name, rooms, selectedRoom, setSelectedRoom }: { name:stri
       <span className="text-sm">{selectedRoom}</span>
       <ChevronDown size={20} className={`text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
     </div>
-
-    {isOpen && (
-      <div className={`absolute left-0  mt-1 w-full bg-white shadow-md rounded-md border z-10 ${name==="Quạt"?'bottom-10':null}`}>
+    <div className={`absolute left-0  mt-1 w-full bg-white shadow-md rounded-md border z-10 ${name==="Quạt"?'bottom-10':null}
+                      overflow-hidden transition-all duration-300 ${
+                        isOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+                      }`}>
         <ul className="py-1">
           {rooms.map((room) => (
             <li
@@ -79,8 +77,7 @@ function ControlRoom({ name, rooms, selectedRoom, setSelectedRoom }: { name:stri
             </li>
           ))}
         </ul>
-      </div>
-    )}
+    </div>
   </div>
   )
 }
@@ -101,17 +98,17 @@ function ControlItem({ label,name,selectRoom }: { label: string, selectRoom:stri
     if(selectRoom ==="Tất cả"){
       if(name === "Quạt"){
         console.log("Điều chỉnh tất cả tốc độ quạt: ", newSpeed);
-        //TODO: Call API update
+        //TODO: Call API update đốc độ
       }
       else{
         console.log("Điều chỉnh tất cả mức sáng: ", newSpeed);
-        //TODO: Call API update
+        //TODO: Call API update mức sáng
       }
     }
     else{
       if(name==="Quạt"){
         console.log("Điều chỉnh phòng ",selectRoom," tốc độ quạt: ", newSpeed);
-        //TODO: Call API update
+        //TODO: Call API update tốc độ quạt
         
       }
       else{
@@ -132,35 +129,41 @@ function ControlItem({ label,name,selectRoom }: { label: string, selectRoom:stri
             step={name === "Quạt" ? 10 :  1}
             value={speed}
             onChange={(e) => handleChangeSpeed(Number(e.target.value))}
-            className="w-full h-2 bg-green-300 rounded-lg appearance-none cursor-pointer hover:bg-gray-100"
+            className={`w-full h-2 rounded-lg appearance-none cursor-pointer transition-all duration-200 ease-in-out bg-gray-200`}
+            style={{
+              background: `linear-gradient(to right, #4caf50 ${(speed - (name === "Quạt" ? 10 : 1)) / ((name === "Quạt" ? 100 : 4) - (name === "Quạt" ? 10 : 1)) * 100}%, #ddd 0%)`,
+              transition: "background 0.2s ease-in-out"
+            }}
+            
           />
           <span className="text-sm font-medium ml-3">{speed}</span>
         </div>
       ) : (
         <div className="relative">
           <div
-            className="flex items-center justify-between p-2  rounded-md cursor-pointer"
+            className="flex items-center justify-between p-2  rounded-md cursor-pointer hover:bg-gray-100"
             onClick={() => setIsOpen(!isOpen)}
           >
             <span className="text-sm">{selectOption}</span>
             <ChevronDown size={20} className={`text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
           </div>
 
-          {isOpen && (
-            <div className="absolute left-0 mt-1 w-full bg-white shadow-md rounded-md border z-10">
-              <ul className="py-1">
+          <div className={`absolute left-0 mt-1 w-full bg-white shadow-md rounded-md border z-10
+                        overflow-hidden transition-all duration-300 ${
+                        isOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+                      }`}>
+            <ul className="py-1">
                 {lightColors.map((option) => (
-                  <li
+                <li
                     key={option}
                     className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                     onClick={() => handleSelectOption(option)}
                   >
                     {option}
-                  </li>
+                </li>
                 ))}
-              </ul>
-            </div>
-          )}
+            </ul>
+          </div>
         </div>
       )}
     </div>
