@@ -1,0 +1,40 @@
+import speech_recognition as sr
+import requests
+
+API_URL = "https://<>.com/generate"
+
+def send_to_api(text):
+    try:
+        response = requests.post(API_URL, json={"text": text})
+        print(f"API Response: {response.status_code} - {response.text}")
+    except Exception as e:
+        print(f"Lỗi khi gửi đến API: {e}")
+
+def recognize_speech():
+    recognizer = sr.Recognizer()
+    mic = sr.Microphone()
+
+    with mic as source:
+        print("Đang điều chỉnh tiếng ồn môi trường...")
+        recognizer.adjust_for_ambient_noise(source)
+        print("Đang lắng nghe...")
+
+        while True:
+            try:
+                audio = recognizer.listen(source)
+                print("Đang nhận diện...")
+                text = recognizer.recognize_google(audio, language="vi-VN")
+                print(f"Nhận diện: {text}")
+
+                # send_to_api(text)
+
+            except sr.UnknownValueError:
+                print("Không thể nhận diện âm thanh.")
+            except sr.RequestError as e:
+                print(f"Lỗi khi yêu cầu kết quả từ dịch vụ nhận diện; {e}")
+            except KeyboardInterrupt:
+                print("\nĐã thoát.")
+                break
+
+if __name__ == "__main__":
+    recognize_speech()
