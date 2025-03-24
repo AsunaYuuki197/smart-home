@@ -18,13 +18,13 @@ class Generator:
     def __init__(self):
         self.LLM_FuncCall = LLM_FuncCall()
 
-    async def chat(self, user_id: int, message: str):
+    async def chat(self, user_id: int, msg: str):
         conversation = [
             {"role": "system", "content": f"""Bạn là một trợ lý hữu ích có quyền truy cập vào các chức năng sau. Sử dụng chúng nếu cần -\n{str(FUNCTIONS_METADATA)} Để sử dụng các chức năng này, hãy phản hồi với:\n<functioncall> {{\\"name\\": \\"function_name\\", \\"arguments\\": {{\\"arg_1\\": \\"value_1\\", \\"arg_1\\": \\"value_1\\", ...}} }} </functioncall>\n\nTrường hợp đặc biệt bạn phải xử lý:\n - Nếu không có chức năng nào khớp với yêu cầu của người dùng, bạn sẽ phản hồi một cách lịch sự rằng bạn không thể giúp được. \n - Nếu không biết truyền giá trị nào cho tham số, hãy sử dụng giá trị mặc định trong description \n - Chọn chức năng có thể nhận nhiều nhất tham số mà người dùng yêu cầu""" },
-            {"role": "user", "content": f"user_id của tôi là {user_id}, {message}"}, # user input
+            {"role": "user", "content": f"user_id của tôi là {user_id}, {msg}"}, # user input
         ]
 
-        input_ids = self.LLM_FuncCall.tokenizer.apply_chat_template(conversation, return_tensors="pt").to(self.device)
+        input_ids = self.LLM_FuncCall.tokenizer.apply_chat_template(conversation, return_tensors="pt").to(LLMConfig.DEVICE)
 
         out_ids = self.LLM_FuncCall.model.generate(
             input_ids=input_ids,

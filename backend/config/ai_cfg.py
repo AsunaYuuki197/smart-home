@@ -11,7 +11,7 @@ class LLMConfig:
     MODEL_NAME = 'hiieu/Vistral-7B-Chat-function-calling'
     TOKENIZER = 'hiieu/Vistral-7B-Chat-function-calling'
     MODEL_PATH = ROOT_DIR / 'models' / 'LLMFuncCall' 
-    DEVICE = 'gpu'
+    DEVICE = 'cuda'
 
 
 # Define metadata for function
