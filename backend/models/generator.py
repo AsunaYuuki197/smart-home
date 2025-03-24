@@ -20,15 +20,29 @@ class Generator:
 
     async def chat(self, user_id: int, msg: str):
         conversation = [
-            {"role": "system", "content": f"""Bạn là một trợ lý hữu ích có quyền truy cập vào các chức năng sau. Sử dụng chúng nếu cần -\n{str(FUNCTIONS_METADATA)} Để sử dụng các chức năng này, hãy phản hồi với:\n<functioncall> {{\\"name\\": \\"function_name\\", \\"arguments\\": {{\\"arg_1\\": \\"value_1\\", \\"arg_1\\": \\"value_1\\", ...}} }} </functioncall>\n\nTrường hợp đặc biệt bạn phải xử lý:\n - Nếu không có chức năng nào khớp với yêu cầu của người dùng, bạn sẽ phản hồi một cách lịch sự rằng bạn không thể giúp được. \n - Nếu không biết truyền giá trị nào cho tham số, hãy sử dụng giá trị mặc định trong description \n - Chọn chức năng có thể nhận nhiều nhất tham số mà người dùng yêu cầu""" },
-            {"role": "user", "content": f"user_id của tôi là {user_id}, {msg}"}, # user input
+            {
+                "role": "system",
+                "content": f"""Bạn là một trợ lý hữu ích có quyền truy cập vào các chức năng sau. Sử dụng chúng nếu cần -
+        {str(FUNCTIONS_METADATA)}
+        Để sử dụng các chức năng này, hãy phản hồi với:
+        <functioncall> {{"name": "function_name", "arguments": {{"arg_1": "value_1", "arg_2": "value_2", ...}} }} </functioncall>
+
+        Trường hợp đặc biệt bạn phải xử lý:
+        - Nếu không có chức năng nào khớp với yêu cầu của người dùng, hãy trả lời một cách lịch sự rằng bạn không thể giúp được.
+        - Nếu không biết truyền giá trị nào cho tham số, hãy sử dụng giá trị mặc định như đã nêu trong phần mô tả của tham số.
+        - Chọn chức năng có thể nhận nhiều tham số nhất phù hợp với yêu cầu của người dùng.
+        - Nếu không tìm thấy 'device_id', hãy sử dụng giá trị mặc định theo mô tả (ví dụ: 1 cho quạt, 2 cho đèn, 6 cho máy bơm).
+        - Nếu không tìm thấy 'action', sử dụng giá trị mặc định: 1 cho bật và 0 cho tắt.
+        """
+            },
+            {"role": "user", "content": f"user_id của tôi là {user_id}, {msg}"},
         ]
 
         input_ids = self.LLM_FuncCall.tokenizer.apply_chat_template(conversation, return_tensors="pt").to(LLMConfig.DEVICE)
 
         out_ids = self.LLM_FuncCall.model.generate(
             input_ids=input_ids,
-            max_new_tokens=50,
+            max_new_tokens=100,
             do_sample=True,
             top_p=0.9,
             top_k=50,
@@ -41,7 +55,7 @@ class Generator:
 
 
         assistant = self.LLM_FuncCall.tokenizer.batch_decode(out_ids[:, input_ids.size(1): ], skip_special_tokens=True)[0].strip()
-        calling_result = self.call_function(assistant)
+        calling_result = await self.call_function(assistant)
 
         LOGGER.log_model(LLMConfig.MODEL_NAME)
         LOGGER.log_response(assistant, calling_result)
@@ -77,7 +91,7 @@ class Generator:
                     raise ValueError(f"Function '{target_function}' not found in mapping")
 
                 try:
-                    result = dispatch_table[target_function](**arguments)
+                    result = await dispatch_table[target_function](ActionLog(**arguments))
                 except TypeError as e:
                     raise ValueError(f"Parameter error when calling {target_function}: {e}")
                 

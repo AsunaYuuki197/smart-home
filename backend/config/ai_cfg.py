@@ -3,6 +3,10 @@ import sys
 from pathlib import Path 
 sys.path.append(str(Path(__file__).parent))
 
+import torch 
+from transformers import BitsAndBytesConfig
+
+
 class LLMDataConfig:
     pass 
 
@@ -12,7 +16,11 @@ class LLMConfig:
     TOKENIZER = 'hiieu/Vistral-7B-Chat-function-calling'
     MODEL_PATH = ROOT_DIR / 'models' / 'LLMFuncCall' 
     DEVICE = 'cuda'
-
+    quantization_config = BitsAndBytesConfig(
+        load_in_8bit=True,
+        bnb_8bit_quant_type="nf8",
+        bnb_8bit_compute_dtype=torch.float16,
+    )    
 
 # Define metadata for function
 FUNCTIONS_METADATA = [
@@ -24,9 +32,18 @@ FUNCTIONS_METADATA = [
         "parameters": {
           "type": "object",
           "properties": {
-            "user_id": {"type": "integer", "description": "ID của người dùng"},
-            "device_id": {"type": "integer", "description": "ID của thiết bị quạt, mặc định là 1"},
-            "action": {"type": "integer", "description": "0 = Tắt, 1 = Bật"}
+            "user_id": {
+                "type": "integer",
+                "description": "ID của người dùng"
+            },
+            "device_id": {
+                "type": "integer",
+                "description": "ID của thiết bị quạt, mặc định là 1"
+            },
+            "action": {
+                "type": "integer",
+                "description": "0 = Tắt, 1 = Bật"
+            }
           },
           "required": ["user_id", "device_id", "action"]
         }
@@ -40,9 +57,18 @@ FUNCTIONS_METADATA = [
         "parameters": {
           "type": "object",
           "properties": {
-            "user_id": {"type": "integer", "description": "ID của người dùng"},
-            "device_id": {"type": "integer", "description": "ID của thiết bị quạt, mặc định là 1"},
-            "action": {"type": "integer", "description": "0 = Tắt, 1 = Bật"}
+            "user_id": {
+                "type": "integer",
+                "description": "ID của người dùng"
+            },
+            "device_id": {
+                "type": "integer",
+                "description": "ID của thiết bị quạt, mặc định là 1"
+            },
+            "action": {
+                "type": "integer",
+                "description": "0 = Tắt, 1 = Bật"
+            }
           },
           "required": ["user_id", "device_id", "action"]
         }
@@ -56,10 +82,22 @@ FUNCTIONS_METADATA = [
         "parameters": {
           "type": "object",
           "properties": {
-            "user_id": {"type": "integer", "description": "ID của người dùng"},
-            "device_id": {"type": "integer", "description": "ID của thiết bị quạt, mặc định là 1"},
-            "action": {"type": "integer", "description": "Trạng thái của quạt, 0 = Tắt, 1 = Bật"},
-            "level": {"type": "integer", "description": "Tốc độ của quạt từ 1 đến 100"}
+            "user_id": {
+                "type": "integer",
+                "description": "ID của người dùng"
+            },
+            "device_id": {
+                "type": "integer",
+                "description": "ID của thiết bị quạt, mặc định là 1"
+            },
+            "action": {
+                "type": "integer",
+                "description": "Trạng thái của quạt, 0 = Tắt, 1 = Bật"
+            },
+            "level": {
+                "type": "integer",
+                "description": "Tốc độ của quạt từ 1 đến 100"
+            }
           },
           "required": ["user_id", "device_id", "action", "level"]
         }
@@ -73,9 +111,18 @@ FUNCTIONS_METADATA = [
         "parameters": {
           "type": "object",
           "properties": {
-            "user_id": {"type": "integer", "description": "ID của người dùng"},
-            "device_id": {"type": "integer", "description": "ID của thiết bị đèn, mặc định là 2"},
-            "action": {"type": "integer", "description": "0 = Tắt, 1 = Bật"}
+            "user_id": {
+                "type": "integer",
+                "description": "ID của người dùng"
+            },
+            "device_id": {
+                "type": "integer",
+                "description": "ID của thiết bị đèn, mặc định là 2"
+            },
+            "action": {
+                "type": "integer",
+                "description": "0 = Tắt, 1 = Bật"
+            }
           },
           "required": ["user_id", "device_id", "action"]
         }
@@ -89,9 +136,18 @@ FUNCTIONS_METADATA = [
         "parameters": {
           "type": "object",
           "properties": {
-            "user_id": {"type": "integer", "description": "ID của người dùng"},
-            "device_id": {"type": "integer", "description": "ID của thiết bị đèn, mặc định là 2"},
-            "action": {"type": "integer", "description": "0 = Tắt, 1 = Bật"}
+            "user_id": {
+                "type": "integer",
+                "description": "ID của người dùng"
+            },
+            "device_id": {
+                "type": "integer",
+                "description": "ID của thiết bị đèn, mặc định là 2"
+            },
+            "action": {
+                "type": "integer",
+                "description": "0 = Tắt, 1 = Bật"
+            }
           },
           "required": ["user_id", "device_id", "action"]
         }
@@ -105,10 +161,22 @@ FUNCTIONS_METADATA = [
         "parameters": {
           "type": "object",
           "properties": {
-            "user_id": {"type": "integer", "description": "ID của người dùng"},
-            "device_id": {"type": "integer", "description": "ID của thiết bị đèn, mặc định là 2"},
-            "action": {"type": "integer", "description": "Trạng thái của đèn, 0 = Tắt, 1 = Bật"},
-            "color": {"type": "string", "description": "Màu đèn mong muốn"}
+            "user_id": {
+                "type": "integer",
+                "description": "ID của người dùng"
+            },
+            "device_id": {
+                "type": "integer",
+                "description": "ID của thiết bị đèn, mặc định là 2"
+            },
+            "action": {
+                "type": "integer",
+                "description": "Trạng thái của đèn, 0 = Tắt, 1 = Bật"
+            },
+            "color": {
+                "type": "string",
+                "description": "Màu đèn mong muốn"
+            }
           },
           "required": ["user_id", "device_id", "action", "color"]
         }
@@ -122,10 +190,22 @@ FUNCTIONS_METADATA = [
         "parameters": {
           "type": "object",
           "properties": {
-            "user_id": {"type": "integer", "description": "ID của người dùng"},
-            "device_id": {"type": "integer", "description": "ID của thiết bị đèn, mặc định là 2"},
-            "action": {"type": "integer", "description": "Trạng thái của đèn, 0 = Tắt, 1 = Bật"},
-            "level": {"type": "integer", "description": "Cấp độ sáng của đèn từ 1 đến 4"}
+            "user_id": {
+                "type": "integer",
+                "description": "ID của người dùng"
+            },
+            "device_id": {
+                "type": "integer",
+                "description": "ID của thiết bị đèn, mặc định là 2"
+            },
+            "action": {
+                "type": "integer",
+                "description": "Trạng thái của đèn, 0 = Tắt, 1 = Bật"
+            },
+            "level": {
+                "type": "integer",
+                "description": "Cấp độ sáng của đèn từ 1 đến 4"
+            }
           },
           "required": ["user_id", "device_id", "action", "level"]
         }
@@ -139,9 +219,18 @@ FUNCTIONS_METADATA = [
         "parameters": {
           "type": "object",
           "properties": {
-            "user_id": {"type": "integer", "description": "ID của người dùng"},
-            "device_id": {"type": "integer", "description": "ID của thiết bị máy bơm, mặc định là 6"},
-            "action": {"type": "integer", "description": "0 = Tắt, 1 = Bật"}
+            "user_id": {
+                "type": "integer",
+                "description": "ID của người dùng"
+            },
+            "device_id": {
+                "type": "integer",
+                "description": "ID của thiết bị máy bơm, mặc định là 6"
+            },
+            "action": {
+                "type": "integer",
+                "description": "0 = Tắt, 1 = Bật"
+            }
           },
           "required": ["user_id", "device_id", "action"]
         }
@@ -155,9 +244,18 @@ FUNCTIONS_METADATA = [
         "parameters": {
           "type": "object",
           "properties": {
-            "user_id": {"type": "integer", "description": "ID của người dùng"},
-            "device_id": {"type": "integer", "description": "ID của thiết bị máy bơm, mặc định là 6"},
-            "action": {"type": "integer", "description": "0 = Tắt, 1 = Bật"}
+            "user_id": {
+                "type": "integer",
+                "description": "ID của người dùng"
+            },
+            "device_id": {
+                "type": "integer",
+                "description": "ID của thiết bị máy bơm, mặc định là 6"
+            },
+            "action": {
+                "type": "integer",
+                "description": "0 = Tắt, 1 = Bật"
+            }
           },
           "required": ["user_id", "device_id", "action"]
         }
