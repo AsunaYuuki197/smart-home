@@ -53,3 +53,7 @@ class SensorData(BaseModel):
     value: float
     # timestamp: Optional[datetime] = None
 
+
+class ModelRequest(BaseModel):
+    user_id: int 
+    msg: str
