@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 export default function DateTimeWeather() {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const [temperature, setTemperature] = useState(28); //TODO: Call API lấy nhiệt độ từ cảm biến
+  const [temperature, setTemperature] = useState(20); //TODO: Call API lấy nhiệt độ từ cảm biến
   useEffect(() => {
     const updateDate = () => {
       const now = new Date();
@@ -16,6 +16,25 @@ export default function DateTimeWeather() {
 
     return () => clearInterval(interval); 
   }, []);
+
+  useEffect(()=>{
+    const getTempe =async () => {
+      const user_id = localStorage.getItem("user_id") || 1;
+      try {
+        const response = await fetch(`/api/device/temp_sensor?user_id=${user_id}`);
+        if (!response.ok) throw new Error("Lỗi khi lấy dữ liệu!");
+
+        const data = await response.json();
+        setTemperature(data['0']['value'])
+      } catch (error: any) {
+        console.error("Error fetching  status:", error.message);
+      }
+    };
+
+    getTempe();
+    const interval = setInterval(getTempe,15000) //15s lấy nhiệt độ mới
+    return () =>clearInterval(interval)
+  },[])
 
   return (
       <div 

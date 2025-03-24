@@ -9,8 +9,6 @@ import StatsBar from "./components/StatsBar"
 import Timer from "./components/TimerDown"
 
 export default function Dashboard() {
-  const [lightsOn, setLightsOn] = useState(true)
-  const [fanOn, setFanOn] = useState(true)
   // Khởi tạo ngày theo định dạng "vi-VN"
   const [formattedDate, setFormattedDate] = useState(new Date().toLocaleDateString("vi-VN"))
 
@@ -21,6 +19,7 @@ export default function Dashboard() {
     }, 60000)
     return () => clearInterval(intervalId)
   }, [])
+
 
   return (
     <div className="grid grid-cols-1 gap-8 h-full ml-5 mr-5">

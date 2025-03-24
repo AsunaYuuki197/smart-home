@@ -1,26 +1,44 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 
 const rooms = ["Tất cả", "Phòng khách", "Phòng ngủ", "Phòng bếp", "Phòng tắm"]
+const roomsObj = {
+  "Tất cả":0,
+   "Phòng khách":1,
+   "Phòng ngủ":2,
+   "Phòng bếp":3,
+   "Phòng tắm":4
+                }
 const lightColors =["Trắng", "Vàng", "Xanh"]
 
 export default function Control({ name }: {name: string}) {
   const [isOn, setIsOn] = useState(true);
   const [selectedRoom, setSelectedRoom] = useState("Tất cả");
-
+  
   function changeSatate(){
-    setIsOn(!isOn);
-    if(name === "Đèn"){
-      console.log("Tắt/Bật đèn");
-      //TODO: Call APT  Tăt/Bật đèn
-    }
-    else{
-      console.log("Tắt/Bật quạt");
-      //TODO: Call API Tắt/Bật quạt
-    }
+    setIsOn((prev) => !prev); 
   }
+// CALL API bật tắt
+  useEffect(() => {
+      const fetchState = async () => {
+      const user_id = parseInt(localStorage.getItem("user_id") || "1");
+
+        try {
+          const response = await fetch(`/api/device/${name==="Quạt"?'fan':'light'}/${isOn?'on':'off'}`, {
+            method: "POST",
+            body: JSON.stringify({ user_id: 1, device_id: 0, action: isOn ? 1 : 0, level: 0, color: "" }),
+            headers: { "Content-Type": "application/json" },
+          });
+
+          const data = await response.json();
+        } catch (e:any) {
+          alert("Error: " + e.message);
+        }
+    }
+    fetchState();
+  }, [isOn]);
 
   return (
     <div className="bg-white rounded-xl p-4 ">
@@ -34,11 +52,15 @@ export default function Control({ name }: {name: string}) {
 
         <label className="relative inline-flex items-center cursor-pointer">
           <input type="checkbox" className="sr-only peer" checked={isOn} onChange={changeSatate} />
-          <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-teal-600 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+          <div className="w-11 h-6 bg-gray-200 rounded-full 
+                      peer peer-checked:bg-teal-600 peer-checked:after:translate-x-full 
+                      after:content-[''] after:absolute after:top-0.5 after:left-[2px] 
+                      after:bg-white after:border-gray-300 after:border after:rounded-full 
+                      after:h-5 after:w-5 after:transition-all"></div>
         </label>
       </div>
 
-      <div className="space-y-2">
+      <div className= {`space-y-2 ${isOn?"":"opacity-50 pointer-events-none"}`} >
         <ControlRoom name={name} rooms={rooms} selectedRoom={selectedRoom} setSelectedRoom={setSelectedRoom} />
         {name ==="Đèn" ?(<ControlItem label="Màu" selectRoom={selectedRoom} name={name} />):null}
         <ControlItem label="Mức" selectRoom={selectedRoom} name={name} />
@@ -85,38 +107,55 @@ function ControlRoom({ name, rooms, selectedRoom, setSelectedRoom }: { name:stri
 function ControlItem({ label,name,selectRoom }: { label: string, selectRoom:string ,name?:string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [speed, setSpeed] = useState(()=>{if(name === "Quạt") return 100; else return 4;});
-  const [selectOption, setSelectOption] = useState(label);
-  function handleSelectOption(option: string) {
-    console.log(option);
-    setSelectOption(option);
-    //TODO: Call API update Light color
-
-    setIsOpen(false);
+  const [selectLightColor, setSelectLightColor] = useState("");
+  
+  function handleSelectLightColor(LightColor: string) {
+    console.log(LightColor);
+    setSelectLightColor(LightColor);
+    setIsOpen(false); 
   }
+  useEffect(()=>{
+    const fetchChangeLight = async () =>{
+      const user_id = parseInt(localStorage.getItem("user_id") || "1");
+
+      const fetchDevice_id = 0//TODO
+      try{
+        const response = await fetch(`api/device/light/color`,{
+          method: "POST",
+          body: JSON.stringify({ user_id: user_id, device_id: fetchDevice_id, action: 1 , level: speed, color: selectLightColor }),
+          headers: { "Content-Type": "application/json" },
+        });
+
+        const data = await response.json()
+      }catch (e:any) {
+        alert("Error: " + e.message);
+      }
+    }
+    fetchChangeLight()
+  },[selectLightColor])
+
   function handleChangeSpeed(newSpeed: number) {
     setSpeed(newSpeed);
-    if(selectRoom ==="Tất cả"){
-      if(name === "Quạt"){
-        console.log("Điều chỉnh tất cả tốc độ quạt: ", newSpeed);
-        //TODO: Call API update đốc độ
-      }
-      else{
-        console.log("Điều chỉnh tất cả mức sáng: ", newSpeed);
-        //TODO: Call API update mức sáng
-      }
-    }
-    else{
-      if(name==="Quạt"){
-        console.log("Điều chỉnh phòng ",selectRoom," tốc độ quạt: ", newSpeed);
-        //TODO: Call API update tốc độ quạt
-        
-      }
-      else{
-        console.log("Điều chỉnh phòng ",selectRoom," mức sáng: ", newSpeed);
-        //TODO: Call API update
-      }
-    }
   }
+
+  useEffect(()=>{
+    const fetchChangeSpeed = async () =>{
+      const user_id = parseInt(localStorage.getItem("user_id") || "1");
+      const fetchDevice_id = 0//TODO
+      try{
+        const response = await fetch(`api/device/${name === "Quạt" ?'fan': 'light'}/${name === "Quạt" ?'speed': 'level'}`,{
+          method: "POST",
+          body: JSON.stringify({ user_id: user_id, device_id: fetchDevice_id, action: 1 , level: speed, color: "" }),
+          headers: { "Content-Type": "application/json" },
+        });
+
+        const data = await response.json()
+      }catch (e:any) {
+        alert("Error: " + e.message);
+      }
+    }
+    fetchChangeSpeed()
+  },[speed])
 
   return (
     <div className="">
@@ -144,7 +183,7 @@ function ControlItem({ label,name,selectRoom }: { label: string, selectRoom:stri
             className="flex items-center justify-between p-2  rounded-md cursor-pointer hover:bg-gray-100"
             onClick={() => setIsOpen(!isOpen)}
           >
-            <span className="text-sm">{selectOption}</span>
+            <span className="text-sm">{selectLightColor || "Mặc định"}</span>
             <ChevronDown size={20} className={`text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
           </div>
 
@@ -153,13 +192,13 @@ function ControlItem({ label,name,selectRoom }: { label: string, selectRoom:stri
                         isOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
                       }`}>
             <ul className="py-1">
-                {lightColors.map((option) => (
+                {lightColors.map((LightColor) => (
                 <li
-                    key={option}
+                    key={LightColor}
                     className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => handleSelectOption(option)}
+                    onClick={() => handleSelectLightColor(LightColor)}
                   >
-                    {option}
+                    {LightColor}
                 </li>
                 ))}
             </ul>

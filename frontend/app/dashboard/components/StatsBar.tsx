@@ -15,7 +15,27 @@ export default function StatsBar({ title, date, color = "teal" }: StatsProps) {
   const hours = [3,4,5,6,7,8, 9,10,11,12,13,14,15,16,17,18,19,20,21];
   const data = useMemo(() => hours.map((hour) => getRandomHeight(hour)), []);
   const router = useRouter();
-  const [newTitle, setTitle] = useState(title === "Quạt" ? "fan" : "light");
+  const newTitle = title==="Quạt" ? "fan" : "light";
+  const [Status, setStatus] = useState(null);
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+    const user_id = localStorage.getItem("user_id") || 1;
+      try {
+        const response = await fetch(`/api/device/${newTitle}/statistics?user_id=${user_id}`);
+        if (!response.ok) throw new Error("Lỗi khi lấy dữ liệu!");
+
+        const data = await response.json();
+        setStatus(data); // Lưu dữ liệu vào state
+        console.log(" status "+ newTitle , data);
+      } catch (error: any) {
+        console.error("Error fetching  status:", error.message);
+      }
+    };
+
+    fetchStatus();
+  }, []); 
+
 
   const chartData = {
     labels: hours.map((hour) => `${hour}:00`),
@@ -41,8 +61,7 @@ export default function StatsBar({ title, date, color = "teal" }: StatsProps) {
     router.prefetch(`/statistical/${newTitle.toLowerCase()}`);
   }, [newTitle]);
 
-  const handleClick = (title:string) => {
-    setTitle(title === "Quạt" ? "fan" : "light");
+  const handleClick = () => {
     alert(`Xem báo cáo cụ thể ${newTitle}` );
     router.push(`/statistical/${newTitle.toLowerCase()}`);
   };
@@ -63,7 +82,7 @@ export default function StatsBar({ title, date, color = "teal" }: StatsProps) {
 
       <div className="flex items-center justify-between text-xs text-gray-500 mt-6">
         <div>{date}</div>
-        <button className="text-gray-500 hover:underline cursor-pointer " onClick = {()=>handleClick(title)}>Xem báo cáo cụ thể</button>
+        <button className="text-gray-500 hover:underline cursor-pointer " onClick = {handleClick}>Xem báo cáo cụ thể</button>
       </div>
     </div>
   );
