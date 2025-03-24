@@ -4,8 +4,12 @@ import requests
 API_URL = "https://<>.com/generate"
 
 def send_to_api(text):
+    headers = {
+        "ngrok-skip-browser-warning": "true",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/91.0 Safari/537.36"
+    }
     try:
-        response = requests.post(API_URL, json={"text": text})
+        response = requests.post(API_URL, json={"text": text}, headers=headers)
         print(f"API Response: {response.status_code} - {response.text}")
     except Exception as e:
         print(f"Lỗi khi gửi đến API: {e}")
@@ -26,7 +30,7 @@ def recognize_speech():
                 text = recognizer.recognize_google(audio, language="vi-VN")
                 print(f"Nhận diện: {text}")
 
-                # send_to_api(text)
+                send_to_api(text)
 
             except sr.UnknownValueError:
                 print("Không thể nhận diện âm thanh.")
