@@ -1,15 +1,16 @@
 import speech_recognition as sr
 import requests
 
-API_URL = "https://<>.com/generate"
+API_URL = "https://<>.com/function-calling/generate"
+USER_ID = 1
 
-def send_to_api(text):
+def send_to_api(text: str):
     headers = {
         "ngrok-skip-browser-warning": "true",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/91.0 Safari/537.36"
     }
     try:
-        response = requests.post(API_URL, json={"text": text}, headers=headers)
+        response = requests.post(API_URL, json={"user_id": USER_ID, "msg": text}, headers=headers)
         print(f"API Response: {response.status_code} - {response.text}")
     except Exception as e:
         print(f"Lỗi khi gửi đến API: {e}")
