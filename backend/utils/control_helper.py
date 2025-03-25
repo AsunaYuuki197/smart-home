@@ -1,5 +1,17 @@
 from datetime import timedelta
 
+support_color = {
+    "yellow": "vàng", 
+    "red": "đỏ", 
+    "orange": "cam", 
+    "green": "xanh lục", 
+    "blue": "xanh biển", 
+    "purple": "tím", 
+    "white": "trắng"
+}
+
+reverse_color = {v: k for k, v in support_color.items()}
+
 # Add usage time hourly to device
 def add_usage(out, device_id, timestamp, duration):
     while duration > 0:
