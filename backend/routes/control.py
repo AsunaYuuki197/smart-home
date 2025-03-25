@@ -520,5 +520,7 @@ async def temp_stats(user_id: int):
 
 
 # Device status
-async def device_status(user_id: int, device_id: str):
-    return await db.ActionLog.find_one({"user_id": user_id, "device_id": device_id}, sort=[("_id", -1)])
+@router.get('/status', summary="Device status")
+async def device_status(user_id: int, device_id: int):
+    last_status = await db.ActionLog.find_one({"user_id": user_id, "device_id": device_id}, {"_id": 0}, sort=[("_id", -1)])
+    return last_status

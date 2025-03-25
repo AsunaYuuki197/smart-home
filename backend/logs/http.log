@@ -1,4 +1,5 @@
-2025-03-25 03:04:44,795 - D:\Workspace\DATH_242\smart-home\backend\middleware\http.py - INFO - 127.0.0.1 - "POST /device/fan/speed 1.1" 200 3.46s
-2025-03-25 03:04:48,231 - D:\Workspace\DATH_242\smart-home\backend\middleware\http.py - INFO - 127.0.0.1 - "POST /device/light/level 1.1" 200 3.42s
-2025-03-25 03:04:48,233 - D:\Workspace\DATH_242\smart-home\backend\middleware\http.py - INFO - 127.0.0.1 - "POST /device/light/level 1.1" 200 3.42s
-2025-03-25 03:04:49,150 - D:\Workspace\DATH_242\smart-home\backend\middleware\http.py - INFO - 127.0.0.1 - "GET /device/temp_sensor/statistics 1.1" 200 6.99s
+2025-03-25 22:03:13,583 - F:\material\University\DADN\code\smart-home\backend\middleware\http.py - INFO - 127.0.0.1 - "POST /device/fan/speed 1.1" 200 1.66s
+2025-03-25 22:03:20,685 - F:\material\University\DADN\code\smart-home\backend\middleware\http.py - INFO - 127.0.0.1 - "GET / 1.1" 200 14.25s
+2025-03-25 22:03:32,325 - F:\material\University\DADN\code\smart-home\backend\middleware\http.py - INFO - 127.0.0.1 - "GET / 1.1" 200 11.60s
+2025-03-25 22:03:39,255 - F:\material\University\DADN\code\smart-home\backend\middleware\http.py - INFO - 127.0.0.1 - "GET / 1.1" 200 4.89s
+2025-03-25 22:03:46,073 - F:\material\University\DADN\code\smart-home\backend\middleware\http.py - INFO - 127.0.0.1 - "GET / 1.1" 200 6.78s
