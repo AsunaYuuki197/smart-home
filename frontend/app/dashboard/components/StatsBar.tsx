@@ -13,33 +13,40 @@ interface StatsProps {
 }
 
 interface StatisticsData {
-  [key: string]: {
-    time: number;
-    hour: number;
+  [deviceId: string]: {
+    [date: string]: {
+      [hour: string]: number;
+    };
   };
 }
 
 // Service API
 const statisticsService = {
   getDeviceStatistics: async (deviceType: string, userId: string | number): Promise<StatisticsData> => {
-    const savedDevices = sessionStorage.getItem(`statistics_${deviceType}`);
-    if (savedDevices) {
-      return (JSON.parse(savedDevices)); // Lấy dữ liệu từ sessionStorage
-    } else {
-      try {
-        const response = await fetch(`/api/device/${deviceType}/statistics?user_id=${userId}`);
-        
-        if (!response.ok) {
-          throw new Error(`Lỗi khi lấy dữ liệu thống kê cho ${deviceType}`);
-        }
-        const data = await response.json()
-        sessionStorage.setItem(`statistics_${deviceType}`, JSON.stringify(data));
-        return data;
-      } catch (error: any) {
-        console.error(`Error fetching ${deviceType} statistics:`, error.message);
-        throw error;
+
+    // const savedDevices = sessionStorage.getItem(`statistics_${deviceType}`);
+    // if (savedDevices) {
+
+    //   return (JSON.parse(savedDevices)); // Lấy dữ liệu từ sessionStorage
+
+    // } else {
+    try {
+
+      const response = await fetch(`/api/device/${deviceType}/statistics?user_id=${userId}`);
+      if (!response.ok) {
+        throw new Error(`Lỗi khi lấy dữ liệu thống kê cho ${deviceType}`);
       }
+      const data = await response.json()
+      sessionStorage.setItem(`statistics_${deviceType}`, JSON.stringify(data));
+
+
+      return data;
+    } catch (error: any) {
+      console.error(`Error fetching ${deviceType} statistics:`, error.message);
+
+      throw error;
     }
+    // }
   }
 };
 
@@ -89,6 +96,10 @@ function useDeviceStatistics(deviceType: string) {
 
   useEffect(() => {
     fetchStatistics();
+
+    // const stats_interval = setInterval(fetchStatistics, 60000); 
+    
+    // return () => clearInterval(stats_interval);
   }, [fetchStatistics]);
 
   return { statistics, isLoading, error, refetch: fetchStatistics };
@@ -100,24 +111,32 @@ export default function StatsBar({ title, date, color = "teal" }: StatsProps) {
   const hours = useMemo(() => [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21], []);
   
   const { statistics, isLoading } = useDeviceStatistics(deviceType);
-  
+
   // Xử lý dữ liệu cho biểu đồ
   const chartData = useMemo(() => {
     // Nếu có dữ liệu thống kê, sử dụng nó; nếu không, sử dụng dữ liệu mặc định
     let usageData;
-    
-    // if (!statistics) {
-    //   // Chuyển đổi dữ liệu từ API thành mảng theo giờ
-    //   usageData = hours.map(hour => {
-    //     // Tìm giá trị tương ứng cho giờ này trong dữ liệu thống kê
-    //     const hourData = Object.values(statistics).find(item => item.hour === hour);
-    //     return hourData ? hourData.time : 0;
-    //   });
-    // } else {
-    //   // Sử dụng dữ liệu mặc định nếu chưa có dữ liệu thống kê
-    //   usageData = hours.map(hour => getDefaultUsageData(hour));
-    // }
-    usageData = hours.map(hour => getDefaultUsageData(hour));
+    const now = new Date();
+    const formattedDate = now.toISOString().split("T")[0]; // "YYYY-MM-DD"
+
+    if (statistics && Object.keys(statistics).length > 0) {
+      // Chuyển đổi dữ liệu từ API thành mảng theo giờ
+
+      usageData = hours.map(hour => {
+        return Object.keys(statistics).reduce((sum, deviceId) => {
+          const deviceStats = statistics[deviceId]?.[formattedDate] ?? {}; // Get stats for current date
+          
+          return sum + (deviceStats ? deviceStats[hour] || 0 : 0); // Sum usage for this hour
+        }, 0);
+
+      });
+
+
+    } else {
+      // Sử dụng dữ liệu mặc định nếu chưa có dữ liệu thống kê
+      usageData = hours.map(hour => getDefaultUsageData(hour));
+    }
+
     return {
       labels: hours.map(hour => `${hour}:00`),
       datasets: [

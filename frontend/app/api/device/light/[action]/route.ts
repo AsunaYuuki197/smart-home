@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request, { params }: { params: { action: string } }) {
+const API_BASE_URL = process.env.BACKEND_ENDPOINT
+export async function GET(req: Request, context: { params: Promise<{ action: string }> }) {
+  const params = await context.params;
   try {
     if (params.action === "statistics") {
       const { searchParams } = new URL(req.url);
@@ -10,7 +12,7 @@ export async function GET(req: Request, { params }: { params: { action: string }
         return NextResponse.json({ error: "Missing user_id" }, { status: 400 });
       }
 
-      const res = await fetch(`http://localhost:8000/device/light/statistics?user_id=${userId}`);
+      const res = await fetch(`${API_BASE_URL}/device/light/usage?user_id=${userId}`);
       if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
 
       const data = await res.json();
@@ -23,15 +25,16 @@ export async function GET(req: Request, { params }: { params: { action: string }
   }
 }
 
-export async function POST(req: Request, { params }: { params: { action: string } }) {
+export async function POST(req: Request, context : { params: Promise<{ action: string }> }) {
+  const params = await context.params;
   try {
     const body = await req.json();
     let apiUrl = "";
-    
-    if (params.action === "on") apiUrl = "http://localhost:8000/device/light/on";
-    else if (params.action === "off") apiUrl = "http://localhost:8000/device/light/off";
-    else if (params.action === "level") apiUrl = "http://localhost:8000/device/light/level";
-    else if (params.action === "color") apiUrl = "http://localhost:8000/device/light/color";
+
+    if (params.action === "on") apiUrl = `${API_BASE_URL}/device/light/on`;
+    else if (params.action === "off") apiUrl = `${API_BASE_URL}/device/light/off`;
+    else if (params.action === "level") apiUrl = `${API_BASE_URL}/device/light/level`;
+    else if (params.action === "color") apiUrl = `${API_BASE_URL}/device/light/color`;
 
     else return NextResponse.json({ error: "Invalid POST action" }, { status: 404 });
 

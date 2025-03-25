@@ -5,7 +5,8 @@ import React, { useEffect, useState, useCallback ,useRef} from 'react';
 // Component chính
 export default function DateTimeWeather() {
   const { date, time } = useDateTime();
-  const { temperature, isLoading, error } = useTemperature();
+  const { temperature, humidity, isLoading, error } = useWeather();
+
 
   // Gradient background styles
   const backgroundStyle = {
@@ -33,7 +34,7 @@ export default function DateTimeWeather() {
         ) : error ? (
           <div className="text-sm text-red-300">Lỗi: không thể lấy nhiệt độ</div>
         ) : (
-          <TemperatureDisplay temperature={temperature} />
+          <WeatherDisplay temperature={temperature} humidity={humidity} />
         )}
       </div>
     </div>
@@ -43,13 +44,14 @@ export default function DateTimeWeather() {
 
 // Service cho việc gọi API
 const weatherService = {
-  getTemperature: async (userId: string | number) => {
+  getWeather: async (userId: string | number) => {
     try {
-      const response = await fetch(`/api/device/temp_sensor?user_id=${userId}`);
+      const response = await fetch(`/api/general/?user_id=${userId}`);
       if (!response.ok) throw new Error("Lỗi khi lấy dữ liệu nhiệt độ!");
       const data = await response.json();
-      sessionStorage.setItem("temp_realtime", JSON.stringify(data['0']['value']));
-      return data['0']['value'];
+      sessionStorage.setItem("temp_realtime", JSON.stringify(data['temperature']));
+      sessionStorage.setItem("humid_realtime", JSON.stringify(data['humidity']));
+      return data;
     } catch (error: any) {
       console.error("Lỗi khi lấy dữ liệu nhiệt độ:", error.message);
       throw error;
@@ -85,16 +87,23 @@ function useDateTime() {
 }
 
 // Custom hook để quản lý nhiệt độ
-function useTemperature() {
+function useWeather() {
   const [temperature, setTemperature] = useState(null);
+  const [humidity, setHumidity] = useState(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     const savedTemp = sessionStorage.getItem("temp_realtime");
+    const savedHumid = sessionStorage.getItem("humid_realtime");
+
     if (savedTemp) {
       setTemperature(JSON.parse(savedTemp));
+    }
+
+    if (savedHumid) {
+      setHumidity(JSON.parse(savedHumid));
     }
   }, []);
 
@@ -109,26 +118,29 @@ function useTemperature() {
       }
     };
 
-    const fetchTemperature = async () => {
+    const fetchWeather = async () => {
       setIsLoading(true);
       try {
         const userId = getUserId();
-        const temp = await weatherService.getTemperature(userId);
-        setTemperature(temp);
+        const weather = await weatherService.getWeather(userId);
+
+        setTemperature(weather['temperature']);
+        setHumidity(weather['humidity']);
+
         setError(null);
       } catch (err: any) {
         setError(err.message);
-        console.error("Lỗi khi lấy nhiệt độ:", err);
+        console.error("Lỗi khi lấy nhiệt độ & độ ẩm:", err);
       } finally {
         setIsLoading(false);
       }
     };
     if(!temperature){ // nếu không có dữ liệu thì fetch -> fetch lần đầu tiên
-        fetchTemperature();
+        fetchWeather();
     }
     
     // Cập nhật nhiệt độ mỗi 15 giây
-    intervalRef.current = setInterval(fetchTemperature, 15000);
+    intervalRef.current = setInterval(fetchWeather, 15000);
 
     // Cleanup khi component unmount
     return () => {
@@ -136,7 +148,7 @@ function useTemperature() {
     };
   }, []);
 
-  return { temperature, isLoading, error };
+  return { temperature, humidity, isLoading, error };
 }
 
 // Thành phần giao diện
@@ -146,12 +158,37 @@ const WeatherIcon = () => (
   </div>
 );
 
-const TemperatureDisplay = ({ temperature }: { temperature: any }) => (
+const WeatherDisplay = ({ temperature, humidity }: { temperature: any,  humidity: any }) => (
   <div className="flex items-center gap-2">
-    <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-      <div className="w-5 h-5 bg-yellow-300 rounded-full" />
+    <div className="flex flex-col items-center">
+      <div className="flex items-center gap-1">
+        <svg
+          className="w-6 h-6 text-red-400"
+          fill="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M10 2a2 2 0 1 1 4 0v10.465A4.998 4.998 0 0 1 17 17a5 5 0 1 1-7-4.535V2Zm4 12.17V4h-2v10.17l-.5.287A3 3 0 1 0 14 17a2.99 2.99 0 0 0-1.5-2.543l-.5-.287Z" />
+        </svg>
+        <div className="text-3xl font-bold">{temperature}°C</div>
+      </div>
+      <div className="flex items-center gap-1">
+        <svg
+          className="w-6 h-6 text-blue-400"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            fillRule="evenodd"
+            d="M10 2C10 2 4 7.5 4 12a6 6 0 1012 0c0-4.5-6-10-6-10zm3 13a3 3 0 11-6 0c0-.75.25-1.5.75-2.1.5-.6 1.25-1.15 2.25-1.15s1.75.55 2.25 1.15c.5.6.75 1.35.75 2.1z"
+            clipRule="evenodd"
+          />
+        </svg>
+        <div className="text-3xl font-bold">{humidity}%</div>
+      </div>
     </div>
-    <div className="text-3xl font-bold">{temperature}°C</div>
   </div>
+
 );
 
