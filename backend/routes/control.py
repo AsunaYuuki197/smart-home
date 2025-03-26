@@ -199,7 +199,6 @@ async def change_light_level(action: ActionLog):
     try:
         aio.send_data(os.getenv("LIGHT_BTN_FEED"), action_log['action'])
         aio.send_data(os.getenv("LIGHT_LEVEL_FEED"), level)
-
         if not devices_id:
             db.ActionLog.insert_one(action_log)
         else:
@@ -437,12 +436,11 @@ async def humid_stats(user_id: int):
     for device in devices_id:
         last_time_retrieve = await db.SensorData.find_one({"user_id": user_id, "device_id": device['device_id']}, sort=[("_id", -1)])
         if last_time_retrieve is not None:
-            params["start_time"] = str(last_time_retrieve["timestamp"])
+            params["start_time"] = str(last_time_retrieve["timestamp"] + timedelta(seconds=1))
 
         response = requests.get(url, headers=headers, params=params)
         if response.status_code == 200:
             data = response.json()
-
             documents = list(map(lambda entry: {
                 "user_id": user_id,
                 "device_id": device['device_id'],
@@ -492,13 +490,12 @@ async def temp_stats(user_id: int):
     for device in devices_id:
         last_time_retrieve = await db.SensorData.find_one({"user_id": user_id, "device_id": device['device_id']}, sort=[("_id", -1)])
         if last_time_retrieve is not None:
-            params["start_time"] = str(last_time_retrieve["timestamp"])
+            params["start_time"] = str(last_time_retrieve["timestamp"] + timedelta(seconds=1))
 
         response = requests.get(url, headers=headers, params=params)
 
         if response.status_code == 200:
             data = response.json()
-
             documents = list(map(lambda entry: {
                 "user_id": user_id,
                 "device_id": device['device_id'],
