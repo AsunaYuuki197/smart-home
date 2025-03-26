@@ -1,8 +1,8 @@
 import { Bar } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from "chart.js";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, useCallback } from "react";
-
+import { useEffect, useMemo, useRef, useCallback } from "react";
+import {useDeviceStatistics} from '../../hooks/useDeviceStatistics'
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 // Types
@@ -12,36 +12,6 @@ interface StatsProps {
   color?: "teal" | "pink";
 }
 
-interface StatisticsData {
-  [key: string]: {
-    time: number;
-    hour: number;
-  };
-}
-
-// Service API
-const statisticsService = {
-  getDeviceStatistics: async (deviceType: string, userId: string | number): Promise<StatisticsData> => {
-    const savedDevices = sessionStorage.getItem(`statistics_${deviceType}`);
-    if (savedDevices) {
-      return (JSON.parse(savedDevices)); // Lấy dữ liệu từ sessionStorage
-    } else {
-      try {
-        const response = await fetch(`/api/device/${deviceType}/statistics?user_id=${userId}`);
-        
-        if (!response.ok) {
-          throw new Error(`Lỗi khi lấy dữ liệu thống kê cho ${deviceType}`);
-        }
-        const data = await response.json()
-        sessionStorage.setItem(`statistics_${deviceType}`, JSON.stringify(data));
-        return data;
-      } catch (error: any) {
-        console.error(`Error fetching ${deviceType} statistics:`, error.message);
-        throw error;
-      }
-    }
-  }
-};
 
 // Utility functions
 const mapDeviceTitle = (title: string): string => {
@@ -49,50 +19,6 @@ const mapDeviceTitle = (title: string): string => {
 };
 
 // Hàm tạo dữ liệu giả lập
-const getDefaultUsageData = (hour: number): number => {
-  const baseHeights: Record<number, number> = {
-    3: 20, 4: 30, 5: 40, 6: 50, 7: 60, 8: 70, 9: 60,
-    10: 50, 11: 40, 12: 30, 13: 20, 14: 30, 15: 40,
-    16: 50, 17: 60, 18: 70, 19: 60, 20: 50, 21: 40
-  };
-  return baseHeights[hour] || Math.floor(Math.random() * 60) + 10;
-};
-
-// Custom hook để quản lý dữ liệu thống kê
-function useDeviceStatistics(deviceType: string) {
-  const [statistics, setStatistics] = useState<StatisticsData | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchStatistics = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      // Lấy user_id từ localStorage, xử lý tình huống localStorage không khả dụng
-      let userId;
-      try {
-        userId =1 //parseInt(localStorage.getItem("user_id")|| "1");
-      } catch (e) {
-        console.warn("Không thể truy cập localStorage, sử dụng user_id mặc định");
-        userId = 1;
-      }
-      
-      const data = await statisticsService.getDeviceStatistics(deviceType, userId);
-      setStatistics(data);
-      setError(null);
-    } catch (err: any) {
-      setError(err.message);
-      console.error(`Lỗi khi lấy thống kê ${deviceType}:`, err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchStatistics();
-  }, [fetchStatistics]);
-
-  return { statistics, isLoading, error, refetch: fetchStatistics };
-}
 
 export default function StatsBar({ title, date, color = "teal" }: StatsProps) {
   const router = useRouter();
@@ -103,21 +29,21 @@ export default function StatsBar({ title, date, color = "teal" }: StatsProps) {
   
   // Xử lý dữ liệu cho biểu đồ
   const chartData = useMemo(() => {
-    // Nếu có dữ liệu thống kê, sử dụng nó; nếu không, sử dụng dữ liệu mặc định
     let usageData;
-    
-    // if (!statistics) {
-    //   // Chuyển đổi dữ liệu từ API thành mảng theo giờ
-    //   usageData = hours.map(hour => {
-    //     // Tìm giá trị tương ứng cho giờ này trong dữ liệu thống kê
-    //     const hourData = Object.values(statistics).find(item => item.hour === hour);
-    //     return hourData ? hourData.time : 0;
-    //   });
-    // } else {
-    //   // Sử dụng dữ liệu mặc định nếu chưa có dữ liệu thống kê
-    //   usageData = hours.map(hour => getDefaultUsageData(hour));
-    // }
-    usageData = hours.map(hour => getDefaultUsageData(hour));
+    const now = new Date();
+    const formattedDate = now.toISOString().split("T")[0]; // "YYYY-MM-DD"
+
+    if (statistics && Object.keys(statistics).length > 0) {
+      // Chuyển đổi dữ liệu từ API thành mảng theo giờ
+      usageData = hours.map(hour => {
+        return Object.keys(statistics).reduce((sum, deviceId) => {
+          const deviceStats = statistics[deviceId]?.[formattedDate] ?? {}; // Get stats for current date
+          return sum + (deviceStats ? deviceStats[hour] || 0 : 0); // Sum usage for this hour
+        }, 0);
+
+      });
+    } 
+  
     return {
       labels: hours.map(hour => `${hour}:00`),
       datasets: [
@@ -131,6 +57,10 @@ export default function StatsBar({ title, date, color = "teal" }: StatsProps) {
       ],
     };
   }, [statistics, hours, color]);
+  const prevCharDataRef = useRef<typeof chartData | null>(null);
+  useEffect(() => {
+    if (chartData !== undefined) prevCharDataRef.current = chartData;
+  }, [statistics]);
 
   const chartOptions = {
     responsive: true,
@@ -138,12 +68,11 @@ export default function StatsBar({ title, date, color = "teal" }: StatsProps) {
     scales: {
       y: { 
         beginAtZero: true, 
-        max: 60,
+        max: 100,
       },
     },
   };
 
-  // Prefetch trang thống kê chi tiết
   useEffect(() => {
     router.prefetch(`/statistical/${deviceType}`);
   }, [router, deviceType]);
@@ -162,7 +91,9 @@ export default function StatsBar({ title, date, color = "teal" }: StatsProps) {
       </div>
 
       <div className={`${color === 'teal' ? 'bg-[#DEEAFF]' : 'bg-[#FFDEFA]'} rounded-2xl h-50 w-full relative`}>
-        {isLoading ? (
+        {isLoading && prevCharDataRef.current ?(
+          <Bar data={prevCharDataRef.current} options={chartOptions} />
+        ):isLoading ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-gray-500">Đang tải dữ liệu...</div>
           </div>

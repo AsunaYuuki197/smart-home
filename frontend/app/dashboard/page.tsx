@@ -11,7 +11,12 @@ import Timer from "./components/TimerDown"
 export default function Dashboard() {
   // Khởi tạo ngày theo định dạng "vi-VN"
   const [formattedDate, setFormattedDate] = useState(new Date().toLocaleDateString("vi-VN"))
-
+  let userID =1;
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      userID = (parseInt(localStorage.getItem("user_id") || "1"));
+    }
+}, []);
   // Cập nhật lại ngày mỗi 60 giây
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -48,8 +53,8 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
         {/* Cột trái: LightControl và FanControl */}
         <div className="md:col-span-4 grid gap-4">
-          <Control name={'Đèn'} />
-          <Control name={'Quạt'}  />
+          <Control name={'Đèn'} user_id={userID}/>
+          <Control name={'Quạt'} user_id={userID} />
         </div>
         {/* Cột giữa: Timer */}
         <div className="md:col-span-2">
