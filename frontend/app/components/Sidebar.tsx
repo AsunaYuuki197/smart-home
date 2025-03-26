@@ -1,24 +1,21 @@
 "use client";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 import { Home, Bell, BarChart2, Settings } from "lucide-react";
 import Notifications from "./Notifications"
 import {useState,useRef,useCallback,useEffect} from 'react'
+
 export default function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
-  const routes = ["/dashboard", "/notify", "/statistical", "/setting"];
   const [isActiveNoty,setIsActiveNoty] = useState(false)
-  function handleClick(index: number) {
-    if (routes[index] === "/notify"){
+  function toggleNotifications() {
       setIsActiveNoty(!isActiveNoty)
-    } 
-    else if (pathname !== routes[index]) { // Chỉ chuyển nếu khác đường dẫn hiện tại
-      if(isActiveNoty)setIsActiveNoty(!isActiveNoty)
-      router.push(routes[index]);
-    }
   }
-  const modalRef = useRef<HTMLDivElement>(null);
+  function turnOffNotifications (){
+    if (isActiveNoty) setIsActiveNoty(!isActiveNoty)
+  }
 
+  const modalRef = useRef<HTMLDivElement>(null);
   const handleClickOutside = useCallback((event: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
         setIsActiveNoty(false);
@@ -44,27 +41,34 @@ export default function Sidebar() {
             />
         </div>
       </div>
-
-      <SidebarButton icon={<Home size={30} />} active={(pathname === "/dashboard" || pathname === "/")} onClick={() => handleClick(0)} />
-      <SidebarButton icon={<Bell size={30} />} active={isActiveNoty} onClick={() => handleClick(1)} />
-      <SidebarButton icon={<BarChart2 size={30} />} active={pathname === "/statistical"} onClick={() => handleClick(2)} />
-      <SidebarButton icon={<Settings size={30} />} active={pathname === "/setting"} onClick={() => handleClick(3)} />
+      
+        <SidebarButton icon={<Home size={30} />} active={pathname === "/dashboard" || pathname === "/"}  href="/dashboard" onClick={turnOffNotifications} />
+        <SidebarButton icon={<Bell size={30} />} active={isActiveNoty} onClick={toggleNotifications} />
+        <SidebarButton icon={<BarChart2 size={30} />} active={pathname === "/statistical"}  href="/statistical" onClick={turnOffNotifications} />
+        <SidebarButton icon={<Settings size={30} />} active={pathname === "/setting"}  href="/setting" onClick={turnOffNotifications} />
     </div>
     </div>
   );
 }
 
-function SidebarButton({ icon, active, onClick }: { icon: React.ReactNode; active: boolean; onClick: () => void; }) {
+function SidebarButton({ icon, active, href,onClick }: { icon: React.ReactNode; active: boolean; href?:string,onClick?: () => void; }) {
+  const buttonClass = `w-12 h-12 rounded-2xl flex items-center justify-center
+  ${active ? "bg-[#AEC7EE] text-white hover:bg-blue-400 transition-colors duration-300 ease-in-out" : "text-gray-400"}
+  transition-all duration-300 ease-in-out hover:bg-[#AEC7EE] hover:text-white cursor-pointer`
   return (
     <div className="flex justify-center w-full">
-      <button
-        className={`w-12 h-12 rounded-2xl flex items-center justify-center
-          ${active ? "bg-[#AEC7EE] text-white hover:bg-blue-400 transition-colors duration-300 ease-in-out" : "text-gray-400"}
-          transition-all duration-300 ease-in-out hover:bg-[#AEC7EE] hover:text-white cursor-pointer`}
-        onClick={onClick}
-      >
-        {icon}
-      </button>
+    {(href) ? 
+        (
+      
+      <Link href={href} className={buttonClass} onClick = {onClick}>
+            {icon}
+          </Link>
+        ):
+      (
+        <button onClick={onClick} className={buttonClass}>
+          {icon}
+        </button>
+      )}
     </div>
   );
 }

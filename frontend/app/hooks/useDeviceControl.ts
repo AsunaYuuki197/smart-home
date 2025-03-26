@@ -3,57 +3,26 @@ import { deviceService } from "../services/deviceService";
 
 export function useDeviceControl({
   user_ID,
-  speedDevice,
-  color,
   name,
   deviceID,
+  isLoading,
+  speed,setSpeed,
+  selectLightColor,setSelectLightColor,
 }: {
   user_ID: number;
-  speedDevice?: number;
-  color?: string;
   name?: string;
   deviceID: number;
+  isLoading: boolean;
+  speed:number;setSpeed:(Active:React.SetStateAction<number>)=>void;
+  selectLightColor:string;setSelectLightColor:(Active:React.SetStateAction<string>)=>void;
 }) {
-  const [isOpen, setIsOpen] = useState<boolean>(false); // Chọn màu đèn
-  const [speed, setSpeed] = useState<number>(speedDevice || (name === "Quạt" ? 100 : 4));
-  const [selectLightColor, setSelectLightColor] = useState<string>(color || "");
+
+  const [isOpen, setIsOpen] = useState(false)
 
   const deviceType = name === "Quạt" ? "fan" : "light";
   const endpoint = name === "Quạt" ? "speed" : "level";
-
-   
   const initialMount = useRef(true); // chặn không cho post khi load trang
   const initialMountSpeed = useRef(true);
-
-// lấy dữ liệu khi load trang
-  useEffect(() => {
-    async function fetchDeviceStatus() {
-      try {
-        const { level,color } = await deviceService.getDeviceStatus(user_ID, deviceID);
-        setSelectLightColor(color)
-        setSpeed(level)
-        console.log(deviceType,level,color)
-      } catch (error) {
-        console.error(error);
-      }
-    }
-    const storedLevel = sessionStorage.getItem(`level_${user_ID}_${deviceID}`);
-    const storedColor = sessionStorage.getItem(`color_${user_ID}_${deviceID}`);
-
-    if (storedLevel !== null) {
-      setSpeed(JSON.parse(storedLevel))
-    }
-    if (storedColor !== null) {
-      setSelectLightColor(JSON.parse(storedColor))
-    }
-
-
-    // Chỉ gọi API nếu chưa có dữ liệu trong sessionStorage
-    if (!storedLevel) {
-      fetchDeviceStatus();
-    }
-  }, [user_ID, deviceID]);
-  
 
   const handleSelectLightColor = useCallback((lightColor: string) => {
     setSelectLightColor(lightColor);
@@ -64,11 +33,12 @@ export function useDeviceControl({
   const handleChangeSpeed = useCallback((newSpeed: number) => {
     setSpeed(newSpeed);
     sessionStorage.setItem(`level_${user_ID}_${deviceID}`, JSON.stringify(newSpeed));
-  }, [user_ID, deviceID]);
+  }, []);
 
   
   // Gửi API khi thay đổi màu đèn
   useEffect(() => {
+    if (isLoading) return; //chưa lấy dữ liệu xong
     if (initialMount.current) {
         initialMount.current = false;
         return; 
@@ -87,9 +57,10 @@ export function useDeviceControl({
 
   // Gửi API khi thay đổi tốc độ / mức độ
   useEffect(() => {
+    if (isLoading) return; //chưa lấy dữ liệu xong
     if (initialMountSpeed.current) {
         initialMountSpeed.current = false;
-        return; // Bỏ qua việc gọi API toggleDevice trong lần render đầu tiên (reload)
+        return; 
       }
     const timeout = setTimeout(async () => {
       try {
@@ -97,18 +68,13 @@ export function useDeviceControl({
       } catch (error: any) {
         console.error(error.message);
       }
-    }, 200);
+    }, 100);
 
     return () => clearTimeout(timeout);
   }, [speed,user_ID]);
 
   return {
-    isOpen,
-    setIsOpen,
-    speed,
-    setSpeed,
-    selectLightColor,
-    setSelectLightColor,
+    isOpen, setIsOpen,
     handleSelectLightColor,
     handleChangeSpeed,
   };

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback,useContext } from "react";
 import { ChevronDown } from "lucide-react";
 import { useDeviceState } from "../../hooks/useDeviceState"
 import { useDeviceControl } from "../../hooks/useDeviceControl"
-import { DeviceContext } from "../../context/DeviceContext";
+import { deviceService } from "../../services/deviceService";
 
 
 // Constants moved outside component to prevent re-creation
@@ -44,23 +44,63 @@ interface ControlRoomProps {
 }
 
 interface ControlItemProps {
-  user_ID: number;
-  isActive?: boolean;
-  speedDevice?: number;
-  color?: string
   label: string;
-  name?: string;
-  deviceID: number;
+  name: string;
   selectRoom?: string;
+  speed:number;
+  selectLightColor:string;
+  isOpen:boolean;setIsOpen:(Active:React.SetStateAction<boolean>)=>void;
+  handleChangeSpeed: (newSpeed: number) => void;
+  handleSelectLightColor:(lightColor:string)=>void;
 }
-
-
 
 // Main component
 export default function Control({ name ,user_id}: { name: string,user_id:number }) {
   const device_id = name ==="Quạt" ? 1 : 2
+  const [isActive, setIsActive] = useState<boolean>(true)
+  const [isLoading, setIsLoading] = useState<boolean>(true); 
+  const [speed, setSpeed] = useState<number>((name === "Quạt" ? 100 : 4));
+  const [selectLightColor, setSelectLightColor] = useState<string>("");
 
-  const { isOn, selectedRoom, setSelectedRoom, toggleDeviceState} = useDeviceState(name,user_id,device_id); // lấy thông tin hiện tại của control
+  useEffect(() => {
+    async function fetchDeviceStatus() {
+      try {
+        const { action,level,color } = await deviceService.getDeviceStatus(user_id, name ==="Quạt" ? 1 : 2);
+        setIsActive(action ? true : false);
+        setSelectLightColor(color)
+        setSpeed(level)
+      } catch (error) {
+        console.error(error);
+      }finally{
+        setIsLoading(false);
+      }
+    }
+    const storedLevel = sessionStorage.getItem(`level_${user_id}_${name ==="Quạt" ? 1 : 2}`);
+    const storedColor = sessionStorage.getItem(`color_${user_id}_${name ==="Quạt" ? 1 : 2}`);
+    const storedAction = sessionStorage.getItem(`action_${user_id}_${name ==="Quạt" ? 1 : 2}`);
+    if (storedAction !== null) {
+      setIsActive(JSON.parse(storedAction))
+      setIsLoading(false);
+    }
+    if (storedLevel !== null) {
+      setSpeed(JSON.parse(storedLevel))
+    }
+    if (storedColor !== null) {
+      setSelectLightColor(JSON.parse(storedColor))
+    }
+
+    // Chỉ gọi API nếu chưa có dữ liệu trong sessionStorage
+    if (storedAction === null) {
+      fetchDeviceStatus();
+    }
+    
+  }, [user_id]);
+  const { isOn, selectedRoom, setSelectedRoom, toggleDeviceState} = useDeviceState(name,user_id,device_id,isLoading,isActive,setIsActive); 
+  const { isOpen, setIsOpen, handleChangeSpeed, handleSelectLightColor} = useDeviceControl({user_ID: user_id, name, 
+                                                                                    deviceID: device_id,isLoading,
+                                                                                    speed,setSpeed,
+                                                                                    selectLightColor,setSelectLightColor,
+                                                                                  });
   
   return (
     <div className="bg-white rounded-xl p-4">
@@ -87,7 +127,7 @@ export default function Control({ name ,user_id}: { name: string,user_id:number 
         </label>
       </div>
 
-      <div className={`space-y-2 ${isOn ? "" : "opacity-50 pointer-events-none"}`}>
+      <div className={`space-y-2 ${isActive ? "" : "opacity-50 pointer-events-none"}`}>
         <ControlRoom 
           name={name} 
           rooms={ROOMS} 
@@ -96,28 +136,34 @@ export default function Control({ name ,user_id}: { name: string,user_id:number 
         />
         
         {name === "Đèn" && (
-          <ControlItem user_ID={user_id} label="Màu" selectRoom={selectedRoom} name={name} deviceID = {device_id}/>
+          <ControlItem label="Màu" name={name} selectLightColor = {selectLightColor}  
+                                      speed={speed} isOpen ={isOpen} setIsOpen ={setIsOpen}
+                                      handleChangeSpeed={handleChangeSpeed} handleSelectLightColor ={handleSelectLightColor}
+                                    selectRoom={selectedRoom} />
         )}
-        
-        <ControlItem user_ID={user_id} label="Mức" selectRoom={selectedRoom} name={name} deviceID = {device_id} />
+
+        <ControlItem label="Mức" name={name} selectLightColor = {selectLightColor} 
+                                      speed={speed} isOpen ={isOpen} setIsOpen ={setIsOpen}
+                                      handleChangeSpeed={handleChangeSpeed} handleSelectLightColor ={handleSelectLightColor}
+                                      selectRoom={selectedRoom}   />
       </div>
     </div>
   );
 }
 
 function ControlRoom({ name, rooms, selectedRoom, setSelectedRoom }: ControlRoomProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isDropDown, setIsDropDown] = useState(false);
   
   return (
     <div className="relative">
       <div
         className="flex items-center justify-between p-2 rounded-md cursor-pointer hover:bg-gray-100"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => setIsDropDown(!isDropDown)}
       >
         <span className="text-sm">{selectedRoom}</span>
         <ChevronDown 
           size={20} 
-          className={`text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} 
+          className={`text-gray-400 transition-transform ${isDropDown ? "rotate-180" : ""}`} 
         />
       </div>
       
@@ -125,7 +171,7 @@ function ControlRoom({ name, rooms, selectedRoom, setSelectedRoom }: ControlRoom
         className={`absolute left-0 mt-1 w-full bg-white shadow-md rounded-md border z-10 
                   ${name === "Quạt" ? 'bottom-10' : ''} 
                   overflow-hidden transition-all duration-300 
-                  ${isOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"}`}
+                  ${isDropDown ? "max-h-40 opacity-100" : "max-h-0 opacity-0"}`}
       >
         <ul className="py-1">
           {rooms.map((room) => (
@@ -134,7 +180,7 @@ function ControlRoom({ name, rooms, selectedRoom, setSelectedRoom }: ControlRoom
               className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
               onClick={() => {
                 setSelectedRoom(room);
-                setIsOpen(false);
+                setIsDropDown(false);
               }}
             >
               {room}
@@ -147,16 +193,16 @@ function ControlRoom({ name, rooms, selectedRoom, setSelectedRoom }: ControlRoom
 }
 
 
-export function ControlItem({ user_ID, speedDevice, color, label, name, deviceID }: ControlItemProps) {
-  const {
-    isOpen,
-    setIsOpen,
-    speed,
-    handleChangeSpeed,
-    selectLightColor,
-    handleSelectLightColor,
-  } = useDeviceControl({ user_ID, speedDevice, color, name, deviceID });
+export function ControlItem({ 
+                          label, name,  
+                          speed,
+                          selectLightColor,
+                          isOpen,setIsOpen,
+                          handleChangeSpeed,
+                          handleSelectLightColor
+                        }: ControlItemProps) {
 
+  
   if (label === "Mức") {
     const minValue = name === "Quạt" ? 10 : 1;
     const maxValue = name === "Quạt" ? 100 : 4;
@@ -197,7 +243,7 @@ export function ControlItem({ user_ID, speedDevice, color, label, name, deviceID
       <div
         className={`absolute left-0 mt-1 w-full bg-white shadow-md rounded-md border z-10
                   overflow-y-scroll transition-all duration-300 
-                  ${isOpen ? "max-h-32 opacity-100" : "max-h-0 opacity-0"}`}
+                  ${isOpen ? "max-h-32 opacity-100" : "hidden"}`}
       >
         <ul className="py-1">
           {Object.keys(LIGHT_COLORS).map((lightColor) => (

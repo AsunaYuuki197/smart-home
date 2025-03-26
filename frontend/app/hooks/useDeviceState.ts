@@ -1,50 +1,28 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { deviceService } from "../services/deviceService";
+import { usePathname } from "next/navigation";
 
 // Custom hook for device state
-export function  useDeviceState(name: string,id_user:number,id_device:number) {
+export function  useDeviceState(name: string,id_user:number,id_device:number,isLoading:boolean,
+            isOn:boolean,setIsOn:(Active:React.SetStateAction<boolean>)=>void) {
     const deviceType = name === "Quạt" ? 'fan' : 'light';
     const [selectedRoom, setSelectedRoom] = useState("Tất cả");
-    const [isOn, setIsOn] = useState<boolean>(true)
-    
-    useEffect(() => {
-      async function fetchDeviceStatus() {
-        try {
-          const { action } = await deviceService.getDeviceStatus(id_user, id_device);
-          setIsOn(action ? true : false);
-        } catch (error) {
-          console.error(error);
-        }
-      }
-      const storedAction = sessionStorage.getItem(`action_${id_user}_${id_device}`);
-      if (storedAction !== null) {
-        setIsOn(JSON.parse(storedAction))
-      }
-      // Chỉ gọi API nếu chưa có dữ liệu trong sessionStorage
-      if (storedAction === null) {
-        fetchDeviceStatus();
-      }
-    }, [id_user, id_device]);
-  
-  
+    const initialMount = useRef(true);
     const toggleDeviceState = useCallback(() => {
-  
-      setTimeout(() => {
         setIsOn(prev => {
           const newState = !prev;
           sessionStorage.setItem(`action_${id_user}_${id_device}`, JSON.stringify(newState));
           return newState;
         });
-      }, 300);
     }, [deviceType]);
-    
-  
-    const initialMount = useRef(true);
-  
+
     useEffect(() => {
-      if (initialMount.current) {
+      if(isLoading) return //chưa lấy dữ liệu xong
+      if (initialMount.current) // lấy dữ liệu xong và bỏ qua việc call API lần đầu
+      {
+        console.log(name,isLoading,isOn)
         initialMount.current = false;
-        return; // Bỏ qua việc gọi API toggleDevice trong lần render đầu tiên (reload)
+        return; 
       }
       let isMounted = true; // Kiểm tra component có bị unmount không
     
@@ -58,14 +36,12 @@ export function  useDeviceState(name: string,id_user:number,id_device:number) {
           }
         }
       };
-    
       toggleDevice();
-    
       return () => {
         isMounted = false; // Cleanup khi unmount
       };
     }, [isOn]); 
-    
-    return { isOn, setIsOn, selectedRoom, setSelectedRoom, toggleDeviceState, id_user};
+
+    return { isOn,selectedRoom, setSelectedRoom, toggleDeviceState, id_user};
   }
   

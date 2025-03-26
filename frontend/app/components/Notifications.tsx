@@ -61,7 +61,7 @@ export default function Notifications({isOpen,setIsOpen}:{isOpen:boolean,setIsOp
   return (
     <div className={`absolute top-0 left-25 pl-4 pt-4 pb-4 rounded-[20px] bg-[#F3F3F3] w-[430px] min-h-[500] max-h-[500px] z-50
                     flex flex-col gap-5 
-                    ${isOpen ? "" :"opacity-0"}`}
+                    ${isOpen ? "" :"hidden"}`}
        
     >
       {/* Ô tìm kiếm */}
