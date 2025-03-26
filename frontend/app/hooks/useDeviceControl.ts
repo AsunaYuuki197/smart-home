@@ -32,6 +32,7 @@ export function useDeviceControl({
         const { level,color } = await deviceService.getDeviceStatus(user_ID, deviceID);
         setSelectLightColor(color)
         setSpeed(level)
+        console.log(deviceType,level,color)
       } catch (error) {
         console.error(error);
       }
@@ -42,16 +43,17 @@ export function useDeviceControl({
     const storedLevel = sessionStorage.getItem(`level_${user_ID}_${deviceID}`);
     const storedColor = sessionStorage.getItem(`color_${user_ID}_${deviceID}`);
 
-    if (storedLevel !== null && storedColor !== null) {
+    if (storedLevel !== null) {
       setSpeed(JSON.parse(storedLevel))
-      setSelectLightColor(JSON.parse(storedColor))
-      console.log("GỌI LCAL STORGE", storedLevel,storedLevel )
     }
-    // Chỉ gọi API nếu chưa có dữ liệu trong sessionStorage
-    if (!storedLevel || ! storedColor ) {
-      fetchDeviceStatus();
-      console.log("GỌI fetch", storedLevel,storedLevel )
+    if (storedColor !== null) {
+      setSelectLightColor(JSON.parse(storedColor))
+    }
 
+
+    // Chỉ gọi API nếu chưa có dữ liệu trong sessionStorage
+    if (!storedLevel) {
+      fetchDeviceStatus();
     }
   }, [user_ID, deviceID]);
   
@@ -98,7 +100,7 @@ export function useDeviceControl({
       } catch (error: any) {
         console.error(error.message);
       }
-    }, 500);
+    }, 200);
 
     return () => clearTimeout(timeout);
   }, [speed,user_ID]);

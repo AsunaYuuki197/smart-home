@@ -190,7 +190,7 @@ export function ControlItem({ user_ID, speedDevice, color, label, name, deviceID
         
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span className="text-sm" style={{ color: (BG_LIGHT_COLORS[selectLightColor] || '#ffffff') }}>{LIGHT_COLORS[selectLightColor] || "Màu đèn"}</span>
+        <span className="text-sm" style={{ color: (BG_LIGHT_COLORS[selectLightColor] || '#000000') }}>{LIGHT_COLORS[selectLightColor] || "Màu đèn"}</span>
         <ChevronDown size={20} className={`text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </div>
 
