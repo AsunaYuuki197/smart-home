@@ -37,9 +37,6 @@ export function useDeviceControl({
         console.error(error);
       }
     }
-    async function getData(){
-      
-    }
     const storedLevel = sessionStorage.getItem(`level_${user_ID}_${deviceID}`);
     const storedColor = sessionStorage.getItem(`color_${user_ID}_${deviceID}`);
 
