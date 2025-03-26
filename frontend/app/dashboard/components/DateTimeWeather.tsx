@@ -6,7 +6,14 @@ import React, { useEffect, useState, useCallback ,useRef} from 'react';
 export default function DateTimeWeather() {
   const { date, time } = useDateTime();
   const { temperature, humidity, isLoading, error } = useWeather();
+  const prevTempRef = useRef<number | null>(null);
+  const prevHumidityRef = useRef<number | null>(null);
 
+  // Cập nhật giá trị trước đó khi temperature hoặc humidity thay đổi
+  useEffect(() => {
+    if (temperature !== undefined) prevTempRef.current = temperature;
+    if (humidity !== undefined) prevHumidityRef.current = humidity;
+  }, [temperature, humidity]);
 
   // Gradient background styles
   const backgroundStyle = {
@@ -29,7 +36,9 @@ export default function DateTimeWeather() {
       <div className="flex items-center justify-between mt-8">
         <div className="text-2xl font-bold">Hồ Chí Minh</div>
         
-        {isLoading ? (
+        {isLoading && prevTempRef.current ?(
+          <div className="text-lg"><WeatherDisplay temperature={prevTempRef.current} humidity={prevHumidityRef.current} /></div>
+        ):isLoading ? (
           <div className="text-lg">Đang tải...</div>
         ) : error ? (
           <div className="text-sm text-red-300">Lỗi: không thể lấy nhiệt độ</div>

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_ENDPOINT
-
 export async function GET(req: Request, context: { params: Promise<{ action: string }> }) {
   const params = await context.params;
   try {
