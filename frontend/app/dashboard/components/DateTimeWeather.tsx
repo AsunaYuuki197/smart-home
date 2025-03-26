@@ -58,8 +58,6 @@ const weatherService = {
       const response = await fetch(`/api/general/?user_id=${userId}`);
       if (!response.ok) throw new Error("Lỗi khi lấy dữ liệu nhiệt độ!");
       const data = await response.json();
-      sessionStorage.setItem("temp_realtime", JSON.stringify(data['temperature']));
-      sessionStorage.setItem("humid_realtime", JSON.stringify(data['humidity']));
       return data;
     } catch (error: any) {
       console.error("Lỗi khi lấy dữ liệu nhiệt độ:", error.message);
@@ -86,7 +84,6 @@ function useDateTime() {
   useEffect(() => {
     updateDateTime(); // Cập nhật ngay lần đầu
     
-    // Cập nhật thời gian mỗi phút thay vì mỗi ngày để đồng hồ chính xác hơn
     const interval = setInterval(updateDateTime, 60000); 
     
     return () => clearInterval(interval);
@@ -103,18 +100,6 @@ function useWeather() {
   const [error, setError] = useState<string | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  useEffect(() => {
-    const savedTemp = sessionStorage.getItem("temp_realtime");
-    const savedHumid = sessionStorage.getItem("humid_realtime");
-
-    if (savedTemp) {
-      setTemperature(JSON.parse(savedTemp));
-    }
-
-    if (savedHumid) {
-      setHumidity(JSON.parse(savedHumid));
-    }
-  }, []);
 
   useEffect(() => {
     const getUserId = () => {

@@ -5,7 +5,6 @@ import { deviceService } from "../services/deviceService";
 export function  useDeviceState(name: string,id_user:number,id_device:number) {
     const deviceType = name === "Quạt" ? 'fan' : 'light';
     const [selectedRoom, setSelectedRoom] = useState("Tất cả");
-    const [userId, setUserId] = useState<number>(1);
     const [isOn, setIsOn] = useState<boolean>(true)
     
     useEffect(() => {
@@ -51,7 +50,7 @@ export function  useDeviceState(name: string,id_user:number,id_device:number) {
     
       const toggleDevice = async () => {
         try {
-          await deviceService.toggleDevice(deviceType, isOn, userId);
+          await deviceService.toggleDevice(deviceType, isOn, id_user);
         } catch (error: any) {
           console.error(error.message);
           if (isMounted) {
@@ -65,8 +64,8 @@ export function  useDeviceState(name: string,id_user:number,id_device:number) {
       return () => {
         isMounted = false; // Cleanup khi unmount
       };
-    }, [isOn, deviceType, userId]); 
+    }, [isOn]); 
     
-    return { isOn, setIsOn, selectedRoom, setSelectedRoom, toggleDeviceState, userId};
+    return { isOn, setIsOn, selectedRoom, setSelectedRoom, toggleDeviceState, id_user};
   }
   

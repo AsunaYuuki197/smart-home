@@ -16,7 +16,24 @@ const ROOMS_ID = {
   "Phòng bếp": 3,
   "Phòng tắm": 4
 };
-const LIGHT_COLORS = ["Trắng", "Vàng", "Xanh"];
+const LIGHT_COLORS: Record<string, string> = {
+ "white": "Trắng",
+ "yellow": "Vàng",
+ "red": "Đỏ",
+ "orange": "Cam",
+ "blue": "Xanh Dương",
+ "green": "Xanh lá",
+"purple": "Tím",
+}
+const BG_LIGHT_COLORS: Record<string, string> = {
+  "white": "#000000",
+  "yellow": "#FFFF00",  
+  "red": "#FF0000",     
+  "orange": "#FFA500",  
+  "blue": "#0000FF",     
+  "green": "#008000",    
+  "purple": "#800080",  
+};
 
 
 interface ControlRoomProps {
@@ -27,7 +44,7 @@ interface ControlRoomProps {
 }
 
 interface ControlItemProps {
-  user_ID?: number;
+  user_ID: number;
   isActive?: boolean;
   speedDevice?: number;
   color?: string
@@ -79,10 +96,10 @@ export default function Control({ name ,user_id}: { name: string,user_id:number 
         />
         
         {name === "Đèn" && (
-          <ControlItem  label="Màu" selectRoom={selectedRoom} name={name} deviceID = {device_id}/>
+          <ControlItem user_ID={user_id} label="Màu" selectRoom={selectedRoom} name={name} deviceID = {device_id}/>
         )}
         
-        <ControlItem  label="Mức" selectRoom={selectedRoom} name={name} deviceID = {device_id} />
+        <ControlItem user_ID={user_id} label="Mức" selectRoom={selectedRoom} name={name} deviceID = {device_id} />
       </div>
     </div>
   );
@@ -165,30 +182,32 @@ export function ControlItem({ user_ID, speedDevice, color, label, name, deviceID
       </div>
     );
   }
-
+  // CHọn màu đèn
   return (
     <div className="relative">
       <div
-        className="flex items-center justify-between p-2 rounded-md cursor-pointer hover:bg-gray-100"
+        className={`flex items-center justify-between p-2 rounded-md cursor-pointer ` }
+        
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span className="text-sm">{selectLightColor || "Mặc định"}</span>
+        <span className="text-sm" style={{ color: (BG_LIGHT_COLORS[selectLightColor] || '#ffffff') }}>{LIGHT_COLORS[selectLightColor] || "Màu đèn"}</span>
         <ChevronDown size={20} className={`text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </div>
 
       <div
         className={`absolute left-0 mt-1 w-full bg-white shadow-md rounded-md border z-10
-                  overflow-hidden transition-all duration-300 
-                  ${isOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"}`}
+                  overflow-y-scroll transition-all duration-300 
+                  ${isOpen ? "max-h-32 opacity-100" : "max-h-0 opacity-0"}`}
       >
         <ul className="py-1">
-          {["Đỏ", "Xanh", "Vàng"].map((lightColor) => (
+          {Object.keys(LIGHT_COLORS).map((lightColor) => (
             <li
               key={lightColor}
-              className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+              className={`px-4 py-2 hover:bg-gray-200 cursor-pointer`}
+              style={{ color: BG_LIGHT_COLORS[lightColor] }}
               onClick={() => handleSelectLightColor(lightColor)}
             >
-              {lightColor}
+              {LIGHT_COLORS[lightColor]}
             </li>
           ))}
         </ul>

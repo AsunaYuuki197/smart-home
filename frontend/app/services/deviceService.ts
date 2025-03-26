@@ -31,7 +31,7 @@ const deviceService = {
     try {
       const response = await fetch(`/api/device/light/color`, {
         method: "POST",
-        body: JSON.stringify({ user_id: userId, device_id: 2, action: 1, level, color }),
+        body: JSON.stringify({ user_id: userId, device_id: 2, action: 1, level, color:color }),
         headers: { "Content-Type": "application/json" },
       });
       return await response.json();
