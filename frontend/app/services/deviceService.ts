@@ -17,7 +17,7 @@ const deviceService = {
     try {
       const response = await fetch(`/api/device/${deviceType}/${endpoint}`, {
         method: "POST",
-        body: JSON.stringify({ user_id: deviceID, device_id: deviceType =='fan'?1:2, action: 1, level:level, color: "" }),
+        body: JSON.stringify({ user_id: userId, device_id: deviceType =='fan'?1:2, action: 1, level:level, color: "" }),
         headers: { "Content-Type": "application/json" },
       });
       sessionStorage.setItem(`level_${userId}_${deviceID}`, JSON.stringify(level));
