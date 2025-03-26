@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const API_BASE_URL = process.env.BACKEND_ENDPOINT
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_ENDPOINT
 
 export async function GET(req: Request) {
     try {

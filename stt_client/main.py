@@ -1,7 +1,11 @@
 import speech_recognition as sr
 import requests
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
-API_URL = "https://<>.com/function-calling/generate"
+
+API_URL = "{}/function-calling/generate".format(os.getenv("BACKEND_ENDPOINT"))
 USER_ID = 1
 
 def send_to_api(text: str):
@@ -30,7 +34,9 @@ def recognize_speech():
                 print("Đang nhận diện...")
                 text = recognizer.recognize_google(audio, language="vi-VN")
                 print(f"Nhận diện: {text}")
-
+                if text == "thoát":
+                    print("Đã thoát")
+                    break
                 send_to_api(text)
 
             except sr.UnknownValueError:
