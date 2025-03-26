@@ -1,6 +1,6 @@
-export // API service
+ // API service
 
-const deviceService = {
+ export const deviceService = {
   toggleDevice: async (deviceType: string, isOn: boolean, userId: number) => {
     try {
       const response = await fetch(`/api/device/${deviceType}/${isOn ? 'on' : 'off'}`, {
