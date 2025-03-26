@@ -436,10 +436,10 @@ async def humid_stats(user_id: int):
 
     for device in devices_id:
         last_time_retrieve = await db.SensorData.find_one({"user_id": user_id, "device_id": device['device_id']}, sort=[("_id", -1)])
-        params["start_time"] = str(last_time_retrieve["timestamp"])
+        if last_time_retrieve is not None:
+            params["start_time"] = str(last_time_retrieve["timestamp"])
 
         response = requests.get(url, headers=headers, params=params)
-
         if response.status_code == 200:
             data = response.json()
 
@@ -447,8 +447,8 @@ async def humid_stats(user_id: int):
                 "user_id": user_id,
                 "device_id": device['device_id'],
                 "value": entry['value'],
-                "timestamp": entry['created_at']
-            }, data))
+                "timestamp": datetime.strptime(entry['created_at'], "%Y-%m-%dT%H:%M:%SZ")
+            }, reversed(data)))
 
             if documents:
                 db.SensorData.insert_many(documents)
@@ -461,8 +461,9 @@ async def humid_stats(user_id: int):
     for device in devices_id:
         cursor = db.SensorData.find(
             {"user_id": user_id, "device_id": device['device_id']},
-            {"_id": 0, "device_id": 1, "value": 1, "timestamp": 1},  
+            {"_id": 0, "device_id": 1, "value": 1, "timestamp": 1},
         )
+
         async for doc in cursor:
             humid_data.append(doc)
 
@@ -490,7 +491,8 @@ async def temp_stats(user_id: int):
 
     for device in devices_id:
         last_time_retrieve = await db.SensorData.find_one({"user_id": user_id, "device_id": device['device_id']}, sort=[("_id", -1)])
-        params["start_time"] = str(last_time_retrieve["timestamp"])
+        if last_time_retrieve is not None:
+            params["start_time"] = str(last_time_retrieve["timestamp"])
 
         response = requests.get(url, headers=headers, params=params)
 
@@ -501,8 +503,8 @@ async def temp_stats(user_id: int):
                 "user_id": user_id,
                 "device_id": device['device_id'],
                 "value": entry['value'],
-                "timestamp": entry['created_at']
-            }, data))
+                "timestamp": datetime.strptime(entry['created_at'], "%Y-%m-%dT%H:%M:%SZ")
+            }, reversed(data)))
 
             if documents:
                 db.SensorData.insert_many(documents)
