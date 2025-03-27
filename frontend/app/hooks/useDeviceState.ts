@@ -18,12 +18,12 @@ export function  useDeviceState(name: string,id_user:number,id_device:number,isL
 
     useEffect(() => {
       if(isLoading) return //chưa lấy dữ liệu xong
-      if (initialMount.current) // lấy dữ liệu xong và bỏ qua việc call API lần đầu
-      {
-        console.log(name,isLoading,isOn)
-        initialMount.current = false;
-        return; 
-      }
+      // if (initialMount.current) // lấy dữ liệu xong và bỏ qua việc call API lần đầu
+      // {
+      //   console.log(name,isLoading,isOn)
+      //   initialMount.current = false;
+      //   return; 
+      // }
       let isMounted = true; // Kiểm tra component có bị unmount không
     
       const toggleDevice = async () => {
