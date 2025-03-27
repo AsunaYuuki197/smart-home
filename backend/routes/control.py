@@ -275,11 +275,15 @@ async def fan_stats(user_id: int):
     fan_data = {}
 
     for device in devices_id:
-        # Fetch all documents at once for this device
-        fan_data[device['device_id']] = await db.ActionLog.find(
+        # Fetch all documents at once for this device in chunks
+        cursor = db.ActionLog.find(
             {"user_id": user_id, "device_id": device['device_id']},
             {'_id': 0, "action": 1, "level": 1,  "timestamp": 1}
-        ).to_list(None)
+        ).batch_size(100)
+
+        fan_data[device['device_id']] = []
+        async for doc in cursor:
+            fan_data[device['device_id']].append(doc)
 
     return fan_data    
 
@@ -294,11 +298,18 @@ async def light_stats(user_id: int):
     light_data = {}
 
     for device in devices_id:
-        # Fetch all documents at once for this device
-        light_data[device['device_id']] = await db.ActionLog.find(
+        # Fetch all documents at once for this device in chunks
+
+        cursor = db.ActionLog.find(
             {"user_id": user_id, "device_id": device['device_id']},
-            {'_id': 0, "user_id": 0, "device_id": 0}
-        ).to_list(None)
+            {"_id": 0, "device_id": 0, "user_id": 0}
+        ).batch_size(100)
+
+        light_data[device['device_id']] = []
+        async for doc in cursor:
+            light_data[device['device_id']].append(doc)
+
+
 
     return light_data
 

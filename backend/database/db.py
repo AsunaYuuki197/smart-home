@@ -9,7 +9,7 @@ DB_PWD = os.getenv("DB_PWD")
 MONGO_URL = f"mongodb+srv://{DB_NAME}:{DB_PWD}@testmongodb.sovhh.mongodb.net/?retryWrites=true&w=majority&appName=TestMongodb"
 
 try: 
-    client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URL)
+    client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URL,  maxPoolSize=20)
 except Exception as e:
     print(e)
     
