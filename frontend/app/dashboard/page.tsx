@@ -27,9 +27,9 @@ export default function Dashboard() {
 
 
   return (
-    <div className="grid grid-cols-1 gap-8 h-full ml-5 mr-5">
+    <div className="grid grid-cols-1 gap-8 h-full ml-5 mr-5 ">
       {/* Row trên: dành cho desktop sẽ hiển thị 3 cột theo grid 12 cột */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 ">
         {/* Cột trái: UserGreeting và StatusMessage */}
         <div className="md:col-span-3 grid grid-rows-3 gap-4">
           <div className="row-span-1">
@@ -50,9 +50,9 @@ export default function Dashboard() {
       </div>
 
       {/* Row dưới */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 ">
         {/* Cột trái: LightControl và FanControl */}
-        <div className="md:col-span-4 grid gap-4">
+        <div className="md:col-span-4 grid gap-4 ">
           <Control name={'Đèn'} user_id={userID}/>
           <Control name={'Quạt'} user_id={userID} />
         </div>

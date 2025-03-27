@@ -39,10 +39,10 @@ export function useDeviceControl({
   // Gửi API khi thay đổi màu đèn
   useEffect(() => {
     if (isLoading) return; //chưa lấy dữ liệu xong
-    // if (initialMount.current) {
-    //     initialMount.current = false;
-    //     return; 
-    //   }
+    if (initialMount.current) {
+        initialMount.current = false;
+        return; 
+      }
 
     const changeLightColor = async () => {
       try {
@@ -58,13 +58,13 @@ export function useDeviceControl({
   // Gửi API khi thay đổi tốc độ / mức độ
   useEffect(() => {
     if (isLoading) return; //chưa lấy dữ liệu xong
-    // if (initialMountSpeed.current) {
-    //     initialMountSpeed.current = false;
-    //     return; 
-    //   }
+    if (initialMountSpeed.current) {
+        initialMountSpeed.current = false;
+        return; 
+      }
     const timeout = setTimeout(async () => {
       try {
-        await deviceService.setDeviceLevel(deviceType, endpoint, speed, user_ID, deviceID);
+        await deviceService.setDeviceLevel(deviceType, endpoint, speed,selectLightColor, user_ID, deviceID);
       } catch (error: any) {
         console.error(error.message);
       }

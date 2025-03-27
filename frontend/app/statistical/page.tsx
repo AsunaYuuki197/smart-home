@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 // import { ChevronDown } from 'lucide-react';
-import React, { lazy, Suspense, useState } from 'react';
+import React, { lazy, Suspense, useState,useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { useDeviceStatistics } from "../hooks/useDeviceStatistics";
 
@@ -12,6 +12,7 @@ export default function Statistical() {
   const [activeDevice, setActiveDevice] = useState('fan');
   const deviceOptions = ['fan', 'light'];
   const router = useRouter();
+  const hours = useMemo(() => [0,1,2,3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], []);
 
   const handleDeviceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedDevice = e.target.value;
@@ -21,12 +22,24 @@ export default function Statistical() {
 
   // const DeviceComponent = lazy(() => import(`./${activeDevice}/page.tsx`));
   const { statistics, isLoading, error } = useDeviceStatistics(activeDevice);
-  const barData = statistics
-    ? Object.keys(statistics).map((date) => ({
-        date,
-        hours: statistics[date],
-      }))
-    : [];
+  const barData = useMemo(() => {
+    let usageData;
+    const now = new Date();
+    const formattedDate = now.toISOString().split("T")[0]; // "YYYY-MM-DD"
+
+    if (statistics && Object.keys(statistics).length > 0) {
+      // Chuyển đổi dữ liệu từ API thành mảng theo giờ
+      usageData = hours.map(hour => {
+        return Object.keys(statistics).reduce((sum, deviceId) => {
+          const deviceStats = statistics[deviceId]?.[formattedDate] ?? {}; // Get stats for current date
+          return sum + (deviceStats ? deviceStats[hour] || 0 : 0); // Sum usage for this hour
+        }, 0);
+      });
+    } 
+  
+    return usageData;
+
+  }, [statistics]);
   const [filter, setFilter] = useState('week');
   const filterOptions = ["week", "month"];
   const lineData = [
@@ -101,6 +114,11 @@ export default function Statistical() {
         {/* <h3 className="text-lg font-semibold mb-2">Thời gian hoạt động</h3> */}
         <h3 className="text-lg font-semibold mb-2">Thời gian hoạt động</h3>
             <ResponsiveContainer width="90%" height={300}>
+            {isLoading ? (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-gray-500">Đang tải dữ liệu...</div>
+              </div>
+            ) : (
               <BarChart data={barData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
@@ -108,6 +126,8 @@ export default function Statistical() {
                 <Tooltip />
                 <Bar dataKey="hours" fill="#1E88E5" barSize={30} radius={[5, 5, 0, 0]} />
               </BarChart>
+            )}
+              
             </ResponsiveContainer>
         </div>
         <div className = "flex-1 flex flex-col   gap-5">

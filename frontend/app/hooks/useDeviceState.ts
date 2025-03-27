@@ -3,8 +3,8 @@ import { deviceService } from "../services/deviceService";
 import { usePathname } from "next/navigation";
 
 // Custom hook for device state
-export function  useDeviceState(name: string,id_user:number,id_device:number,isLoading:boolean,
-            isOn:boolean,setIsOn:(Active:React.SetStateAction<boolean>)=>void) {
+export function  useDeviceState(name: string,id_user:number,id_device:number,isLoading:boolean,color:string,level:number,
+            isOn:boolean|null,setIsOn:(Active:React.SetStateAction<boolean|null>)=>void) {
     const deviceType = name === "Quạt" ? 'fan' : 'light';
     const [selectedRoom, setSelectedRoom] = useState("Tất cả");
     const initialMount = useRef(true);
@@ -18,17 +18,16 @@ export function  useDeviceState(name: string,id_user:number,id_device:number,isL
 
     useEffect(() => {
       if(isLoading) return //chưa lấy dữ liệu xong
-      // if (initialMount.current) // lấy dữ liệu xong và bỏ qua việc call API lần đầu
-      // {
-      //   console.log(name,isLoading,isOn)
-      //   initialMount.current = false;
-      //   return; 
-      // }
+      if (initialMount.current) // lấy dữ liệu xong và bỏ qua việc call API lần đầu
+      {
+        initialMount.current = false;
+        return; 
+      }
       let isMounted = true; // Kiểm tra component có bị unmount không
     
       const toggleDevice = async () => {
         try {
-          await deviceService.toggleDevice(deviceType, isOn, id_user);
+          await deviceService.toggleDevice(deviceType, isOn!==null?isOn:true, level,color,id_user);
         } catch (error: any) {
           console.error(error.message);
           if (isMounted) {

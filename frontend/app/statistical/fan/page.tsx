@@ -135,7 +135,6 @@ export default function Statistical() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
                 <YAxis domain={[0, 16]} />
-                <Tooltip />
                 <Bar dataKey="hours" fill="#1E88E5" barSize={30} radius={[5, 5, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>

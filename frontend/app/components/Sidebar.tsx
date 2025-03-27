@@ -44,8 +44,8 @@ export default function Sidebar() {
       
         <SidebarButton icon={<Home size={30} />} active={pathname === "/dashboard" || pathname === "/"}  href="/dashboard" onClick={turnOffNotifications} />
         <SidebarButton icon={<Bell size={30} />} active={isActiveNoty} onClick={toggleNotifications} />
-        <SidebarButton icon={<BarChart2 size={30} />} active={pathname === "/statistical"}  href="/statistical" onClick={turnOffNotifications} />
-        <SidebarButton icon={<Settings size={30} />} active={pathname === "/setting"}  href="/setting" onClick={turnOffNotifications} />
+        <SidebarButton icon={<BarChart2 size={30} />} active={pathname.startsWith("/statistical")}  href="/statistical" onClick={turnOffNotifications} />
+        <SidebarButton icon={<Settings size={30} />} active={pathname.startsWith("/setting")}  href="/setting" onClick={turnOffNotifications} />
     </div>
     </div>
   );

@@ -1,11 +1,11 @@
  // API service
 
  export const deviceService = {
-  toggleDevice: async (deviceType: string, isOn: boolean, userId: number) => {
+  toggleDevice: async (deviceType: string, isOn: boolean, level:number,color:string, userId: number) => {
     try {
       const response = await fetch(`/api/device/${deviceType}/${isOn ? 'on' : 'off'}`, {
         method: "POST",
-        body: JSON.stringify({ user_id: userId, device_id: deviceType =='fan'?1:2, action: isOn ? 1 : 0, level: 0, color: "" }),
+        body: JSON.stringify({ user_id: userId, device_id: deviceType =='fan'?1:2, action: isOn ? 1 : 0, level, color}),
         headers: { "Content-Type": "application/json" },
       });
       return await response.json();
@@ -13,11 +13,11 @@
       throw new Error(`Error toggling device: ${error.message}`);
     }
   },
-  setDeviceLevel: async (deviceType: string, endpoint: string, level: number, userId: number,deviceID:number) => {
+  setDeviceLevel: async (deviceType: string, endpoint: string, level: number,color:string, userId: number,deviceID:number) => {
     try {
       const response = await fetch(`/api/device/${deviceType}/${endpoint}`, {
         method: "POST",
-        body: JSON.stringify({ user_id: userId, device_id: deviceType =='fan'?1:2, action: 1, level:level, color: "" }),
+        body: JSON.stringify({ user_id: userId, device_id: deviceType =='fan'?1:2, action: 1, level:level, color: color }),
         headers: { "Content-Type": "application/json" },
       });
       sessionStorage.setItem(`level_${userId}_${deviceID}`, JSON.stringify(level));
@@ -31,7 +31,7 @@
     try {
       const response = await fetch(`/api/device/light/color`, {
         method: "POST",
-        body: JSON.stringify({ user_id: userId, device_id: 2, action: 1, level, color:color }),
+        body: JSON.stringify({ user_id: userId, device_id: 2, action: 1, level:level, color: color }),
         headers: { "Content-Type": "application/json" },
       });
       return await response.json();
@@ -41,15 +41,18 @@
   },
   getDeviceStatus: async (userID :number, deviceID:number) =>{
     try {
+      console.log("fetch từ",deviceID)
       const response = await fetch(`/api/device/status?user_id=${userID}&device_id=${deviceID}`);
       if (!response.ok) throw new Error("Lỗi khi lấy dữ liệu ban đầu");
       const data = await response.json();
+      
       if (data) {
         if (data["action"]) sessionStorage.setItem(`action_${userID}_${deviceID}`, JSON.stringify(data["action"] ==1 ?true:false));
         if (data["level"]) sessionStorage.setItem(`level_${userID}_${deviceID}`, JSON.stringify(data["level"]));
         if (data["color"]) sessionStorage.setItem(`color_${userID}_${deviceID}`, JSON.stringify(data["color"]));
       }
-      console.log("Dữ liệu fetch được: ", data["action"],data["level"],data["color"])
+      // console.log("DATAAAA.....",data)
+      // console.log("Dữ liệu fetch được: ", data["action"],data["level"],"Màu: ",data["color"])
       return {
         action: data["action"],
         level: data["level"],

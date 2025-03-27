@@ -57,10 +57,7 @@ export default function StatsBar({ title, date, color = "teal" }: StatsProps) {
       ],
     };
   }, [statistics, hours, color]);
-  const prevCharDataRef = useRef<typeof chartData | null>(null);
-  useEffect(() => {
-    if (chartData !== undefined) prevCharDataRef.current = chartData;
-  }, [statistics]);
+
 
   const chartOptions = {
     responsive: true,
@@ -68,7 +65,7 @@ export default function StatsBar({ title, date, color = "teal" }: StatsProps) {
     scales: {
       y: { 
         beginAtZero: true, 
-        max: 100,
+        max: 60,
       },
     },
   };
@@ -82,7 +79,7 @@ export default function StatsBar({ title, date, color = "teal" }: StatsProps) {
   }, [router, deviceType]);
 
   return (
-    <div className="bg-white h-full rounded-xl p-4 relative">
+    <div className="bg-white h-full rounded-xl pt-4 pl-4 pr-4 relative">
       <div className="flex items-center gap-2 mb-2">
         <div className="w-6 h-fit rounded-full bg-gray-100 flex items-center justify-center">
           <div className="w-3 h-3 bg-gray-400 rounded-full" />
@@ -90,10 +87,8 @@ export default function StatsBar({ title, date, color = "teal" }: StatsProps) {
         <span className="font-medium">{title}</span>
       </div>
 
-      <div className={`${color === 'teal' ? 'bg-[#DEEAFF]' : 'bg-[#FFDEFA]'} rounded-2xl h-50 w-full relative`}>
-        {isLoading && prevCharDataRef.current ?(
-          <Bar data={prevCharDataRef.current} options={chartOptions} />
-        ):isLoading ? (
+      <div className={`${color === 'teal' ? 'bg-[#DEEAFF]' : 'bg-[#FFDEFA]'}  rounded-2xl h-[70%] w-full relative`}>
+        {isLoading ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-gray-500">Đang tải dữ liệu...</div>
           </div>

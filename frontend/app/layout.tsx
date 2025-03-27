@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Inter } from "next/font/google"
 import Sidebar from "./components/Sidebar";
-import { DeviceProvider } from "./context/DeviceContext";
 
 const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
@@ -23,9 +22,7 @@ export default function RootLayout({
             <Sidebar/> 
           </div>
           <div className = "flex-1 ml-8 ">
-            <DeviceProvider>
             {children}
-            </DeviceProvider>
           </div>
         </body>
     </html>
