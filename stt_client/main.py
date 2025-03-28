@@ -1,12 +1,20 @@
+import streamlit as st
 import speech_recognition as sr
-import requests
+import io
+import wave
 from dotenv import load_dotenv
 import os
-load_dotenv()
+import requests
+import time
+import threading
 
+load_dotenv(override=True) 
 
 API_URL = "{}/function-calling/generate".format(os.getenv("BACKEND_ENDPOINT"))
 USER_ID = 1
+
+
+st.title('Device Control by Speech')
 
 def send_to_api(text: str):
     headers = {
@@ -15,37 +23,70 @@ def send_to_api(text: str):
     }
     try:
         response = requests.post(API_URL, json={"user_id": USER_ID, "msg": text}, headers=headers)
-        print(f"API Response: {response.status_code} - {response.text}")
+        return response.json()
     except Exception as e:
         print(f"Lỗi khi gửi đến API: {e}")
+        return False
 
-def recognize_speech():
+
+def recognize_speech(audio_bytes):
     recognizer = sr.Recognizer()
-    mic = sr.Microphone()
 
-    with mic as source:
-        print("Đang điều chỉnh tiếng ồn môi trường...")
-        recognizer.adjust_for_ambient_noise(source)
-        print("Đang lắng nghe...")
+    try:
+        # Convert audio_bytes to WAV format
+        with wave.open(io.BytesIO(audio_bytes), "rb") as audio_file:
+            audio_data = sr.AudioData(audio_bytes, audio_file.getframerate(), audio_file.getsampwidth())
 
-        while True:
-            try:
-                audio = recognizer.listen(source)
-                print("Đang nhận diện...")
-                text = recognizer.recognize_google(audio, language="vi-VN")
-                print(f"Nhận diện: {text}")
-                if text == "thoát":
-                    print("Đã thoát")
-                    break
-                send_to_api(text)
+        # Recognize speech
+        text = recognizer.recognize_google(audio_data, language="vi-VN")
+        return text
+    except sr.UnknownValueError:
+        return "Could not understand the audio."
+    except sr.RequestError as e:
+        return f"Recognition error: {e}"
 
-            except sr.UnknownValueError:
-                print("Không thể nhận diện âm thanh.")
-            except sr.RequestError as e:
-                print(f"Lỗi khi yêu cầu kết quả từ dịch vụ nhận diện; {e}")
-            except KeyboardInterrupt:
-                print("\nĐã thoát.")
-                break
 
-if __name__ == "__main__":
-    recognize_speech()
+audio_file = st.audio_input("Record your command")
+
+if audio_file:
+    audio_bytes = audio_file.read()
+
+    # Convert audio to text
+    command = recognize_speech(audio_bytes)
+    if command == "Could not understand your command, try again.":
+        st.write(command)
+    else:
+        st.write(f"**Your command:** {command}")
+
+        progress_container = st.empty()
+        status_container = st.empty()
+        
+        api_complete = threading.Event()
+        response = [None] 
+        
+        def api_thread():
+            response[0] = send_to_api(command)
+            api_complete.set()
+        
+        thread = threading.Thread(target=api_thread)
+        thread.start()
+        
+        progress = 0
+        while not api_complete.is_set():
+            progress = min(progress + 1, 90)
+            with progress_container.container():
+                st.progress(progress/100, text=f"Processing your command... ({progress}%)")
+            time.sleep(0.2) 
+        
+        with progress_container.container():
+            st.progress(1.0, text="Processing complete! (100%)")
+        progress_container.empty()
+        status_container.empty()
+
+        if type(response[0]) == dict and 'assistant' in response[0].keys():
+            st.write(f"**Assistant:** {response[0]['assistant']}")
+            st.write(f"**Calling Result:** {response[0]['calling_result']}")
+        else:
+            print(type(response[0]))
+            print(response[0])
+            st.write("Try again please")
