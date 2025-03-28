@@ -31,7 +31,11 @@ export default function StatsBar({ title, date, color = "teal" }: StatsProps) {
   const chartData = useMemo(() => {
     let usageData;
     const now = new Date();
-    const formattedDate = now.toISOString().split("T")[0]; // "YYYY-MM-DD"
+    const vietnamTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
+    const formattedDate = vietnamTime.getFullYear() + '-' 
+                        + String(vietnamTime.getMonth() + 1).padStart(2, '0') + '-' 
+                        + String(vietnamTime.getDate()).padStart(2, '0');
+    
 
     if (statistics && Object.keys(statistics).length > 0) {
       // Chuyển đổi dữ liệu từ API thành mảng theo giờ
