@@ -10,14 +10,15 @@ from schemas.schema import *
 from database.db import db
 from utils.control_helper import *
 
-from Adafruit_IO import Client
+from Adafruit_IO import MQTTClient
 from datetime import datetime
 import requests
 
 load_dotenv()
 router = APIRouter()
-aio = Client(os.getenv("AIO_USERNAME"), os.getenv("AIO_KEY"))
-
+aio = MQTTClient(os.getenv("AIO_USERNAME"), os.getenv("AIO_KEY"))
+aio.connect()
+aio.loop_background()
 
 # Turn on fan
 @router.post("/fan/on", summary="Turn On Fan")
@@ -30,7 +31,7 @@ async def turn_on_fan(action: ActionLog):
         devices_id = await db.Devices.find({"type": "Fan"}, {"device_id": 1}).to_list(None)
 
     try:
-        aio.send_data(os.getenv("FAN_BTN_FEED"), 1)
+        aio.publish(os.getenv("FAN_BTN_FEED"), 1)
         if not devices_id:
             db.ActionLog.insert_one(action_log)
         else:
@@ -53,7 +54,7 @@ async def turn_off_fan(action: ActionLog):
         devices_id = await db.Devices.find({"type": "Fan"}, {"device_id": 1}).to_list(None)
 
     try:
-        aio.send_data(os.getenv("FAN_BTN_FEED"), 0)
+        aio.publish(os.getenv("FAN_BTN_FEED"), 0)
         if not devices_id:
             db.ActionLog.insert_one(action_log)
         else:
@@ -81,8 +82,8 @@ async def change_fan_speed(action: ActionLog):
         devices_id = await db.Devices.find({"type": "Fan"}, {"device_id": 1}).to_list(None)
 
     try:
-        aio.send_data(os.getenv("FAN_BTN_FEED"), action_log['action'])
-        aio.send_data(os.getenv("FAN_SPEED_FEED"), speed)
+        aio.publish(os.getenv("FAN_BTN_FEED"), action_log['action'])
+        aio.publish(os.getenv("FAN_SPEED_FEED"), speed)
 
         if not devices_id:
             db.ActionLog.insert_one(action_log)
@@ -108,7 +109,7 @@ async def turn_on_light(action: ActionLog):
         devices_id = await db.Devices.find({"type": "Light"}, {"device_id": 1}).to_list(None)
 
     try:
-        aio.send_data(os.getenv("LIGHT_BTN_FEED"), 1)
+        aio.publish(os.getenv("LIGHT_BTN_FEED"), 1)
 
         if not devices_id:
             db.ActionLog.insert_one(action_log)
@@ -134,7 +135,7 @@ async def turn_off_light(action: ActionLog):
         devices_id = await db.Devices.find({"type": "Light"}, {"device_id": 1}).to_list(None)
 
     try:
-        aio.send_data(os.getenv("LIGHT_BTN_FEED"), 0)
+        aio.publish(os.getenv("LIGHT_BTN_FEED"), 0)
 
         if not devices_id:
             db.ActionLog.insert_one(action_log)
@@ -167,8 +168,8 @@ async def change_light_color(action: ActionLog):
         devices_id = await db.Devices.find({"type": "Light"}, {"device_id": 1}).to_list(None)
 
     try:
-        aio.send_data(os.getenv("LIGHT_BTN_FEED"), action_log['action'])
-        aio.send_data(os.getenv("LIGHT_COLOR_FEED"), color)
+        aio.publish(os.getenv("LIGHT_BTN_FEED"), action_log['action'])
+        aio.publish(os.getenv("LIGHT_COLOR_FEED"), color)
 
         if not devices_id:
             db.ActionLog.insert_one(action_log)
@@ -197,8 +198,8 @@ async def change_light_level(action: ActionLog):
         devices_id = await db.Devices.find({"type": "Light"}, {"device_id": 1}).to_list(None)
 
     try:
-        aio.send_data(os.getenv("LIGHT_BTN_FEED"), action_log['action'])
-        aio.send_data(os.getenv("LIGHT_LEVEL_FEED"), level)
+        aio.publish(os.getenv("LIGHT_BTN_FEED"), action_log['action'])
+        aio.publish(os.getenv("LIGHT_LEVEL_FEED"), level)
         if not devices_id:
             db.ActionLog.insert_one(action_log)
         else:
@@ -224,7 +225,7 @@ async def turn_on_pump(action: ActionLog):
         devices_id = await db.Devices.find({"type": "Pump"}, {"device_id": 1}).to_list(None)
 
     try:
-        aio.send_data(os.getenv("PUMP_FEED"), 1)
+        aio.publish(os.getenv("PUMP_FEED"), 1)
 
         if not devices_id:
             db.ActionLog.insert_one(action_log)
@@ -251,7 +252,7 @@ async def turn_off_pump(action: ActionLog):
         devices_id = await db.Devices.find({"type": "Pump"}, {"device_id": 1}).to_list(None)
 
     try:
-        aio.send_data(os.getenv("PUMP_FEED"), 0)
+        aio.publish(os.getenv("PUMP_FEED"), 0)
 
         if not devices_id:
             db.ActionLog.insert_one(action_log)
@@ -471,7 +472,7 @@ async def humid_stats(user_id: int):
         cursor = db.SensorData.find(
             {"user_id": user_id, "device_id": device['device_id']},
             {"_id": 0, "device_id": 1, "value": 1, "timestamp": 1},
-        )
+        ).batch_size(100)
 
         async for doc in cursor:
             humid_data.append(doc)
@@ -525,7 +526,8 @@ async def temp_stats(user_id: int):
         cursor = db.SensorData.find(
             {"user_id": user_id, "device_id": device['device_id']},
             {"_id": 0, "device_id": 1, "value": 1, "timestamp": 1}
-        )
+        ).batch_size(100)
+
         async for doc in cursor:
             temp_data.append(doc)
 
