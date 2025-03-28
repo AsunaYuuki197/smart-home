@@ -527,7 +527,6 @@ async def temp_stats(user_id: int):
             {"user_id": user_id, "device_id": device['device_id']},
             {"_id": 0, "device_id": 1, "value": 1, "timestamp": 1}
         ).batch_size(100)
-
         async for doc in cursor:
             temp_data.append(doc)
 
