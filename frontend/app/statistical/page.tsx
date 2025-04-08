@@ -1,19 +1,49 @@
+/*
+"use client";
+import{useState, useEffect} from 'react'
+export default function Statistical_FAN() {
+const [data, setData] = useState(null)
+  useEffect(() => {
+    const fetchStatus = async () => {
+    const user_id = localStorage.getItem("user_id") || 1;
+      try {
+        const response = await fetch(`/api/device/temp_sensor?user_id=${user_id}`);
+        if (!response.ok) throw new Error("Lỗi khi lấy dữ liệu!");
+
+        const data = await response.json();
+        setData(data)
+        console.log(" data " , data);
+      } catch (error: any) {
+        console.error("Error fetching  status:", error.message);
+      }
+    };
+
+    fetchStatus();
+  }, []); 
+  return (
+    <>    
+      <h1>temp_sensor </h1>
+      <div>{JSON.stringify(data, null, 2)}</div> 
+    </>
+    )
+  }
+*/
 "use client";
 
 import { useRouter } from 'next/navigation';
 // import { ChevronDown } from 'lucide-react';
-import React, { lazy, Suspense, useState,useMemo } from 'react';
+import React, { lazy, Suspense, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { useDeviceStatistics } from "../hooks/useDeviceStatistics";
-
-
+import { useSensorStatistics } from "../hooks/useSensorStatistics";
+import { useMemo } from "react";
 
 export default function Statistical() {
   const [activeDevice, setActiveDevice] = useState('fan');
   const deviceOptions = ['fan', 'light'];
   const router = useRouter();
-  const hours = useMemo(() => [0,1,2,3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], []);
-
+  const [filter, setFilter] = useState('week');
+  const filterOptions = ["week", "month"];
   const handleDeviceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedDevice = e.target.value;
     setActiveDevice(selectedDevice);
@@ -22,26 +52,14 @@ export default function Statistical() {
 
   // const DeviceComponent = lazy(() => import(`./${activeDevice}/page.tsx`));
   const { statistics, isLoading, error } = useDeviceStatistics(activeDevice);
-  const barData = useMemo(() => {
-    let usageData;
-    const now = new Date();
-    const formattedDate = now.toISOString().split("T")[0]; // "YYYY-MM-DD"
-
-    if (statistics && Object.keys(statistics).length > 0) {
-      // Chuyển đổi dữ liệu từ API thành mảng theo giờ
-      usageData = hours.map(hour => {
-        return Object.keys(statistics).reduce((sum, deviceId) => {
-          const deviceStats = statistics[deviceId]?.[formattedDate] ?? {}; // Get stats for current date
-          return sum + (deviceStats ? deviceStats[hour] || 0 : 0); // Sum usage for this hour
-        }, 0);
-      });
-    } 
-  
-    return usageData;
-
-  }, [statistics]);
-  const [filter, setFilter] = useState('week');
-  const filterOptions = ["week", "month"];
+  const barData = statistics
+    ? Object.keys(statistics).map((date) => ({
+        date,
+        hours: statistics[date],
+      }))
+    : [];
+  const { data: tempData } = useSensorStatistics("temp_sensor");
+  const { data: humidData } = useSensorStatistics("humid_sensor");
   const lineData = [
     { time: '03', temp: 25, humidity: 80 },
     { time: '06', temp: 27, humidity: 75 },
@@ -51,6 +69,24 @@ export default function Statistical() {
     { time: '18', temp: 26, humidity: 70 },
     { time: '21', temp: 24, humidity: 80 }
   ];
+  // Giả sử cả hai cùng có dạng: [{ device_id, value, timestamp }]
+const chartData = useMemo(() => {
+  const result: Record<string, { time: string; temp?: number; humidity?: number }> = {};
+
+  tempData.forEach(item => {
+    const time = new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (!result[time]) result[time] = { time };
+    result[time].temp = item.value;
+  });
+
+  humidData.forEach(item => {
+    const time = new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (!result[time]) result[time] = { time };
+    result[time].humidity = item.value;
+  });
+
+  return Object.values(result).sort((a, b) => a.time.localeCompare(b.time));
+}, [tempData, humidData]);
 
   
   return (
@@ -114,20 +150,12 @@ export default function Statistical() {
         {/* <h3 className="text-lg font-semibold mb-2">Thời gian hoạt động</h3> */}
         <h3 className="text-lg font-semibold mb-2">Thời gian hoạt động</h3>
             <ResponsiveContainer width="90%" height={300}>
-            {isLoading ? (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-gray-500">Đang tải dữ liệu...</div>
-              </div>
-            ) : (
               <BarChart data={barData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
                 <YAxis domain={[0, 16]} />
-                <Tooltip />
                 <Bar dataKey="hours" fill="#1E88E5" barSize={30} radius={[5, 5, 0, 0]} />
               </BarChart>
-            )}
-              
             </ResponsiveContainer>
         </div>
         <div className = "flex-1 flex flex-col   gap-5">
@@ -148,17 +176,28 @@ export default function Statistical() {
           <div className = "flex-1 flex items-center bg-white flex-col rounded-[20px] ">
           {/* <h3 className="text-lg font-semibold mb-2">Nhiệt độ & độ ẩm</h3> */}
           <h3 className="text-lg font-semibold mb-2">Nhiệt độ & độ ẩm</h3>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={lineData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="time" />
-                <YAxis yAxisId="left" domain={[20, 30]} tick={{ fill: 'blue' }} />
-                <YAxis yAxisId="right" orientation="right" domain={[50, 90]} tick={{ fill: 'orange' }} />
-                <Tooltip />
-                <Line yAxisId="left" type="monotone" dataKey="temp" stroke="blue" strokeWidth={2} />
-                <Line yAxisId="right" type="monotone" dataKey="humidity" stroke="orange" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="time" />
+              <YAxis
+                yAxisId="left"
+                domain={['auto', 'auto']}
+                tick={{ fill: 'blue' }}
+                label={{ value: "Temp (°C)", angle: -90, position: 'insideLeft', fill: 'blue' }}
+              />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                domain={['auto', 'auto']}
+                tick={{ fill: 'orange' }}
+                label={{ value: "Humidity (%)", angle: -90, position: 'insideRight', fill: 'orange' }}
+              />
+              <Tooltip />
+              <Line yAxisId="left" type="monotone" dataKey="temp" stroke="blue" strokeWidth={2} name="Nhiệt độ" />
+              <Line yAxisId="right" type="monotone" dataKey="humidity" stroke="orange" strokeWidth={2} name="Độ ẩm" />
+            </LineChart>
+          </ResponsiveContainer>
           </div>
         </div> 
       </div>
