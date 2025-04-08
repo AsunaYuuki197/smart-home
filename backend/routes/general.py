@@ -1,10 +1,13 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, status
 from .control import temp_stats, humid_stats
 from schemas.schema import *
 
 import requests 
 from datetime import datetime
 import asyncio
+
+import bcrypt
+from database.db import db
 
 router = APIRouter()
 
@@ -53,18 +56,63 @@ async def environment_info():
     except Exception as e:
         return {"error": str(e)}
 
+user_collection = db["Users"]
+active_sessions = {}
 
-# User login
+#User Login
 @router.post("/login", summary="User Login")
 async def login(data: LoginInput):
-    pass
+    user = await user_collection.find_one({"email": data.email})
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
+    # Compare password
+    if not bcrypt.checkpw(data.password.encode(), user["password"].encode()):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
-# User logout
+    active_sessions[data.email] = True
+
+    return {"message": "Login successful"}
+
+#User Logout
 @router.post("/logout", summary="User Logout")
-async def logout():
-    return {"message": "Logout successful"}
+async def logout(data: LoginInput):
+    if data.email in active_sessions:
+        del active_sessions[data.email]
+        return {"message": "Logout successful"}
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not logged in")
 
+#User Signup
+@router.post("/signup", summary="User Signup")
+async def signup(data: UserSignupInput):
+    existing_user = await user_collection.find_one({"email": data.email})
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="Email already in use"
+        )
+
+    current_user_count = await user_collection.count_documents({})
+    user_id = current_user_count + 1
+
+    hashed_password = bcrypt.hashpw(data.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+    new_user = {
+        "user_id": user_id,
+        "fname": data.fname,
+        "lname": data.lname,
+        "phone": data.phone,
+        "email": data.email,
+        "password": hashed_password,  
+        "birth": data.birth,
+        "gender": data.gender,
+        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")  
+    }
+
+    await user_collection.insert_one(new_user)
+
+    return {"message": "User registered successfully", "user_id": user_id}
 
 # Get user profile
 @router.get("/me", summary="Get User Profile", response_model=UserProfile)
