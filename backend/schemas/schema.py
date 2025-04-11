@@ -1,6 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel 
 from typing import Optional
+from config.ai_cfg import LLMConfig
 
 class ModelResponse(BaseModel):
     assistant: str = ""
@@ -66,4 +67,4 @@ class SensorData(BaseModel):
 class ModelRequest(BaseModel):
     user_id: int 
     msg: str
-    model_name: Optional[str] = 'hiieu/Vistral-7B-Chat-function-calling'
+    model_name: Optional[str] = LLMConfig.MODEL_NAME

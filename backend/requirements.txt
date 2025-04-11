@@ -2,6 +2,7 @@ fastapi==0.115.11
 uvicorn==0.34.0
 transformers==4.49.0
 accelerate==1.5.2
+google-genai==1.10.0
 python-dotenv==1.0.1
 adafruit-io
 motor==3.7.0
