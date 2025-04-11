@@ -1,7 +1,9 @@
 import sys
 import torch
 import re, json
-
+from google import genai
+from google.genai import types
+from dotenv import load_dotenv
 
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
@@ -11,14 +13,17 @@ from config.ai_cfg import *
 from .model import LLM_FuncCall
 from routes.control import *
 
+load_dotenv()
 LOGGER = Logger(__file__, log_file="generator.log")
 LOGGER.log.info("Starting Model Serving")
+client = genai.Client(api_key=os.getenv("GEMINI_KEY"))
 
 class Generator:
     def __init__(self):
         self.LLM_FuncCall = LLM_FuncCall()
-
-    async def chat(self, user_id: int, msg: str):
+        self.tools = [turn_on_fan,turn_off_fan,change_fan_speed,turn_on_light,turn_off_light,change_light_color,change_light_level,turn_on_pump,turn_off_pump]
+    
+    async def chat(self, user_id: int, msg: str, model_name: str):
         conversation = [
             {
                 "role": "system",
@@ -38,23 +43,45 @@ class Generator:
             {"role": "user", "content": f"user_id của tôi là {user_id}, {msg}"},
         ]
 
-        input_ids = self.LLM_FuncCall.tokenizer.apply_chat_template(conversation, return_tensors="pt").to(LLMConfig.DEVICE)
 
-        out_ids = self.LLM_FuncCall.model.generate(
-            input_ids=input_ids,
-            max_new_tokens=100,
-            do_sample=True,
-            top_p=0.9,
-            top_k=50,
-            temperature=0.7,
-            repetition_penalty=1.1,
-            pad_token_id= self.LLM_FuncCall.tokenizer.eos_token_id,
-            num_beams=1,      
-            use_cache=True,
-        )
+        if model_name in ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash']: # Add more Gemini Model
+            self.LLM_FuncCall = client.chats.create(
+                model=model_name,
+                config=genai.types.GenerateContentConfig(
+                    tools=self.tools,
+                    system_instruction=SMARTHOME_BOT,
+                ),
+            )
+            assistant = self.LLM_FuncCall.send_message(message=f"user_id của tôi là {user_id}, {msg}").text
+            return {"assistant": assistant, "calling_result": assistant if assistant == "successfully" else "Try again"}
+        else:
+            if model_name != LLMConfig.MODEL_NAME:
+                LLMConfig.MODEL_NAME = model_name
+                LLMConfig.TOKENIZER = model_name
+                self.LLM_FuncCall = LLM_FuncCall()
 
 
-        assistant = self.LLM_FuncCall.tokenizer.batch_decode(out_ids[:, input_ids.size(1): ], skip_special_tokens=True)[0].strip()
+            try:
+                input_ids = self.LLM_FuncCall.tokenizer.apply_chat_template(conversation, return_tensors="pt").to(LLMConfig.DEVICE)
+
+                out_ids = self.LLM_FuncCall.model.generate(
+                    input_ids=input_ids,
+                    max_new_tokens=100,
+                    do_sample=True,
+                    top_p=0.9,
+                    top_k=50,
+                    temperature=0.7,
+                    repetition_penalty=1.1,
+                    pad_token_id= self.LLM_FuncCall.tokenizer.eos_token_id,
+                    num_beams=1,      
+                    use_cache=True,
+                )
+            except:
+                return {"assistant": assistant, "calling_result": "Try again with another model"}
+                
+
+            assistant = self.LLM_FuncCall.tokenizer.batch_decode(out_ids[:, input_ids.size(1): ], skip_special_tokens=True)[0].strip()
+
         calling_result = await self.call_function(assistant)
 
         LOGGER.log_model(LLMConfig.MODEL_NAME)
@@ -76,15 +103,16 @@ class Generator:
                 arguments = function_dict["arguments"]
 
                 dispatch_table = {
-                    "turn_on_fan": turn_on_fan,
-                    "turn_off_fan": turn_off_fan,
-                    "change_fan_speed": change_fan_speed,
-                    "turn_on_light": turn_on_light,
-                    "turn_off_light": turn_off_light,
-                    "change_light_color": change_light_color,
-                    "change_light_level": change_light_level,
-                    "turn_on_pump": turn_on_pump,
-                    "turn_off_pump": turn_off_pump
+                    tool.__name__: tool for tool in self.tools
+                    # "turn_on_fan": turn_on_fan,
+                    # "turn_off_fan": turn_off_fan,
+                    # "change_fan_speed": change_fan_speed,
+                    # "turn_on_light": turn_on_light,
+                    # "turn_off_light": turn_off_light,
+                    # "change_light_color": change_light_color,
+                    # "change_light_level": change_light_level,
+                    # "turn_on_pump": turn_on_pump,
+                    # "turn_off_pump": turn_off_pump
                 }
 
                 if target_function not in dispatch_table:

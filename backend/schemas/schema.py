@@ -57,3 +57,4 @@ class SensorData(BaseModel):
 class ModelRequest(BaseModel):
     user_id: int 
     msg: str
+    model_name: Optional[str] = 'hiieu/Vistral-7B-Chat-function-calling'
