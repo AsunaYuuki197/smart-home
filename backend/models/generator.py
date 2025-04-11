@@ -12,6 +12,7 @@ from utils.logger import Logger
 from config.ai_cfg import *
 from .model import LLM_FuncCall
 from routes.control import *
+from utils.general_helper import *
 
 load_dotenv()
 LOGGER = Logger(__file__, log_file="generator.log")
@@ -19,9 +20,10 @@ LOGGER.log.info("Starting Model Serving")
 client = genai.Client(api_key=os.getenv("GEMINI_KEY"))
 
 class Generator:
+
     def __init__(self):
         self.LLM_FuncCall = LLM_FuncCall()
-        self.tools = [turn_on_fan,turn_off_fan,change_fan_speed,turn_on_light,turn_off_light,change_light_color,change_light_level,turn_on_pump,turn_off_pump]
+        self.tools = [sync_wrapper(tool) for tool in [turn_on_fan,turn_off_fan,change_fan_speed,turn_on_light,turn_off_light,change_light_color,change_light_level,turn_on_pump,turn_off_pump]]
     
     async def chat(self, user_id: int, msg: str, model_name: str):
         conversation = [
