@@ -7,8 +7,17 @@ class ModelResponse(BaseModel):
     calling_result: str = ""
 
 class LoginInput(BaseModel):
-    username: str
+    email: str
     password: str
+
+class UserSignupInput(BaseModel):
+    fname: str
+    lname: str
+    phone: str
+    email: str
+    password: str
+    birth: str
+    gender: str
 
 class UserProfile(BaseModel):
     name: str

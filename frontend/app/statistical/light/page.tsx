@@ -9,7 +9,8 @@ export default function Statistical_Light() {
   const [activeDevice, setActiveDevice] = useState('light');
     const deviceOptions = ['fan', 'light'];
     const router = useRouter();
-  
+    const [filter, setFilter] = useState('week');
+    const filterOptions = ["week", "month"];  
     const handleDeviceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
       const selectedDevice = e.target.value;
       setActiveDevice(selectedDevice);
@@ -78,9 +79,18 @@ const [data, setData] = useState(null)
             <div className = "flex-1 flex flex-col gap-4  ">
               <span className="text-2xl font-bold ml-10">Lọc theo</span>
               <div className = "flex-1 flex items-center justify-between bg-white rounded-[20px] pl-10 pr-10">
-                  Lọc theo tuần ...
-                  {/* <ChevronDown/> */}
-              </div>
+            <select 
+              className="w-full rounded p-2 flex items-center  justify-between"
+              value={filter}
+              // onChange={handleDeviceChange}
+              onChange={(e) => setFilter(e.target.value)}
+            >
+              {filterOptions.map(device => (
+                <option key={device} value={device}>{device}</option>
+              ))}
+            </select>
+              {/* <ChevronDown/> */}
+          </div>
             </div>
             <div className = "flex-1 flex flex-col gap-4  ">
               <span className="text-2xl font-bold ml-10">Thời gian</span>

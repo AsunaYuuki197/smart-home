@@ -7,3 +7,4 @@ adafruit-io
 motor==3.7.0
 pymongo==4.11.3
 bitsandbytes==0.45.3
+bcrypt==4.3.0
