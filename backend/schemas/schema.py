@@ -5,7 +5,7 @@ from config.ai_cfg import LLMConfig
 
 class ModelResponse(BaseModel):
     assistant: str = ""
-    calling_result: str = ""
+    calling_result: list[str] = [""]
 
 class LoginInput(BaseModel):
     email: str

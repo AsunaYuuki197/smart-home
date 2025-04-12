@@ -23,6 +23,14 @@ aio.loop_background()
 # Turn on fan
 @router.post("/fan/on", summary="Turn On Fan")
 async def turn_on_fan(action: ActionLog):
+    """
+    Bật quạt cho người dùng.\r\n
+
+    Parameters:\r\n
+    - user_id (int): ID của người dùng.\r\n
+    - device_id (int): ID của thiết bị quạt (mặc định là 1).\r\n
+    - action (int): Hành động, 1 để bật quạt.\r\n
+    """
     action_log = action.model_dump()
     action_log['action'] = 1
     action_log['timestamp'] = datetime.now() 
@@ -46,6 +54,14 @@ async def turn_on_fan(action: ActionLog):
 # Turn off fan
 @router.post("/fan/off", summary="Turn Off Fan")
 async def turn_off_fan(action: ActionLog):
+    """
+    Tắt quạt cho người dùng.\r\n
+    \r\n
+    Parameters:\r\n
+    - user_id (int): ID của người dùng.\r\n
+    - device_id (int): ID của thiết bị quạt (mặc định là 1).\r\n
+    - action (int): Hành động, 0 để tắt quạt.\r\n
+    """
     action_log = action.model_dump()
     action_log['action'] = 0
     action_log['timestamp'] = datetime.now() 
@@ -71,6 +87,15 @@ async def turn_off_fan(action: ActionLog):
 # Change fan speed
 @router.post("/fan/speed", summary="Change Fan Speed")
 async def change_fan_speed(action: ActionLog):
+    """
+    Thay đổi tốc độ của quạt.\r\n
+    \r\n
+    Parameters:\r\n
+    - user_id (int): ID của người dùng.\r\n
+    - device_id (int): ID của thiết bị quạt (mặc định là 1).\r\n
+    - action (int): Trạng thái của quạt, 1 để bật, 0 để tắt.\r\n
+    - level (int): Tốc độ của quạt từ 1 đến 100.\r\n
+    """
     action_log = action.model_dump()
     speed = action_log['level']
     action_log['timestamp'] = datetime.now()
@@ -101,6 +126,14 @@ async def change_fan_speed(action: ActionLog):
 # Turn on light
 @router.post("/light/on", summary="Turn On Light")
 async def turn_on_light(action: ActionLog):
+    """
+    Bật đèn cho người dùng.\r\n
+    \r\n
+    Parameters:\r\n
+    - user_id (int): ID của người dùng.\r\n
+    - device_id (int): ID của thiết bị đèn (mặc định là 2).\r\n
+    - action (int): Hành động, 1 để bật đèn.\r\n
+    """
     action_log = action.model_dump()
     action_log['action'] = 1
     action_log['timestamp'] = datetime.now()
@@ -127,6 +160,14 @@ async def turn_on_light(action: ActionLog):
 # Turn off light
 @router.post("/light/off", summary="Turn Off Light")
 async def turn_off_light(action: ActionLog):
+    """
+    Tắt đèn cho người dùng.\r\n
+    \r\n
+    Parameters:\r\n
+    - user_id (int): ID của người dùng.\r\n
+    - device_id (int): ID của thiết bị đèn (mặc định là 2).\r\n
+    - action (int): Hành động, 0 để tắt đèn.\r\n
+    """
     action_log = action.model_dump()
     action_log['action'] = 0
     action_log['timestamp'] = datetime.now()
@@ -152,7 +193,15 @@ async def turn_off_light(action: ActionLog):
 # Change light color
 @router.post("/light/color", summary="Change Light Color")
 async def change_light_color(action: ActionLog):
-
+    """
+    Thay đổi màu của đèn.\r\n
+    \r\n
+    Parameters:\r\n
+    - user_id (int): ID của người dùng.\r\n
+    - device_id (int): ID của thiết bị đèn (mặc định là 2).\r\n
+    - action (int): Trạng thái của đèn, 1 để bật, 0 để tắt.\r\n
+    - color (str): Màu đèn mong muốn (ví dụ: 'red', 'blue', 'green', ...).\r\n
+    """
     action_log = action.model_dump()
     color = action_log['color']
     action_log['timestamp'] = datetime.now()
@@ -186,6 +235,15 @@ async def change_light_color(action: ActionLog):
 # Change light level
 @router.post("/light/level", summary="Change Light Level")
 async def change_light_level(action: ActionLog):
+    """
+    Thay đổi độ sáng của đèn.\r\n
+    \r\n
+    Parameters:\r\n
+    - user_id (int): ID của người dùng.\r\n
+    - device_id (int): ID của thiết bị đèn (mặc định là 2).\r\n
+    - action (int): Trạng thái của đèn, 1 để bật, 0 để tắt.\r\n
+    - level (int): Cấp độ sáng từ 1 đến 4.\r\n
+    """
     action_log = action.model_dump()
     level = action_log['level']
     action_log['timestamp'] = datetime.now()
@@ -216,6 +274,14 @@ async def change_light_level(action: ActionLog):
 # Turn on pump
 @router.post("/pump/on", summary="Turn On pump")
 async def turn_on_pump(action: ActionLog):
+    """
+    Bật máy bơm cho người dùng.\r\n
+    \r\n
+    Parameters:\r\n
+    - user_id (int): ID của người dùng.\r\n
+    - device_id (int): ID của thiết bị máy bơm (mặc định là 6).\r\n
+    - action (int): Hành động, 1 để bật máy bơm.\r\n
+    """
     action_log = action.model_dump()
     action_log['action'] = 1
     action_log['timestamp'] = datetime.now()
@@ -243,6 +309,14 @@ async def turn_on_pump(action: ActionLog):
 # Turn off pump
 @router.post("/pump/off", summary="Turn Off pump")
 async def turn_off_pump(action: ActionLog):
+    """
+    Tắt máy bơm cho người dùng.\r\n
+    \r\n
+    Parameters:\r\n
+    - user_id (int): ID của người dùng.\r\n
+    - device_id (int): ID của thiết bị máy bơm (mặc định là 6).\r\n
+    - action (int): Hành động, 0 để tắt máy bơm.\r\n
+    """
     action_log = action.model_dump()
     action_log['action'] = 0
     action_log['timestamp'] = datetime.now()
