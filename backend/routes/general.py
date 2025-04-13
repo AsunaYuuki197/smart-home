@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from .control import temp_stats, humid_stats
 from schemas.schema import *
 
@@ -8,6 +8,8 @@ import asyncio
 
 import bcrypt
 from database.db import db
+from auth.auth import create_access_token, token_blacklist, oauth2_scheme
+from fastapi.security import OAuth2PasswordRequestForm
 
 router = APIRouter()
 
@@ -57,31 +59,26 @@ async def environment_info():
         return {"error": str(e)}
 
 user_collection = db["Users"]
-active_sessions = {}
 
-#User Login
 @router.post("/login", summary="User Login")
-async def login(data: LoginInput):
-    user = await user_collection.find_one({"email": data.email})
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    user = await user_collection.find_one({"email": form_data.username})
     if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    # Compare password
-    if not bcrypt.checkpw(data.password.encode(), user["password"].encode()):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    if not bcrypt.checkpw(form_data.password.encode(), user["password"].encode()):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    active_sessions[data.email] = True
+    access_token = create_access_token(data={"sub": str(user["user_id"])})
+    return {"access_token": access_token, "token_type": "bearer"}
 
-    return {"message": "Login successful"}
 
 #User Logout
 @router.post("/logout", summary="User Logout")
-async def logout(data: LoginInput):
-    if data.email in active_sessions:
-        del active_sessions[data.email]
-        return {"message": "Logout successful"}
-    else:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not logged in")
+async def logout(token: str = Depends(oauth2_scheme)):
+    token_blacklist.add(token)
+    return {"message": "Logged out successfully"}
+
 
 #User Signup
 @router.post("/signup", summary="User Signup")
@@ -107,12 +104,27 @@ async def signup(data: UserSignupInput):
         "password": hashed_password,  
         "birth": data.birth,
         "gender": data.gender,
-        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")  
+        "created_at": datetime.now(),
+        "countdown": {
+            "status": "off",   
+            "time": 15      
+        }, 
+        "wake_word": {
+            "status": "off",
+            "text": ""
+        },
+        "noti": {
+            "status": "off",
+            "platform": "",
+            "temp": 50.0
+        }, 
+        "devices": []
     }
 
     await user_collection.insert_one(new_user)
 
     return {"message": "User registered successfully", "user_id": user_id}
+
 
 # Get user profile
 @router.get("/me", summary="Get User Profile", response_model=UserProfile)
