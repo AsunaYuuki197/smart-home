@@ -3,68 +3,129 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent))
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Query
 from schemas.schema import *
+from database.db import db
 
 router = APIRouter()
 
+user_collection = db["Users"]
+automationrule_collection = db["AutomationRule"]
 
 @router.get("/countdown", summary="Countdown Timer For Restarting Automatic Rule")
-def countdown():
-    """
-    Input: user id
-    """
-    pass
+async def countdown(user_id: int = Query(..., description="User ID to fetch countdown for")):
+    countdown = await user_collection.find_one({"user_id": user_id}, {"_id": 0, "countdown": 1})
+    
+    if not countdown:
+        raise HTTPException(status_code=404, detail="Countdown not found for user")
+
+    return countdown
 
 
 @router.post("/save/countdown", summary="Saving Countdown Timer")
-def save_countdown():
-    """
-    Input: user id, status of countdown (off/on - false/true), time (countdown time)   
-    """
-    pass
+async def save_countdown(payload: CountdownUpdateRequest):
+    result = await user_collection.update_one(
+        {"user_id": payload.user_id},
+        {
+            "$set": {
+                "countdown.status": payload.status,
+                "countdown.time": payload.time
+            }
+        }
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {"message": "Countdown updated successfully"}
 
 
 @router.get("/wakeword", summary="Wake Word For AI")
-def wakeword():
-    """
-    Input: user id
-    """
-    pass
+async def wakeword(user_id: int = Query(..., description="User ID to fetch wake word for")):
+    wake_word = await user_collection.find_one({"user_id": user_id}, {"_id": 0, "wake_word": 1})
+    
+    if not wake_word:
+        raise HTTPException(status_code=404, detail="Wake word not found for user")
+
+    return wake_word
 
 
 @router.post("/save/wakeword", summary="Saving Edited Wake Word For AI")
-def save_wakeword():
-    """
-    Input: user id, status of wakeword (off/on - false/true), text (wake word text)   
-    """
-    pass
+async def save_wakeword(payload: WakeWordUpdateRequest):
+    result = await user_collection.update_one(
+        {"user_id": payload.user_id},
+        {
+            "$set": {
+                "wake_word.status": payload.status,
+                "wake_word.text": payload.text
+            }
+        }
+    )
 
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {"message": "Wake word updated successfully"}
 
 
 @router.post("/save/notify", summary="Saving Edited Notify Method")
-def save_notify():
-    """
-    Input: user id, status of notify (off/on - false/true), platform (notify method)   
-    """
-    pass
+async def save_notify(payload: FireNotiUpdateRequest):
+    result = await user_collection.update_one(
+        {"user_id": payload.user_id},
+        {
+            "$set": {
+                "noti.status": payload.status,
+                "noti.platform": payload.platform,
+                "noti.temp": payload.temp
+            }
+        }
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {"message": "Fire notification updated successfully"}
 
 
 @router.post("/create/timeframe", summary="Set Timeframe For Operating Device Automatically.")
-def new_timeframe():
-    """
-    Input: User Id, Device id, Start time, End time, Repeat
-    """
-    pass
+async def new_timeframe(payload: TimeFrameUpdateRequest):
+    result = await automationrule_collection.update_one(
+        {"user_id": payload.user_id, "device_id": payload.device_id},
+        {
+            "$set": {
+                "start_time": payload.start_time,
+                "end_time": payload.end_time,
+                "repeat": payload.repeat
+            }
+        }
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {"message": "Time frame updated successfully"}
 
 
 @router.delete("/delete/timeframe", summary="Delete Timeframe.")
-def remove_timeframe():
-    """
-    Input: User Id, Device id
-    """
-    pass
+async def remove_timeframe(
+    user_id: int = Query(..., description="User ID"),
+    device_id: int = Query(..., description="Device ID")
+):
+    result = await automationrule_collection.update_one(
+        {"user_id": user_id, "device_id": device_id},
+        {
+            "$set": {
+                "start_time": None,
+                "end_time": None,
+                "repeat": None
+            }
+        }
+    )
 
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User or device not found")
+
+    return {"message": "Time frame deleted successfully"}
 
 
 @router.post("/create/motion", summary="Set Motion Dectector For Operating Device Automatically.")

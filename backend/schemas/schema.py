@@ -45,8 +45,28 @@ class LightControlResponse(BaseModel):
     status: str
     message: str
 
+class CountdownUpdateRequest(BaseModel):
+    user_id: int
+    status: str 
+    time: int
 
+class WakeWordUpdateRequest(BaseModel):
+    user_id: int
+    status: str 
+    text: str
 
+class FireNotiUpdateRequest(BaseModel):
+    user_id: int
+    status: str 
+    platform: str
+    temp: float
+
+class TimeFrameUpdateRequest(BaseModel):
+    user_id: int
+    device_id: int
+    start_time: datetime 
+    end_time: datetime
+    repeat: int
 
 class ActionLog(BaseModel):
     user_id: int
