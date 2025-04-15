@@ -65,7 +65,7 @@ class Generator:
         ]
 
 
-        if model_name in ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash']: # Add more Gemini Model
+        if model_name in ['gemini-2.5-pro-preview-03-25','gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.5-flash-8b']: # Add more Gemini Model
             self.LLM_FuncCall = client.chats.create(
                 model=model_name,
                 config=genai.types.GenerateContentConfig(
