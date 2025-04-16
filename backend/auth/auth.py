@@ -1,9 +1,10 @@
-from datetime import datetime
+from datetime import datetime,timezone
 from uuid import uuid4
 from jose import jwt, JWTError
 from fastapi import HTTPException, status, Depends, APIRouter
 from fastapi.routing import APIRoute
 from fastapi.security import OAuth2PasswordBearer
+from schemas.schema import *
 
 
 SECRET_KEY = "u9rP$1z@X!7bL4mCq8#VsD^Ft3GwZhJp"
@@ -17,7 +18,7 @@ EXCLUDE_PATHS = ["/login", "/signup", "/env-info"]
 
 def create_access_token(data: dict):
     to_encode = data.copy()
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     to_encode.update({
         "iat": now.timestamp(),      
@@ -26,7 +27,7 @@ def create_access_token(data: dict):
 
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-def verify_token(token: str = Depends(oauth2_scheme)):
+async def verify_token(token: str = Depends(oauth2_scheme)):
     if token in token_blacklist:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -35,6 +36,7 @@ def verify_token(token: str = Depends(oauth2_scheme)):
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id_ctx.set(int(payload["sub"]))
         return payload
     except JWTError:
         raise HTTPException(

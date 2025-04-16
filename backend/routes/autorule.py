@@ -13,8 +13,8 @@ user_collection = db["Users"]
 automationrule_collection = db["AutomationRule"]
 
 @router.get("/countdown", summary="Countdown Timer For Restarting Automatic Rule")
-async def countdown(user_id: int = Query(..., description="User ID to fetch countdown for")):
-    countdown = await user_collection.find_one({"user_id": user_id}, {"_id": 0, "countdown": 1})
+async def countdown():
+    countdown = await user_collection.find_one({"user_id": user_id_ctx.get()}, {"_id": 0, "countdown": 1})
     
     if not countdown:
         raise HTTPException(status_code=404, detail="Countdown not found for user")
@@ -25,7 +25,7 @@ async def countdown(user_id: int = Query(..., description="User ID to fetch coun
 @router.post("/save/countdown", summary="Saving Countdown Timer")
 async def save_countdown(payload: CountdownUpdateRequest):
     result = await user_collection.update_one(
-        {"user_id": payload.user_id},
+        {"user_id": user_id_ctx.get()},
         {
             "$set": {
                 "countdown.status": payload.status,
@@ -41,8 +41,8 @@ async def save_countdown(payload: CountdownUpdateRequest):
 
 
 @router.get("/wakeword", summary="Wake Word For AI")
-async def wakeword(user_id: int = Query(..., description="User ID to fetch wake word for")):
-    wake_word = await user_collection.find_one({"user_id": user_id}, {"_id": 0, "wake_word": 1})
+async def wakeword():
+    wake_word = await user_collection.find_one({"user_id": user_id_ctx.get()}, {"_id": 0, "wake_word": 1})
     
     if not wake_word:
         raise HTTPException(status_code=404, detail="Wake word not found for user")
@@ -53,7 +53,7 @@ async def wakeword(user_id: int = Query(..., description="User ID to fetch wake 
 @router.post("/save/wakeword", summary="Saving Edited Wake Word For AI")
 async def save_wakeword(payload: WakeWordUpdateRequest):
     result = await user_collection.update_one(
-        {"user_id": payload.user_id},
+        {"user_id": user_id_ctx.get()},
         {
             "$set": {
                 "wake_word.status": payload.status,
@@ -71,7 +71,7 @@ async def save_wakeword(payload: WakeWordUpdateRequest):
 @router.post("/save/notify", summary="Saving Edited Notify Method")
 async def save_notify(payload: FireNotiUpdateRequest):
     result = await user_collection.update_one(
-        {"user_id": payload.user_id},
+        {"user_id": user_id_ctx.get()},
         {
             "$set": {
                 "noti.status": payload.status,
@@ -90,7 +90,7 @@ async def save_notify(payload: FireNotiUpdateRequest):
 @router.post("/create/timeframe", summary="Set Timeframe For Operating Device Automatically.")
 async def new_timeframe(payload: TimeFrameUpdateRequest):
     result = await automationrule_collection.update_one(
-        {"user_id": payload.user_id, "device_id": payload.device_id},
+        {"user_id": user_id_ctx.get(), "device_id": payload.device_id},
         {
             "$set": {
                 "start_time": payload.start_time,
@@ -108,11 +108,10 @@ async def new_timeframe(payload: TimeFrameUpdateRequest):
 
 @router.delete("/delete/timeframe", summary="Delete Timeframe.")
 async def remove_timeframe(
-    user_id: int = Query(..., description="User ID"),
     device_id: int = Query(..., description="Device ID")
 ):
     result = await automationrule_collection.update_one(
-        {"user_id": user_id, "device_id": device_id},
+        {"user_id": user_id_ctx.get(), "device_id": device_id},
         {
             "$set": {
                 "start_time": None,

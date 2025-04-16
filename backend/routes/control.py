@@ -342,7 +342,7 @@ async def turn_off_pump(action: ActionLog):
 
 # Fan statistics
 @router.get("/fan/statistics", summary="Fan Usage Statistics")
-async def fan_stats(user_id: int):
+async def fan_stats():
     """
     Retrieves statistics of fan usage.
     """
@@ -352,7 +352,7 @@ async def fan_stats(user_id: int):
     for device in devices_id:
         # Fetch all documents at once for this device in chunks
         cursor = db.ActionLog.find(
-            {"user_id": user_id, "device_id": device['device_id']},
+            {"user_id": user_id_ctx.get(), "device_id": device['device_id']},
             {'_id': 0, "action": 1, "level": 1,  "timestamp": 1}
         ).batch_size(100)
 
@@ -365,7 +365,7 @@ async def fan_stats(user_id: int):
 
 # Light statistics
 @router.get("/light/statistics", summary="Light Usage Statistics")
-async def light_stats(user_id: int):
+async def light_stats():
     """
     Retrieves statistics of light usage.
     """
@@ -376,7 +376,7 @@ async def light_stats(user_id: int):
         # Fetch all documents at once for this device in chunks
 
         cursor = db.ActionLog.find(
-            {"user_id": user_id, "device_id": device['device_id']},
+            {"user_id": user_id_ctx.get(), "device_id": device['device_id']},
             {"_id": 0, "device_id": 0, "user_id": 0}
         ).batch_size(100)
 
@@ -390,7 +390,7 @@ async def light_stats(user_id: int):
 
 
 @router.get("/fan/usage", summary="Fan Usage Hourly Each Date")
-async def fan_usage(user_id: int):
+async def fan_usage():
     """
     Return: \r\n
     {\r\n
@@ -425,7 +425,7 @@ async def fan_usage(user_id: int):
     }
     """
 
-    fanStats = await fan_stats(user_id)
+    fanStats = await fan_stats()
 
     fan_usage = {}
 
@@ -462,8 +462,8 @@ async def fan_usage(user_id: int):
 
 
 @router.get("/light/usage", summary="Light Usage Hourly Each Date")
-async def light_usage(user_id: int):
-    lightStats = await light_stats(user_id)
+async def light_usage():
+    lightStats = await light_stats()
 
     light_usage = {}
 
@@ -503,7 +503,7 @@ async def light_usage(user_id: int):
 
 # Humidity statistics
 @router.get("/humid_sensor/statistics", summary="Humidity sensor statistics")
-async def humid_stats(user_id: int):
+async def humid_stats():
     """
     Retrieves statistics of humidity sensor.
     """
@@ -520,7 +520,7 @@ async def humid_stats(user_id: int):
     }
 
     for device in devices_id:
-        last_time_retrieve = await db.SensorData.find_one({"user_id": user_id, "device_id": device['device_id']}, sort=[("_id", -1)])
+        last_time_retrieve = await db.SensorData.find_one({"user_id": user_id_ctx.get(), "device_id": device['device_id']}, sort=[("_id", -1)])
         if last_time_retrieve is not None:
             params["start_time"] = str(last_time_retrieve["timestamp"] + timedelta(seconds=1))
 
@@ -528,7 +528,7 @@ async def humid_stats(user_id: int):
         if response.status_code == 200:
             data = response.json()
             documents = list(map(lambda entry: {
-                "user_id": user_id,
+                "user_id": user_id_ctx.get(),
                 "device_id": device['device_id'],
                 "value": entry['value'],
                 "timestamp": datetime.strptime(entry['created_at'], "%Y-%m-%dT%H:%M:%SZ")
@@ -544,7 +544,7 @@ async def humid_stats(user_id: int):
 
     for device in devices_id:
         cursor = db.SensorData.find(
-            {"user_id": user_id, "device_id": device['device_id']},
+            {"user_id": user_id_ctx.get(), "device_id": device['device_id']},
             {"_id": 0, "device_id": 1, "value": 1, "timestamp": 1},
         ).batch_size(100)
 
@@ -557,7 +557,7 @@ async def humid_stats(user_id: int):
 
 # Temperature statistics
 @router.get("/temp_sensor/statistics", summary="Temperature sensor statistics")
-async def temp_stats(user_id: int):
+async def temp_stats():
     """
     Retrieves statistics of temperature sensor.
     """
@@ -574,7 +574,7 @@ async def temp_stats(user_id: int):
     }
 
     for device in devices_id:
-        last_time_retrieve = await db.SensorData.find_one({"user_id": user_id, "device_id": device['device_id']}, sort=[("_id", -1)])
+        last_time_retrieve = await db.SensorData.find_one({"user_id": user_id_ctx.get(), "device_id": device['device_id']}, sort=[("_id", -1)])
         if last_time_retrieve is not None:
             params["start_time"] = str(last_time_retrieve["timestamp"] + timedelta(seconds=1))
 
@@ -583,7 +583,7 @@ async def temp_stats(user_id: int):
         if response.status_code == 200:
             data = response.json()
             documents = list(map(lambda entry: {
-                "user_id": user_id,
+                "user_id": user_id_ctx.get(),
                 "device_id": device['device_id'],
                 "value": entry['value'],
                 "timestamp": datetime.strptime(entry['created_at'], "%Y-%m-%dT%H:%M:%SZ")
@@ -598,7 +598,7 @@ async def temp_stats(user_id: int):
 
     for device in devices_id:
         cursor = db.SensorData.find(
-            {"user_id": user_id, "device_id": device['device_id']},
+            {"user_id": user_id_ctx.get(), "device_id": device['device_id']},
             {"_id": 0, "device_id": 1, "value": 1, "timestamp": 1}
         ).batch_size(100)
         async for doc in cursor:
@@ -609,6 +609,6 @@ async def temp_stats(user_id: int):
 
 # Device status
 @router.get('/status', summary="Device status")
-async def device_status(user_id: int, device_id: int):
-    last_status = await db.ActionLog.find_one({"user_id": user_id, "device_id": device_id}, {"_id": 0}, sort=[("_id", -1)])
+async def device_status(device_id: int):
+    last_status = await db.ActionLog.find_one({"user_id": user_id_ctx.get(), "device_id": device_id}, {"_id": 0}, sort=[("_id", -1)])
     return last_status
