@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from pydantic import BaseModel, model_validator 
 from typing import Optional
 from config.ai_cfg import LLMConfig
@@ -30,12 +30,20 @@ class UserSignupInput(BaseModel):
     phone: str
     email: str
     password: str
-    birth: str
+    birth: date
     gender: str
 
-class UserProfile(BaseModel):
-    name: str
+class UserProfile(UserModel):
+    fname: str
+    lname: str
+    phone: str
     email: str
+    birth: date
+    gender: str
+
+class PasswordUpdate(UserModel):
+    old_password: str
+    new_password: str 
 
 class Notification(BaseModel):
     device_id: int
@@ -55,28 +63,36 @@ class LightControlResponse(BaseModel):
     status: str
     message: str
 
-class CountdownUpdateRequest(BaseModel):
-    user_id: int
+class CountdownUpdateRequest(UserModel):
     status: str 
     time: int
 
-class WakeWordUpdateRequest(BaseModel):
-    user_id: int
+class WakeWordUpdateRequest(UserModel):
     status: str 
     text: str
 
-class FireNotiUpdateRequest(BaseModel):
-    user_id: int
+class FireNotiUpdateRequest(UserModel):
     status: str 
     platform: str
     temp: float
 
-class TimeFrameUpdateRequest(BaseModel):
-    user_id: int
+class TimeFrameUpdateRequest(UserModel):
     device_id: int
     start_time: datetime 
     end_time: datetime
     repeat: int
+
+class LightSensorRule(UserModel):
+    device_id: int
+    light_intensity: Optional[float] = 50
+    color: Optional[str] = "white"
+    level: Optional[int] = 3
+
+class HTSensorRule(UserModel):
+    device_id: int
+    humidity: Optional[float] = 65.0
+    temperature: Optional[float] = 25
+    level: Optional[int] = 95
 
 class ActionLog(UserModel):
     device_id: int

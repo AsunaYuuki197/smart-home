@@ -8,17 +8,17 @@ import asyncio
 
 import bcrypt
 from database.db import db
+from utils.general_helper import *
 from auth.auth import create_access_token, token_blacklist, oauth2_scheme
 from fastapi.security import OAuth2PasswordRequestForm
-
 router = APIRouter()
 
 
 # Last Saved Temperature and Humidity sensor value
 @router.get("/", summary="Home")
-async def home(user_id: int):
+async def home():
 
-    last_temperature, last_humidity = await asyncio.gather(temp_stats(user_id), humid_stats(user_id))
+    last_temperature, last_humidity = await asyncio.gather(temp_stats(), humid_stats())
 
 
     return {
@@ -118,7 +118,7 @@ async def signup(data: UserSignupInput):
             "platform": "",
             "temp": 50.0
         }, 
-        "devices": []
+        "devices": [1,2,3,4,5,6]
     }
 
     await user_collection.insert_one(new_user)
@@ -127,21 +127,29 @@ async def signup(data: UserSignupInput):
 
 
 # Get user profile
-@router.get("/me", summary="Get User Profile", response_model=UserProfile)
+@router.get("/me", summary="Get User Profile")
 async def profile():
     """
     Retrieves the profile of the authenticated user.
     """
-    pass
+    user = await db.Users.find_one({"user_id": user_id_ctx.get()}, {'_id': 0, 'noti': 0, 'user_id': 0, 'devices': 0, 'countdown': 0, 'wake_word': 0})
+    return user
 
 
 # Save edited user profile
 @router.post("/save/me", summary="Save edited User Profile")
 async def save_profile(data: UserProfile):
-    """
-    Updates the user profile with new data.
-    """
-    pass
+    result = await user_collection.update_one(
+        {'user_id': data.user_id},
+        {
+            "$set": data.model_dump(exclude={'user_id'})
+        }
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(404, "User not found")
+    
+    return "successfully"
 
 
 # Get all notifications
@@ -150,7 +158,12 @@ async def notifications():
     """
     Retrieves a list of all notifications.
     """
-    pass
+    cursor = db.Notifications.find({"user_id": user_id_ctx.get()}, {'_id': 0, 'user_id': 0}).batch_size(100)
+    notifs = []
+    async for doc in cursor:
+        notifs.append(doc)
+
+    return notifs
 
 
 # Search notifications
@@ -158,22 +171,87 @@ async def notifications():
 async def search_notifications(query: str):
     """
     Searches notifications based on a query string.
+    Covered in FE
     """
     pass
 
 
+
+# Change password
+@router.post("/update-password", summary="Change user password")
+async def update_password(data: PasswordUpdate):
+    user = await user_collection.find_one({"user_id": data.user_id})
+    
+    if not user or not bcrypt.checkpw(data.old_password.encode(), user["password"].encode()):
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+
+    hashed_password = bcrypt.hashpw(data.new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+    await user_collection.update_one({"user_id": data.user_id}, {"$set": {"password": hashed_password}})
+    return {"message": "password updated"}
+
+
 # Get settings
-@router.get("/configuration", summary="Get Settings", response_model=Settings)
+@router.get("/configuration", summary="Get Settings")
 async def settings():
     """
     Retrieves all current application settings.
     """
-    pass
+    user = await user_collection.find_one({"user_id": user_id_ctx.get()}, {"noti": 1, "countdown": 1, "wake_word": 1})
+
+    cursor = db.AutomationRule.find({'user_id': user_id_ctx.get()})
+    autorule = {}
+
+    async for doc in cursor:
+        rule = {}
+
+        time_rule = extract_rule(doc, timeRule_fields)
+
+        if time_rule:
+            rule['time_rule'] = time_rule 
+
+        if doc.get('type') == 'Fan':
+            htsensor_rule = extract_rule(doc, htsensorRule_fields)
+            if htsensor_rule:
+                rule['htsensor_rule'] = htsensor_rule 
+
+        elif doc.get('type') == 'Light':
+            motion_rule = extract_rule(doc, motionRule_fields)
+            if motion_rule:
+                rule['motion_rule'] = motion_rule 
+
+            lightsensor_rule = extract_rule(doc, lightsensorRule_fields)
+            if lightsensor_rule:
+                rule['lightsensor_rule'] = lightsensor_rule 
+        else:
+            continue
+        
+        if not rule:
+            continue
+
+        if doc.get('type') in autorule.keys():
+            autorule[doc['type']].append({doc['device_id']: rule})
+        else:
+            autorule[doc['type']] = [{doc['device_id']: rule}]
+
+    return {
+        'noti': user['noti'],
+        'countdown': user['countdown'],
+        'wake_word': user['wake_word'],
+        'fan_autorule': autorule.get('Fan'),
+        'light_autorule': autorule.get('Light'),
+    }
+
+
+
+    
+
+
 
 
 # Save Edited settings
 @router.post("/save/configuration", summary="Save Edited Settings")
-async def save_settings(data: Settings):
+async def save_settings():
     """
     Updates the application settings.
     """

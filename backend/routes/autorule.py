@@ -25,7 +25,7 @@ async def countdown():
 @router.post("/save/countdown", summary="Saving Countdown Timer")
 async def save_countdown(payload: CountdownUpdateRequest):
     result = await user_collection.update_one(
-        {"user_id": user_id_ctx.get()},
+        {"user_id": payload.user_id},
         {
             "$set": {
                 "countdown.status": payload.status,
@@ -53,15 +53,14 @@ async def wakeword():
 @router.post("/save/wakeword", summary="Saving Edited Wake Word For AI")
 async def save_wakeword(payload: WakeWordUpdateRequest):
     result = await user_collection.update_one(
-        {"user_id": user_id_ctx.get()},
+        {"user_id": payload.user_id},
         {
             "$set": {
                 "wake_word.status": payload.status,
                 "wake_word.text": payload.text
             }
-        }
+        },
     )
-
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -71,14 +70,14 @@ async def save_wakeword(payload: WakeWordUpdateRequest):
 @router.post("/save/notify", summary="Saving Edited Notify Method")
 async def save_notify(payload: FireNotiUpdateRequest):
     result = await user_collection.update_one(
-        {"user_id": user_id_ctx.get()},
+        {"user_id": payload.user_id},
         {
             "$set": {
                 "noti.status": payload.status,
                 "noti.platform": payload.platform,
                 "noti.temp": payload.temp
             }
-        }
+        },
     )
 
     if result.matched_count == 0:
@@ -89,19 +88,20 @@ async def save_notify(payload: FireNotiUpdateRequest):
 
 @router.post("/create/timeframe", summary="Set Timeframe For Operating Device Automatically.")
 async def new_timeframe(payload: TimeFrameUpdateRequest):
+    device_typ = await db.Devices.find_one({'device_id': payload.device_id},{'type': 1}) 
+
     result = await automationrule_collection.update_one(
-        {"user_id": user_id_ctx.get(), "device_id": payload.device_id},
+        {"user_id": payload.user_id, "device_id": payload.device_id},
         {
             "$set": {
+                "type": device_typ['type'],
                 "start_time": payload.start_time,
                 "end_time": payload.end_time,
                 "repeat": payload.repeat
             }
-        }
+        },
+        upsert=True
     )
-
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="User not found")
 
     return {"message": "Time frame updated successfully"}
 
@@ -128,49 +128,108 @@ async def remove_timeframe(
 
 
 @router.post("/create/motion", summary="Set Motion Dectector For Operating Device Automatically.")
-def new_motion():
-    """
-    Input: User Id, Device id
-    """
-    pass
+async def new_motion(device_id: int):
+
+    device_typ = await db.Devices.find_one({'device_id': device_id},{'type': 1}) 
+
+    result = await automationrule_collection.update_one(
+        {"user_id": user_id_ctx.get(), "device_id": device_id},
+        {   
+            "$set": {
+                "type": device_typ['type'],
+                "motion_trigger": "on"
+            }
+        },
+        upsert=True
+    )
+
+  
+    return {"message": "Motion trigger updated successfully"}
 
 
 @router.delete("/delete/motion", summary="Delete Motion Dectector.")
-def remove_motion():
-    """
-    Input: User Id, Device id
-    """
-    pass
+async def remove_motion(device_id: int):
+    result = await automationrule_collection.update_one(
+        {'user_id': user_id_ctx.get(), 'device_id': device_id},
+        {
+            "$set": {
+                "motion_trigger": None
+            }
+        }
+    )
+    if result.matched_count == 0:
+        raise HTTPException(404, "User or device not found")
+    
+    return {"message": "Motion Trigger deleted successfully"}
 
 
 @router.post("/create/light-sensor", summary="Set Light Sensor Rule For Operating Device Automatically.")
-def new_light_sensor():
-    """
-    Input: User Id, Device id, Light Intensity, Color, Level
-    """
-    pass
+async def new_light_sensor(payload: LightSensorRule):
+    device_typ = await db.Devices.find_one({'device_id': payload.device_id},{'type': 1}) 
+    result = await automationrule_collection.update_one(
+        {'user_id': payload.user_id, 'device_id': payload.device_id},
+        {
+            "$set": {
+                "type": device_typ['type'],
+                "light_intensity": payload.light_intensity, 
+                "color": payload.color, 
+                "level": payload.level
+            }
+        },
+        upsert=True
+    )
+
+    return {"message": "Light sensor rule updated successfully"}
 
 
 @router.delete("/delete/light-sensor", summary="Delete Light Sensor Rule.")
-def remove_light_sensor():
-    """
-    Input: User Id, Device id
-    """
-    pass
+async def remove_light_sensor(device_id: int):
+    result = await automationrule_collection.update_one(
+        {'user_id': user_id_ctx.get(), 'device_id': device_id},
+        {
+            "$set": {
+                "light_intensity": None, "color": None, "level": None
+            }
+        }
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(404, "User or device not found")
+    
+    return {"message": "Light sensor rule deleted successfully"}
 
 
 @router.post("/create/ht-sensor", summary="Set Humidity & Temp Sensor Rule For Operating Device Automatically.")
-def new_ht_sensor():
-    """
-    Input: User Id, Device id, Light Intensity, Color, Level
-    """
-    pass
+async def new_ht_sensor(payload: HTSensorRule):
+    device_typ = await db.Devices.find_one({'device_id': payload.device_id},{'type': 1}) 
+    result = await automationrule_collection.update_one(
+        {'user_id': payload.user_id, 'device_id': payload.device_id},
+        {
+            "$set": {
+                "type": device_typ['type'],
+                "humidity": payload.humidity, 
+                "temperature": payload.temperature, 
+                "level": payload.level
+            }
+        },
+        upsert=True
+    )
 
+    return {"message": "Humid & Temp sensor rule updated successfully"}
 
 @router.delete("/delete/ht-sensor", summary="Delete Humidity & Temp Sensor Rule.")
-def remove_ht_sensor():
-    """
-    Input: User Id, Device id
-    """
-    pass
+async def remove_ht_sensor(device_id: int):
+    result = await automationrule_collection.update_one(
+        {'user_id': user_id_ctx.get(), 'device_id': device_id},
+        {
+            "$set": {
+                "humidity": None, "temperature": None, "level": None
+            }
+        }
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(404, "User or device not found")
+    
+    return {"message": "Humid & Temp sensor rule deleted successfully"}
 
