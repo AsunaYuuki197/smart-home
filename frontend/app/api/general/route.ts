@@ -13,14 +13,14 @@ export async function GET(req: Request) {
         }
         const authHeader = req.headers.get("authorization");
 
-        const res = await fetch(`${API_BASE_URL}/?user_id=${userId}`,{
+        const res = await fetch(`${API_BASE_URL}/`,{
             headers:{
                 "Content-Type": "application/json",
                 "Authorization": authHeader || "",
             }
           });
           if (!res.ok) {
-            const errorText = await res.text(); // <-- lấy nội dung lỗi trả về
+            const errorText = await res.text(); // 
             console.error("Lỗi server:", res.status, errorText);
             throw new Error(`Server error ${res.status}: ${errorText}`);
           }

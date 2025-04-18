@@ -1,1 +1,5 @@
-2025-04-18 13:04:48,793 - D:\Workspace\DATH_242\smart-home\backend\middleware\http.py - INFO - 127.0.0.1 - "GET /device/light/usage 1.1" 200 0.85s
+2025-04-18 13:41:29,665 - D:\Workspace\DATH_242\smart-home\backend\middleware\http.py - INFO - 127.0.0.1 - "GET /device/status 1.1" 200 0.92s
+2025-04-18 13:41:30,098 - D:\Workspace\DATH_242\smart-home\backend\middleware\http.py - INFO - 127.0.0.1 - "GET / 1.1" 200 2.42s
+2025-04-18 13:41:31,361 - D:\Workspace\DATH_242\smart-home\backend\middleware\http.py - INFO - 127.0.0.1 - "GET /device/fan/usage 1.1" 200 0.62s
+2025-04-18 13:41:31,551 - D:\Workspace\DATH_242\smart-home\backend\middleware\http.py - INFO - 127.0.0.1 - "GET /device/light/usage 1.1" 200 0.82s
+2025-04-18 13:41:40,873 - D:\Workspace\DATH_242\smart-home\backend\middleware\http.py - INFO - 127.0.0.1 - "GET / 1.1" 200 2.04s
