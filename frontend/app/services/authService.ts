@@ -1,5 +1,9 @@
 import axiosClient from "./axiosClient";
+import { messaging } from '@/lib/firebase';
+import { getToken, onMessage } from 'firebase/messaging';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_ENDPOINT
+const API_VAPID_KEY = process.env.NEXT_PUBLIC_VAPID_KEY
 export const authService = {
   login: async (email: string, password: string) => {
     const formData = new URLSearchParams();
@@ -20,7 +24,22 @@ export const authService = {
       const { access_token } = res.data;
 
       sessionStorage.setItem("access_token", access_token);
+      
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        return;
+      }
 
+      const deviceToken = await getToken(messaging, {
+        vapidKey: API_VAPID_KEY,
+      });
+
+      if (deviceToken) {
+        await axiosClient.post(`${API_BASE_URL}/register_token`, {
+          token: deviceToken,
+        });
+      } else {
+      }
       return res.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.detail || "Login failed");

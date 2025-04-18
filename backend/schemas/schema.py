@@ -111,3 +111,6 @@ class SensorData(UserModel):
 class ModelRequest(UserModel):
     msg: str
     model_name: Optional[str] = LLMConfig.MODEL_NAME
+
+class TokenData(BaseModel):
+    token: str

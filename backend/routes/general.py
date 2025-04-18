@@ -175,6 +175,11 @@ async def search_notifications(query: str):
     """
     pass
 
+@router.post("/register_token")
+async def register_token(data: TokenData):
+    print(f"✅ Đã nhận FCM token: {data.token}")
+    # TODO: Lưu vào database nếu cần
+    return {"message": "Đã lưu token thành công"}
 
 # Change password
 @router.post("/update-password", summary="Change user password")
@@ -240,13 +245,6 @@ async def settings():
         'fan_autorule': autorule.get('Fan'),
         'light_autorule': autorule.get('Light'),
     }
-
-
-
-    
-
-
-
 
 # Save Edited settings
 @router.post("/save/configuration", summary="Save Edited Settings")
