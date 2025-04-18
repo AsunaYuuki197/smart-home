@@ -12,8 +12,13 @@ export async function GET(req: Request, context: { params: Promise<{ action: str
       if (!userId) {
         return NextResponse.json({ error: "Missing user_id" }, { status: 400 });
       }
-
-      const res = await fetch(`${API_BASE_URL}/device/fan/usage?user_id=${userId}`);
+      const authHeader = req.headers.get("authorization");
+      const res = await fetch(`${API_BASE_URL}/device/fan/usage?user_id=${userId}`,{
+        headers:{
+            "Content-Type": "application/json",
+            "Authorization": authHeader || "",
+        }
+      });
       if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
 
       const data = await res.json();
@@ -36,10 +41,10 @@ export async function POST(req: Request, context: { params: Promise<{ action: st
     else if (params.action === "off") apiUrl = `${API_BASE_URL}/device/fan/off`;
     else if (params.action === "speed") apiUrl = `${API_BASE_URL}/device/fan/speed`;
     else return NextResponse.json({ error: "Invalid POST action" }, { status: 404 });
-
+    const authHeader = req.headers.get("authorization");
     const res = await fetch(apiUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Authorization": authHeader || "" },
       body: JSON.stringify(body),
     });
 

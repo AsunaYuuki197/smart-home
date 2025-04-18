@@ -15,8 +15,13 @@ export async function GET(req: Request) {
       if (!userId || !deviceId) {
         return NextResponse.json({ error: "Missing user_id or device_id" }, { status: 400 });
       }
-
-      const res = await fetch(`${API_BASE_URL}/device/status?user_id=${userId}&device_id=${deviceId}`);
+      const authHeader = req.headers.get("authorization");
+      const res = await fetch(`${API_BASE_URL}/device/status?user_id=${userId}&device_id=${deviceId}`,{
+        headers:{
+            "Content-Type": "application/json",
+            "Authorization": authHeader || "",
+        }
+      });
       if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
 
       const data = await res.json();

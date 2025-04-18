@@ -176,7 +176,6 @@ async def search_notifications(query: str):
     pass
 
 
-
 # Change password
 @router.post("/update-password", summary="Change user password")
 async def update_password(data: PasswordUpdate):
@@ -256,3 +255,4 @@ async def save_settings():
     Updates the application settings.
     """
     pass
+

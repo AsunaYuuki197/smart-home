@@ -1,12 +1,12 @@
  // API service
-
+const token = sessionStorage.getItem("access_token");
  export const deviceService = {
   toggleDevice: async (deviceType: string, isOn: boolean, level:number,color:string, userId: number) => {
     try {
       const response = await fetch(`/api/device/${deviceType}/${isOn ? 'on' : 'off'}`, {
         method: "POST",
         body: JSON.stringify({ user_id: userId, device_id: deviceType =='fan'?1:2, action: isOn ? 1 : 0, level, color}),
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
       });
       return await response.json();
     } catch (error: any) {
@@ -18,7 +18,7 @@
       const response = await fetch(`/api/device/${deviceType}/${endpoint}`, {
         method: "POST",
         body: JSON.stringify({ user_id: userId, device_id: deviceType =='fan'?1:2, action: 1, level:level, color: color }),
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" , "Authorization": `Bearer ${token}`},
       });
       sessionStorage.setItem(`level_${userId}_${deviceID}`, JSON.stringify(level));
       return await response.json();
@@ -32,7 +32,7 @@
       const response = await fetch(`/api/device/light/color`, {
         method: "POST",
         body: JSON.stringify({ user_id: userId, device_id: 2, action: 1, level:level, color: color }),
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" , "Authorization": `Bearer ${token}`},
       });
       return await response.json();
     } catch (error: any) {
@@ -42,7 +42,10 @@
   getDeviceStatus: async (userID :number, deviceID:number) =>{
     try {
       console.log("fetch từ",deviceID)
-      const response = await fetch(`/api/device/status?user_id=${userID}&device_id=${deviceID}`);
+      const response = await fetch(`/api/device/status?user_id=${userID}&device_id=${deviceID}`,{
+        method: "GET",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+      });
       if (!response.ok) throw new Error("Lỗi khi lấy dữ liệu ban đầu");
       const data = await response.json();
       

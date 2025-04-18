@@ -7,11 +7,15 @@ export interface StatisticsData {
       };
     };
   }
+const token = sessionStorage.getItem("access_token");
 export const statisticsService = {
     getDeviceStatistics: async (deviceType: string, userId: string | number): Promise<StatisticsData> => {
       try {
   
-        const response = await fetch(`/api/device/${deviceType}/statistics?user_id=${userId}`);
+        const response = await fetch(`/api/device/${deviceType}/statistics?user_id=${userId}`,{
+          method: "GET",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        });
         if (!response.ok) {
           throw new Error(`Lỗi khi lấy dữ liệu thống kê cho ${deviceType}`);
         }

@@ -1,9 +1,11 @@
 //API
-
+const token = sessionStorage.getItem("access_token");
 export const notificationsService = {
     getListNotifies: async () => {
         try {
-            const response = await fetch(`/api/notifications`);
+            const response = await fetch(`/api/notifications`,{
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+            });
             if (!response.ok) {
                 throw new Error(`Lỗi khi lấy dữ liệu thông báo...`);
             }
@@ -18,7 +20,9 @@ export const notificationsService = {
     queryNotify: async(query:string)=>{
         try {
   
-            const response = await fetch(`/api/notifications/search?query=${query}`);
+            const response = await fetch(`/api/notifications/search?query=${query}`,{
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+            });
             if (!response.ok) {
               throw new Error(`Lỗi khi lấy query notify...`);
             }
