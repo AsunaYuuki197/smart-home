@@ -67,13 +67,13 @@ async def save_wakeword(payload: WakeWordUpdateRequest):
     return {"message": "Wake word updated successfully"}
 
 
-@router.post("/save/notify", summary="Saving Edited Notify Method")
+@router.post("/save/notify", summary="Saving Edited Hot Notify Method")
 async def save_notify(payload: FireNotiUpdateRequest):
     result = await user_collection.update_one(
         {"user_id": payload.user_id},
         {
             "$set": {
-                "noti.status": payload.status,
+                "noti.hot_notif": payload.status,
                 "noti.platform": payload.platform,
                 "noti.temp": payload.temp
             }

@@ -166,6 +166,26 @@ async def notifications():
     return notifs
 
 
+# Change notif status - on/off
+@router.post("/notif/on", summary="Turn On Notif")
+async def change_notif_status(status: str, platform: str):
+    result = await user_collection.update_one(
+        {"user_id": user_id_ctx.get()},
+        {
+            "$set": {
+                "noti.status": status,
+                "noti.platform": platform,
+            }
+        },
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {"message": "Notification updated successfully"}    
+
+
+
 # Search notifications
 @router.get("/notifications/search", summary="Search Notifications", response_model=list[Notification])
 async def search_notifications(query: str):
@@ -174,7 +194,6 @@ async def search_notifications(query: str):
     Covered in FE
     """
     pass
-
 
 
 # Change password
@@ -241,12 +260,6 @@ async def settings():
         'fan_autorule': autorule.get('Fan'),
         'light_autorule': autorule.get('Light'),
     }
-
-
-
-    
-
-
 
 
 # Save Edited settings
