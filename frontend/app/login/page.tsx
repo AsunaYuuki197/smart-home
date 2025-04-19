@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation'; // Sử dụng đúng cách với App Router
 import bg from "../assets/background.jpg";
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
+import { useAuth } from '../hooks/useAuth'; // Import useAuth từ hooks
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -10,6 +11,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [isClient, setIsClient] = useState(false); // State để xác định client-side rendering
   const [showPassword, setShowPassword] = useState(false)
+  const { handleLogin } = useAuth(); // Sử dụng hook để gọi hàm đăng nhập
   const router = useRouter();  // Khởi tạo useRouter
   const goToRegister = () => {
     router.push("/login/register");
@@ -18,22 +20,27 @@ export default function Login() {
   useEffect(() => {
     setIsClient(true);  // Đảm bảo rằng app đã được render trên client-side
   }, []);
-
-  const handleLogin = () => {
-    if (email === 'admin' && password === '123456') {
-      // Giả lập đăng nhập thành công
-      // Điều hướng đến Dashboard mà không cần kết nối DB
-      if (isClient) {
-        router.push('/dashboard');  // Chuyển hướng đến Dashboard
-      }
-    } else {
-      setError('Sai tài khoản hoặc mật khẩu!');
+  useEffect(() => {
+    const token = sessionStorage.getItem("access_token"); 
+    if (token) {
+      router.push("/dashboard"); // nếu đã login rồi, chuyển hướng đến dashboard
     }
-  };
+  }, [router]);
+  // const handleLogin = () => {
+  //   if (email === 'admin' && password === '123456') {
+  //     // Giả lập đăng nhập thành công
+  //     // Điều hướng đến Dashboard mà không cần kết nối DB
+  //     if (isClient) {
+  //       router.push('/dashboard');  // Chuyển hướng đến Dashboard
+  //     }
+  //   } else {
+  //     setError('Sai tài khoản hoặc mật khẩu!');
+  //   }
+  // };
 
-  if (!isClient) {
-    return null;  // Trả về null để không render gì trước khi có client-side
-  }
+  // if (!isClient) {
+  //   return null;  // Trả về null để không render gì trước khi có client-side
+  // }
   return (
     <div
       className="w-screen h-screen bg-cover bg-center relative"
@@ -89,14 +96,14 @@ export default function Login() {
   
             <div className="flex gap-3 justify-center">
               <button
-                className="bg-blue-500 text-white px-4 py-2 rounded"
-                onClick={handleLogin}
+                className="bg-blue-500 text-white px-4 py-2 rounded cursor-pointer"
+                onClick={()=>{handleLogin(email, password)}}
               >
                 Đăng nhập
               </button>
               <button
                 onClick={goToRegister}
-                className="bg-gray-500 text-white px-4 py-2 rounded"
+                className="bg-gray-500 text-white px-4 py-2 rounded cursor-pointer"
               >
                 Đăng ký
               </button>

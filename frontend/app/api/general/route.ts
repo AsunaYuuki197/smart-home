@@ -11,9 +11,19 @@ export async function GET(req: Request) {
         if (!userId) {
             return NextResponse.json({ error: "Missing user_id" }, { status: 400 });
         }
-        
-        const res = await fetch(`${API_BASE_URL}/?user_id=${userId}`);
+        const authHeader = req.headers.get("authorization");
 
+        const res = await fetch(`${API_BASE_URL}/?user_id=${userId}`,{
+            headers:{
+                "Content-Type": "application/json",
+                "Authorization": authHeader || "",
+            }
+          });
+          if (!res.ok) {
+            const errorText = await res.text(); // <-- lấy nội dung lỗi trả về
+            console.error("Lỗi server:", res.status, errorText);
+            throw new Error(`Server error ${res.status}: ${errorText}`);
+          }
         if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
 
         const data = await res.json();

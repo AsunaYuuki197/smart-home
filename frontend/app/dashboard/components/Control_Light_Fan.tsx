@@ -78,7 +78,7 @@ export default function Control({ name ,user_id}: { name: string,user_id:number 
     const storedLevel = sessionStorage.getItem(`level_${user_id}_${name ==="Quạt" ? 1 : 2}`);
     const storedColor = sessionStorage.getItem(`color_${user_id}_${name ==="Quạt" ? 1 : 2}`);
     const storedAction = sessionStorage.getItem(`action_${user_id}_${name ==="Quạt" ? 1 : 2}`);
-    console.log(name, storedLevel,storedColor,storedAction)
+    // console.log(name, storedLevel,storedColor,storedAction)
     if (storedAction !== null) {
       setIsActive(JSON.parse(storedAction))
       setIsLoading(false);

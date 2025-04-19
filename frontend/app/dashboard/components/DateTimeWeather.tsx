@@ -1,8 +1,9 @@
 "use client"
 
 import React, { useEffect, useState, useCallback ,useRef} from 'react';
-
 // Component chính
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_ENDPOINT;
+
 export default function DateTimeWeather() {
   const { date, time } = useDateTime();
   const { temperature, humidity, isLoading, error } = useWeather();
@@ -50,12 +51,17 @@ export default function DateTimeWeather() {
   );
 }
 
-
 // Service cho việc gọi API
 const weatherService = {
   getWeather: async (userId: string | number) => {
     try {
-      const response = await fetch(`/api/general/?user_id=${userId}`);
+      const token = sessionStorage.getItem("access_token");
+      if (!token) throw new Error("Token không hợp lệ");
+      const response = await fetch(`${API_BASE_URL}/?user_id=${userId}`,{
+        method: "GET",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+      });
+
       if (!response.ok) throw new Error("Lỗi khi lấy dữ liệu nhiệt độ!");
       const data = await response.json();
       return data;

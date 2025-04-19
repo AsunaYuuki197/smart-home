@@ -1,7 +1,0 @@
-2025-04-08 15:15:18,985 - C:\Users\Dell\smart-home-new\backend\middleware\http.py - INFO - 127.0.0.1 - "POST /logout 1.1" 200 0.00s
-2025-04-08 15:15:19,163 - C:\Users\Dell\smart-home-new\backend\middleware\http.py - INFO - 127.0.0.1 - "POST /logout 1.1" 200 0.00s
-2025-04-08 15:15:19,329 - C:\Users\Dell\smart-home-new\backend\middleware\http.py - INFO - 127.0.0.1 - "POST /logout 1.1" 200 0.00s
-2025-04-08 15:15:19,493 - C:\Users\Dell\smart-home-new\backend\middleware\http.py - INFO - 127.0.0.1 - "POST /logout 1.1" 200 0.00s
-2025-04-08 15:15:25,614 - C:\Users\Dell\smart-home-new\backend\middleware\http.py - INFO - 127.0.0.1 - "POST /logout 1.1" 200 0.00s
-2025-04-08 15:15:30,402 - C:\Users\Dell\smart-home-new\backend\middleware\http.py - INFO - 127.0.0.1 - "POST /logout 1.1" 200 0.00s
-2025-04-08 15:15:40,857 - C:\Users\Dell\smart-home-new\backend\middleware\http.py - INFO - 127.0.0.1 - "POST /logout 1.1" 200 0.00s
