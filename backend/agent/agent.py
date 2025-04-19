@@ -71,7 +71,7 @@ async def fire_alarm(user: dict, temp_sensor_val: float, device):
 
 
 async def hot_alarm(user: dict, temp_sensor_val: float):
-    if user['noti']['hot_notif'] == "off":
+    if user['noti'].get('hot_notif', "off") == "off":
         return
 
     if temp_sensor_val < user['noti']['temp']:

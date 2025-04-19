@@ -19,6 +19,7 @@ class UserModel(BaseModel):
 class ModelResponse(BaseModel):
     assistant: str = ""
     calling_result: list[str] = [""]
+    wakeword_token: Optional[str] = ""
 
 class LoginInput(BaseModel):
     email: str
@@ -111,6 +112,4 @@ class SensorData(UserModel):
 class ModelRequest(UserModel):
     msg: str
     model_name: Optional[str] = LLMConfig.MODEL_NAME
-
-class TokenData(BaseModel):
-    token: str
+    wakeword_token: Optional[str] = ""

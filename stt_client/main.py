@@ -11,19 +11,32 @@ import threading
 load_dotenv(override=True) 
 
 API_URL = "{}/function-calling/generate".format(os.getenv("BACKEND_ENDPOINT"))
-USER_ID = 1
+headers = {
+    "ngrok-skip-browser-warning": "true",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/91.0 Safari/537.36"
+}
+wakeword_token = ""
+
+login_res = requests.post("{}/login".format(os.getenv("BACKEND_ENDPOINT")), json={
+    'username': os.getenv("USERNAME"),
+    'password': os.getenv("PASSWORD"),
+}, headers=headers).json()
+
+if login_res.status_code == 200:
+    login_data = login_res.json()
+    headers["Authorization"] = f"Bearer {login_data.get('access_token')}"
+else:
+    raise Exception(f"Login failed: {login_res.status_code} - {login_res.text}")
 
 
 st.title('Device Control by Speech')
 
 def send_to_api(text: str):
-    headers = {
-        "ngrok-skip-browser-warning": "true",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/91.0 Safari/537.36"
-    }
     try:
-        response = requests.post(API_URL, json={"user_id": USER_ID, "msg": text}, headers=headers)
-        return response.json()
+        response = requests.post(API_URL, json={"msg": text, "wakeword_token": wakeword_token}, headers=headers)
+        response = response.json()
+        wakeword_token = response.get("wakeword_token", "")
+        return response
     except Exception as e:
         print(f"Lỗi khi gửi đến API: {e}")
         return False
