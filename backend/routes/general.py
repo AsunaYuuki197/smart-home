@@ -269,3 +269,24 @@ async def save_settings():
     Updates the application settings.
     """
     pass
+
+
+# Device/app FCM token
+@router.post("/register_token", summary="Device/App FCM token")
+async def register_token(token: str):
+    user = await user_collection.find_one({'user_id': user_id_ctx.get()})
+
+    if user:
+        fcm_tokens = user.get('fcm_tokens', [])
+
+        if token not in fcm_tokens:
+            fcm_tokens.append(token)
+            await user_collection.update_one(
+                {'user_id': user_id_ctx.get()},
+                {'$set': {'fcm_tokens': fcm_tokens}}
+            )
+
+        return {"message": "FCM token saved"}
+
+    raise HTTPException(404, "User not found")
+
