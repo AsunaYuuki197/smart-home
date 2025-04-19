@@ -47,7 +47,6 @@ export default function StatsBar({ title, date, color = "teal" }: StatsProps) {
 
       });
     } 
-  
     return {
       labels: hours.map(hour => `${hour}:00`),
       datasets: [

@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState, useCallback ,useRef} from 'react';
 // Component chính
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_ENDPOINT;
+
 export default function DateTimeWeather() {
   const { date, time } = useDateTime();
   const { temperature, humidity, isLoading, error } = useWeather();
@@ -55,7 +57,7 @@ const weatherService = {
     try {
       const token = sessionStorage.getItem("access_token");
       if (!token) throw new Error("Token không hợp lệ");
-      const response = await fetch(`/api/general/?user_id=${userId}`,{
+      const response = await fetch(`${API_BASE_URL}/?user_id=${userId}`,{
         method: "GET",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
       });

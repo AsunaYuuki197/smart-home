@@ -1,2 +1,0 @@
-2025-04-19 06:33:23,886 - D:\Workspace\DATH_242\smart-home\backend\middleware\http.py - INFO - 127.0.0.1 - "GET /device/light/usage 1.1" 200 0.67s
-2025-04-19 06:33:24,114 - D:\Workspace\DATH_242\smart-home\backend\middleware\http.py - INFO - 127.0.0.1 - "GET /device/fan/usage 1.1" 200 0.89s
