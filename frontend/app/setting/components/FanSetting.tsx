@@ -2,14 +2,19 @@
 import {useState, useEffect} from "react";
 import ActiveControl from "./ActiveControl";
 import { ChevronDown, Info } from "lucide-react";
-function FanSetting() {
-    const [isActive, setIsActive] = useState(false);
-    const [isActiveTime, setIsActiveTime] = useState(false);
-    const [from, setFrom] = useState("");
-    const [to, setTo] = useState("");
+import {fan_autorule} from "../../models/fan_autorule";
+
+
+function FanSetting({fanObj}:{fanObj:fan_autorule}) {
+    const [isActive, setIsActive] = useState(Object.keys(fanObj).length == 0 ? false : true);
+    const [isActiveTime, setIsActiveTime] = useState(fanObj["time_rule"] == undefined ? false : true);
+    const [isActiveTemp, setIsActiveTemp] = useState(fanObj["htsensor_rule"] == undefined ? false : true);
+    
+    const [from, setFrom] = useState(fanObj["time_rule"] == undefined ? "" : String(new Date(fanObj["time_rule"]["start_time"]).getTime()));
+    const [to, setTo] = useState(fanObj["time_rule"] == undefined ? "" : String(new Date(fanObj["time_rule"]["end_time"]).getTime()));
     const [frequency,setFrequency] = useState("tần suất")
 
-    const freqs =["1 lần","2 lần","3 lần","4 lần"]
+    const freqs =["Hàng ngày","1 lần","2 lần","3 lần","4 lần"]
 
     return (
         <>
@@ -21,12 +26,12 @@ function FanSetting() {
 
         <div className = {`flex-4/5 flex flex-col justify-around gap-2 bg-white rounded-4xl pt-2 pb-2 pl-10 pr-10
                             ${isActive ? "opacity-100" : "opacity-40 pointer-events-none" } `}>
-            <ControlByTemp key={`temp-${isActive}`} isActive = {isActive}/> {/* Điều khiển qua nhiệt độ */}
+            <ControlByTemp key={`temp`} isActive = {isActive}/> {/* Điều khiển qua nhiệt độ */}
             <span className=" border-1 border-gray-600 w-full"></span>
             {/* Ddieeuf khien theo thoi gian*/}
             <div className = "flex flex-row gap-8 w-ful">
 
-                <div className="flex flex-col w-full items-start gap-2">
+                <div className="flex flex-col w-full items-start gap-2 font-bold">
                     <span>Điều khiển theo thời gian </span>
                     <div className="flex w-full items-center gap-4">
                         <label htmlFor="Temp-input" className={`flex flex-1/2 gap-3 text-sm ${isActiveTime ?"opacity-90":"opacity-40"}`}>
@@ -77,12 +82,15 @@ function ControlByTemp({isActive}:{isActive:boolean}) {
 
     const configs = ["Mặc định", "Tùy chỉnh"]
     const fanLevels = [1,2,3,4]
+    const handleSaveTempConfig = () => {
+        console.log("Saved temperature config:", {temperature, humidity, selectLevel});
+    };
     return (
       <>
             <div className = "flex flex-row gap-8 w-ful">
                 <div className = {`flex flex-col justify-around w-full font-bold gap-2 ${isOpen ? "cursor-pointer":"opacity-60"}`}>
                     <div className = "flex flex-row justify-between w-full font-bold gap-4">
-                        <span className={`flex flex-1/2 items-center `}>Điều khiển theo nhiệt độ, độ ẩm</span>
+                        <span className={`flex flex-2/3 items-center `}>Điều khiển theo nhiệt độ, độ ẩm</span>
                         <DropDown isOpen = {isOpen} selectValue={selectConfig} setSelectValue={setSelectConfig} values={configs}/>
                     </div>
                     <div className = "flex flex-row  w-full font-bold text-sm gap-4">
@@ -93,7 +101,7 @@ function ControlByTemp({isActive}:{isActive:boolean}) {
                                 : (
                                 <>
                                     <label htmlFor="Temp-input" className={`flex flex-1/2 gap-1 text-sm ${isOpen && (selectConfig ==="Tùy chỉnh") ?"opacity-90":"opacity-40"}`}>
-                                        <span className="font-bold">Nhiệt độ từ:</span>
+                                        <span className="font-bold">Nhiệt độ:</span>
                                         <input type="number" 
                                                 className="appearance-none w-[42px] rounded-[5px] border-1 pl-1 border-[#000000]" 
                                                 min = {0}
@@ -101,7 +109,7 @@ function ControlByTemp({isActive}:{isActive:boolean}) {
                                                 value = {temperature}
                                                 onChange = {(e) => setTemperature(parseInt(e.target.value))}
                                                 />
-                                        <span className="font-bold">Độ ẩm từ:</span>
+                                        <span className="font-bold">Độ ẩm:</span>
                                         <input type="number" 
                                                 className="appearance-none w-[42px] rounded-[5px] border-1 pl-1 border-[#000000]" 
                                                 min = {0}
@@ -114,11 +122,14 @@ function ControlByTemp({isActive}:{isActive:boolean}) {
                                         <span className={`w-fit `}>Mức Quạt: </span>
                                         <DropDown isOpen = {isOpen} selectValue={selectLevel} setSelectValue={setSelectLevel} values={fanLevels}/>
                                     </div>
+                                    
                                 </>
                                 )
                         }
                     </div>
+                    
                 </div>
+                <div className = "flex flex-col justify-start  gap-2">
                 <label className="relative inline-flex items-start cursor-pointer">
                         <input type="checkbox" className="sr-only peer" checked={isOpen} onChange={()=>setIsOpen(!isOpen)}  />
                         <div className="w-11 h-6 bg-gray-200
@@ -129,6 +140,14 @@ function ControlByTemp({isActive}:{isActive:boolean}) {
                                         after:bg-white after:border-gray-300
                                         after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
                 </label>
+                {selectConfig ==="Tùy chỉnh" ? (<button className={`w-fit text-sm font-bold text-black bg-[#E2E8F1]
+                                                     rounded-[5px] px-2 py-1 cursor-pointer hover:opacity-50
+                                        ${isOpen && (selectConfig ==="Tùy chỉnh") ? "opacity-100 ":"opacity-40 pointer-events-none"}`}
+                                            onClick = {handleSaveTempConfig}>
+                                            Lưu
+                </button>) : <div></div>} 
+                
+                </div>
             </div> 
       </>    
     )

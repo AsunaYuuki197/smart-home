@@ -25,12 +25,12 @@ function LightSetting() {
             <ActiveControl name = "Move" title = "Điều khiển khi thấy chuyển động" status={isMove} setStatus = {setIsMove} />
             <span className=" border-1 border-gray-600 w-full"></span>
             
-            <Control key={`temp-${isActive}`} isActive = {isActive}/> 
+            <Control key={`light`} isActive = {isActive}/> 
             <span className=" border-1 border-gray-600 w-full"></span>
 
             <div className = "flex flex-row gap-8 w-ful">
 
-                <div className="flex flex-col w-full items-start gap-2">
+                <div className="flex flex-col w-full items-start gap-2 font-bold">
                     <span>Điều khiển theo thời gian </span>
                     <div className="flex w-full items-center gap-4">
                         <label htmlFor="Temp-input" className={`flex flex-1/2 gap-3 text-sm ${isActiveTime ?"opacity-90":"opacity-40"}`}>
@@ -104,7 +104,7 @@ function Control({isActive}:{isActive:boolean}) {
                                 : (
                                 <>
                                     <label htmlFor="Temp-input" className={`flex  text-sm ${isOpen && (selectConfig ==="Tùy chỉnh") ?"":"opacity-40"}`}>
-                                        <span className="font-bold">Cường độ ánh sáng từ từ:</span>
+                                        <span className="font-bold">Cường độ ánh sáng:</span>
                                         <input type="number" 
                                                 className="appearance-none w-[42px] rounded-[5px] border-1 pl-1 border-[#000000]" 
                                                 min = {0}
@@ -127,6 +127,7 @@ function Control({isActive}:{isActive:boolean}) {
                         }
                     </div>
                 </div>
+                <div className = "flex flex-col justify-start  gap-2">
                 <label className="relative inline-flex items-start cursor-pointer">
                         <input type="checkbox" className="sr-only peer" checked={isOpen} onChange={()=>setIsOpen(!isOpen)}  />
                         <div className="w-11 h-6 bg-gray-200
@@ -137,6 +138,13 @@ function Control({isActive}:{isActive:boolean}) {
                                         after:bg-white after:border-gray-300
                                         after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
                 </label>
+                {selectConfig ==="Tùy chỉnh" ? (<button className={`w-fit text-sm font-bold text-black bg-[#E2E8F1] rounded-[5px] px-2 py-1 cursor-pointer hover:opacity-50
+                                        ${isOpen && (selectConfig ==="Tùy chỉnh") ? "opacity-100 ":"opacity-40 pointer-events-none"}`}
+                                            onClick = {()=>{console.log("Lưu")}}>
+                                            Lưu
+                </button>) : <div></div>} 
+                
+                </div>
             </div> 
       </>    
     )

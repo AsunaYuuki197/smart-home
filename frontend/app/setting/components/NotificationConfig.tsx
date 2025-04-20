@@ -71,6 +71,10 @@ function HotNotification({isActive}:{isActive:boolean}) {
     const [temperature, setTemperature] = useState(0)
 
     const configs = ["Mặc định", "Tùy chỉnh"]
+
+    const handleHotNotifyChange = () => {
+        console.log("LUUWUW THONG BAO NONG");
+    }
     return (
       <>
             <div className = "flex justify-between w-full font-bold ">
@@ -98,7 +102,6 @@ function HotNotification({isActive}:{isActive:boolean}) {
                                 key={config}
                                 className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                                 onClick={() => {
-                                    console.log(config);
                                     setHotNotify(config);
                                     setIsHotNotify(false);
                                 }}
@@ -123,18 +126,27 @@ function HotNotification({isActive}:{isActive:boolean}) {
                     </div>
                 </label>
             </div>
-            <label htmlFor="Temp-input" className={`flex gap-2 ${isOpen && (hotNotify ==="Tùy chỉnh") ?"opacity-90":"opacity-40"}`}>
-                <span className="font-bold">Nhiệt độ:</span>
-                <input type="number" 
-                        className="appearance-none w-[45px] rounded-[5px] border-1 pl-2 border-[#000000]" 
-                        min = {0}
-                        max = {50}
-                        value = {isNaN(temperature) ? 0 : temperature}
-                        onChange = {(e) => setTemperature(parseInt(e.target.value))}
-                        disabled={!isOpen}
-                        />
-                <span className=" font-bold"> °C</span>
-            </label>
+            {isOpen && (hotNotify ==="Tùy chỉnh")?(<div className = {` flex justify-between w-full font-bold }`}>
+                <label htmlFor="Temp-input" className={`flex gap-2 `}>
+                    <span className="font-bold">Nhiệt độ:</span>
+                    <input type="number" 
+                            className="appearance-none w-[45px] rounded-[5px] border-1 pl-2 border-[#000000]" 
+                            min = {0}
+                            max = {50}
+                            value = {isNaN(temperature) ? 0 : temperature}
+                            onChange = {(e) => setTemperature(parseInt(e.target.value))}
+                            disabled={!isOpen}
+                            />
+                    <span className=" font-bold"> °C</span>
+                </label>
+                <button className="bg-[#E2E8F1] text-black rounded-[10px] px-2 py-1 font-bold cursor-pointer hover:opacity-50"
+                        onClick={handleHotNotifyChange}
+                        >
+                    Lưu
+                </button>
+            </div>):<div></div>} 
+            
+            
         
       </>    
     )
