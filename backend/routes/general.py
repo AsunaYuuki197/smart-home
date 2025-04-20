@@ -278,7 +278,7 @@ async def register_token(token: str):
 
     if user:
         fcm_tokens = user.get('fcm_tokens', [])
-
+        print(fcm_tokens)
         if token not in fcm_tokens:
             fcm_tokens.append(token)
             await user_collection.update_one(

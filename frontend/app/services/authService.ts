@@ -33,15 +33,17 @@ export const authService = {
       const deviceToken = await getToken(messaging, {
         vapidKey: API_VAPID_KEY,
       });
-
+      console.log("deviceToken", deviceToken);
       if (deviceToken) {
-        await axiosClient.post(`${API_BASE_URL}/register_token`, {
-          token: deviceToken,
+        await axiosClient.post(`${API_BASE_URL}/register_token?token=${deviceToken}`, {
         });
       } else {
+        alert("Đăng nhập không thành công. Vui lòng thử lại sau.");
+        throw new Error("No registration token available. Request permission to generate one.");
       }
       return res.data;
     } catch (error: any) {
+      alert("Đăng nhập không thành công. Vui lòng thử lại sau.");
       throw new Error(error.response?.data?.detail || "Login failed");
     }
   },
@@ -70,8 +72,6 @@ export const authService = {
   logout: () => {
     // Xóa token khỏi sessionStorage
     sessionStorage.removeItem("access_token");
-    sessionStorage.removeItem("refresh_token");
-    // Optionally: gọi API logout backend nếu có
     // return axiosClient.post("/auth/logout");
   },
 };
