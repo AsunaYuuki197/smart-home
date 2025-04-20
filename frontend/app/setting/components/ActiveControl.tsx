@@ -9,13 +9,13 @@ function ActiveControl({ name,title,status,setStatus }: { name: string , title:s
         }
         setIsOn(!isOn);
         if(isOn){
-            console.log("Tắt tự động điều khiển" + name);
+            console.log("Tắt tự động điều khiển " + name);
         }
         //TODO: Call API Tắt tự động điều khiển
     }
      // Thẻ cha là flex items-center
   return (
-    <div className = "flex items-center justify-between w-full">
+    <div className = {`flex items-center justify-between w-full ${isOn?"":"opacity-50"}`}>
         <span className="font-bold nt-bold text-black">{title}</span>
         <label className="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" className="sr-only peer" checked={isOn} onChange={handleClick}  />

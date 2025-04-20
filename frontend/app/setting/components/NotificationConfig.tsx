@@ -129,8 +129,9 @@ function HotNotification({isActive}:{isActive:boolean}) {
                         className="appearance-none w-[45px] rounded-[5px] border-1 pl-2 border-[#000000]" 
                         min = {0}
                         max = {50}
-                        value = {temperature}
+                        value = {isNaN(temperature) ? 0 : temperature}
                         onChange = {(e) => setTemperature(parseInt(e.target.value))}
+                        disabled={!isOpen}
                         />
                 <span className=" font-bold"> °C</span>
             </label>
