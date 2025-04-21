@@ -1,34 +1,76 @@
-import ActiveControl from './components/ActiveControl';
+"use client";
 import GeneralConfig from './components/GeneralConfig';
 import NotificationConfig from './components/NotificationConfig';
 import FanSetting from './components/FanSetting'
 import LightSetting from './components/LightSetting'
-export default function Setting() {
+import { settingService } from '../services/settingService';
+import {useState, useEffect } from 'react';
+import {fan_autorule} from '../models/fan_autorule';
 
-    return (
-      <div className = " flex flex-col ml-10 mr-20 gap-6 h-full">
+
+export default function Setting() {
+//isCountDown,time,isWakeup,text
+const [isLoading, setIsLoading] = useState(true);
+const [isCountDown, setIsCountDown] = useState(false);
+const [time, setTime] = useState(0);
+const [isWakeup, setIsWakeup] = useState(false);
+const [text, setText] = useState("");
+
+const [fanObj, setFanObj] = useState<fan_autorule>({});
+const [lightObj, setLightObj] = useState<Object>({});
+useEffect(() => {
+  const fetchData = async () => {
+    const data = await settingService.getConfiguration();
+    console.log('Fetched configuration:', data);
+    setIsCountDown(data.countdown.status == "on");
+    setTime(data.countdown.time);
+    setIsWakeup(data.wake_word.status == "on");
+    setText(data.wake_word.text);
+    //TODO
+    setFanObj(data.fan_autorule == null ? {} : data.fan_autorule[0]["1"]);
+    setLightObj(data.light_autorule == null ? {} : data.light_autorule[0]["1"]);
+    setIsLoading(false);
+  };
+  fetchData();
+}, []);
+  return (
+    isLoading ? (
+      <div className="flex items-center justify-center h-full w-full">
+        <div className="flex items-center space-x-3 text-gray-600 text-lg font-semibold">
+          <svg className="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3.5-3.5L12 0v4a8 8 0 00-8 8z" />
+          </svg>
+          <span>Đang tải cấu hình...</span>
+        </div>
+      </div>
+    ) : (
+      <div className="flex flex-col ml-10 mr-20 gap-6 h-full">
         {/* ROW 1 */}
-        <div className = "flex flex-5  gap-24">
+        <div className="flex flex-5 gap-24">
           {/* Cấu hình chung */}
-          <div className = "flex flex-col flex-2/5 gap-6  ">
-            <GeneralConfig/>
+          <div className="flex flex-col flex-2/5 gap-6">
+            <GeneralConfig isCountDown={isCountDown} time={time} isWakeup={isWakeup} text={text} />
           </div>
           {/* Đèn */}
-          <div className = "flex flex-col  lex-col flex-3/5 gap-6 ">
-            <LightSetting/>
+          <div className="flex flex-col flex-3/5 gap-6">
+            <LightSetting />
           </div>
         </div>
+
         {/* ROW 2 */}
-        <div className = "flex flex-4  gap-24">
+        <div className="flex flex-4 gap-24">
           {/* Thông báo */}
-          <div className = "flex flex-col flex-2/5  gap-6">
-            <NotificationConfig/>
+          <div className="flex flex-col flex-2/5 gap-6">
+            <NotificationConfig />
           </div>
           {/* Quạt */}
-          <div className = "flex flex-col flex-3/5  gap-6">
-            <FanSetting/>
+          <div className="flex flex-col flex-3/5 gap-6">
+            <FanSetting fanObj = {fanObj} />
           </div>
         </div>
       </div>
     )
-  }
+  );
+
+}

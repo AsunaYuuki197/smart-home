@@ -5,8 +5,8 @@ export interface SensorStatItem {
     value: number;
     timestamp: string;
   }
-  const token = sessionStorage.getItem("access_token");
-  export const sensorStatisticsService = {
+const token = sessionStorage.getItem("access_token");
+export const sensorStatisticsService = {
     getSensorStatistics: async (
       deviceType: "temp_sensor" | "humid_sensor",
       userId: number | string
