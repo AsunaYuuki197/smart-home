@@ -21,7 +21,7 @@ def send_notification(self, user, title: str, body: str, device_id: int):
         updated_tokens = user.get("fcm_tokens", [])
         for token in user.get("fcm_tokens", []):
             res = send_push(token, title, body)
-
+            print(res)
             # Check for FCM errors and clean up invalid tokens
             if res.get("failure"):
                 results = res.get("results", [{}])

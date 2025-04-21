@@ -1,6 +1,8 @@
 export interface fan_autorule{
+    deviece_id?: number
     htsensor_rule?:
-    {humidity: number
+    {
+    humidity: number
     level: number
     temperature: number
     },

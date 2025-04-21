@@ -1,6 +1,5 @@
 import axiosClient from "./axiosClient";
-import { messaging } from '@/lib/firebase';
-import { getToken, onMessage } from 'firebase/messaging';
+import { getFirebaseMessaging, getToken, onMessage } from "@/lib/firebase";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_ENDPOINT
 const API_VAPID_KEY = process.env.NEXT_PUBLIC_VAPID_KEY
@@ -30,9 +29,18 @@ export const authService = {
         return;
       }
 
+      const messaging = await getFirebaseMessaging();
+
+      if (!messaging) {
+        console.warn("🚫 Messaging not supported in this browser.");
+        return;
+      }
+
+      // 👉 Nhận device token
       const deviceToken = await getToken(messaging, {
-        vapidKey: API_VAPID_KEY,
-      });
+          vapidKey: API_VAPID_KEY,
+        });
+
       console.log("deviceToken", deviceToken);
       if (deviceToken) {
         await axiosClient.post(`${API_BASE_URL}/register_token?token=${deviceToken}`, {

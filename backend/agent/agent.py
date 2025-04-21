@@ -17,7 +17,7 @@ scheduler = AsyncIOScheduler()
 async def get_sensor_data():
     start_time = time.time()
 
-    cursor = user_collection.find({}, {'devices': 1, 'user_id': 1, 'noti': 1, '_id': 0})
+    cursor = user_collection.find({}, {'fcm_tokens':1,'devices': 1, 'user_id': 1, 'noti': 1, '_id': 0})
     async for user in cursor:
         temp_sensor = {'value': 0}
         humid_sensor = {'value': 0}

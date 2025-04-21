@@ -78,13 +78,14 @@ export const autoruleService ={
             throw error;
         }
     },
-    createTimeFrame: async (device_id:number,start_time:Date,end_time:Date,repeat:number):Promise<any> =>{
+    createTimeFrame: async (device_id:number,start_time:string,end_time:string,repeat:number):Promise<any> =>{
         try{
+            const today = new Date();
             const response = await axiosClient.post(`${API_BASE_URL}/autorule/create/timeframe`, {
-                "user_id" : "1",
+                "user_id" : 1,
                 "device_id": device_id,
-                "start_time": start_time,
-                "end_time": end_time,
+                "start_time": (new Date(`${today.toISOString().split('T')[0]}T${start_time}:00`).toLocaleString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' }).replace(" ", "T")),
+                "end_time": (new Date(`${today.toISOString().split('T')[0]}T${end_time}:00`).toLocaleString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' }).replace(" ", "T")),
                 "repeat": repeat
             }, {
                 headers: { "Content-Type": "application/json" },
@@ -117,7 +118,7 @@ export const autoruleService ={
     createHTSensor: async (device_id:number,humidity:number,temperature:number,level:number):Promise<any> =>{
     // set humidity and temp sensor rule for operating device automatically
         try{
-            const response = await axiosClient.post(`${API_BASE_URL}/autorule/create/humiditysensor`, {
+            const response = await axiosClient.post(`${API_BASE_URL}/autorule/create/ht-sensor`, {
                 "user_id" : "1",
                 "device_id": device_id,
                 "humidity": humidity,
