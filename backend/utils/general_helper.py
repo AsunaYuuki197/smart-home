@@ -2,9 +2,9 @@ import asyncio
 import functools
 import requests
 timeRule_fields = ['start_time', 'end_time', 'repeat']
-htsensorRule_fields = ['level', 'humidity', 'temperature']
+htsensorRule_fields = ['level', 'humidity', 'temperature', 'mode']
 motionRule_fields = ['motion_trigger']
-lightsensorRule_fields = ['color', 'light_intensity', 'level']
+lightsensorRule_fields = ['color', 'light_intensity', 'level', 'mode']
 
 # For wrap async func to sync func
 def sync_wrapper(async_func):

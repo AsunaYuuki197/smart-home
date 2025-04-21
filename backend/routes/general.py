@@ -274,7 +274,7 @@ async def save_settings():
 # Device/app FCM token
 @router.post("/register_token", summary="Device/App FCM token")
 async def register_token(token: str):
-    user = await user_collection.find_one({'user_id': user_id_ctx.get()})
+    user = await user_collection.find_one({'user_id': user_id_ctx.get()}, {'fcm_tokens': 1, 'user_id': 1})
 
     if user:
         fcm_tokens = user.get('fcm_tokens', [])
@@ -290,3 +290,16 @@ async def register_token(token: str):
 
     raise HTTPException(404, "User not found")
 
+# Update FCM Tokens
+@router.post("/update_fcmtoken", summary="Update FCM Tokens")
+async def update_fcmtoken(updated_tokens: list):
+    user = await user_collection.find_one({'user_id': user_id_ctx.get()}, {'fcm_tokens': 1, 'user_id': 1})
+
+    if user:
+        db.Users.update_one(
+            {"user_id": user['user_id']},
+            {"$set": {"fcm_tokens": updated_tokens}},
+        )
+        return {"message": "FCM token saved"}
+
+    raise HTTPException(404, "User not found")

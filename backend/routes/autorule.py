@@ -1,12 +1,14 @@
 import sys 
 from pathlib import Path
+from datetime import datetime, timedelta, timezone
 
 sys.path.append(str(Path(__file__).parent))
 
 from fastapi import APIRouter, HTTPException, Query
 from schemas.schema import *
 from database.db import db
-
+from background.tasks import schedule_countdown, celery
+from celery.result import AsyncResult
 router = APIRouter()
 
 user_collection = db["Users"]
@@ -24,20 +26,46 @@ async def countdown():
 
 @router.post("/save/countdown", summary="Saving Countdown Timer")
 async def save_countdown(payload: CountdownUpdateRequest):
-    result = await user_collection.update_one(
-        {"user_id": payload.user_id},
-        {
-            "$set": {
-                "countdown.status": payload.status,
-                "countdown.time": payload.time
-            }
-        }
-    )
+    end_time = datetime.now(timezone.utc) + timedelta(seconds=payload.time)
+    user = await user_collection.find_one({"user_id": payload.user_id, "countdown.status": "on"}, {'countdown': 1})
 
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="User not found")
+    if user and user['countdown'].get('task_id'):
+        AsyncResult(user['countdown'].get('task_id'), app=celery).revoke(wait=True,timeout=3)
+            
+    if payload.status == "on":
+        task_id = schedule_countdown(payload.user_id, end_time)
 
-    return {"message": "Countdown updated successfully"}
+        result = await user_collection.update_one(
+            {"user_id": payload.user_id},
+            {
+                "$set": {
+                    "countdown.status": payload.status,
+                    "countdown.time": payload.time,
+                    "countdown.task_id": task_id
+                }
+            },
+            upsert=True
+        )
+        return {"message": "Countdown started", "task_id": task_id}
+    
+
+    if payload.status == "off":
+        result = await user_collection.update_one(
+            {"user_id": payload.user_id},
+            {
+                "$set": {
+                    "countdown.status": payload.status,
+                    "countdown.time": payload.time,
+                    "countdown.task_id": None
+                }
+            },
+            upsert=True
+        )
+
+        return {"message": "Countdown updated successfully"}
+
+
+    raise HTTPException(status_code=404, detail="No countdown to cancel")        
 
 
 @router.get("/wakeword", summary="Wake Word For AI")
@@ -173,7 +201,8 @@ async def new_light_sensor(payload: LightSensorRule):
                 "type": device_typ['type'],
                 "light_intensity": payload.light_intensity, 
                 "color": payload.color, 
-                "level": payload.level
+                "level": payload.level,
+                "mode": payload.mode
             }
         },
         upsert=True
@@ -188,7 +217,7 @@ async def remove_light_sensor(device_id: int):
         {'user_id': user_id_ctx.get(), 'device_id': device_id},
         {
             "$set": {
-                "light_intensity": None, "color": None, "level": None
+                "light_intensity": None, "color": None, "level": None, "mode": None
             }
         }
     )
@@ -209,7 +238,8 @@ async def new_ht_sensor(payload: HTSensorRule):
                 "type": device_typ['type'],
                 "humidity": payload.humidity, 
                 "temperature": payload.temperature, 
-                "level": payload.level
+                "level": payload.level,
+                "mode": payload.mode
             }
         },
         upsert=True
@@ -223,7 +253,7 @@ async def remove_ht_sensor(device_id: int):
         {'user_id': user_id_ctx.get(), 'device_id': device_id},
         {
             "$set": {
-                "humidity": None, "temperature": None, "level": None
+                "humidity": None, "temperature": None, "level": None, "mode": None
             }
         }
     )
