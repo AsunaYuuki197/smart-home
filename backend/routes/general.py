@@ -288,13 +288,12 @@ async def register_token(token: str):
 
 # Update FCM Tokens
 @router.post("/update_fcmtoken", summary="Update FCM Tokens")
-async def update_fcmtoken(updated_tokens: list):
+async def update_fcmtoken(payload: FCMTokens):
     user = await user_collection.find_one({'user_id': user_id_ctx.get()}, {'fcm_tokens': 1, 'user_id': 1})
-
     if user:
-        db.Users.update_one(
+        await db.Users.update_one(
             {"user_id": user['user_id']},
-            {"$set": {"fcm_tokens": updated_tokens}},
+            {"$set": payload.model_dump()},
         )
         return {"message": "FCM token saved"}
 

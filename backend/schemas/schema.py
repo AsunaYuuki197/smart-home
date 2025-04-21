@@ -116,3 +116,7 @@ class ModelRequest(UserModel):
     msg: str
     model_name: Optional[str] = LLMConfig.MODEL_NAME
     wakeword_token: Optional[str] = ""
+
+
+class FCMTokens(BaseModel):
+    fcm_tokens: list[str]
