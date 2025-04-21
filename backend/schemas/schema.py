@@ -47,7 +47,7 @@ class PasswordUpdate(UserModel):
     old_password: str
     new_password: str 
 
-class Notification(BaseModel):
+class Notification(UserModel):
     device_id: int
     message: str
     timestamp: datetime

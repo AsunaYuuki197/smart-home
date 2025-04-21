@@ -153,7 +153,7 @@ async def save_profile(data: UserProfile):
 
 
 # Get all notifications
-@router.get("/notifications", summary="Get All Notifications", response_model=list[Notification])
+@router.get("/notifications", summary="Get All Notifications")
 async def notifications():
     """
     Retrieves a list of all notifications.
@@ -186,15 +186,11 @@ async def change_notif_status(status: str, platform: str):
 
 
 
-# Search notifications
-@router.get("/notifications/search", summary="Search Notifications", response_model=list[Notification])
-async def search_notifications(query: str):
-    """
-    Searches notifications based on a query string.
-    Covered in FE
-    """
-    pass
-
+# save notification
+@router.post("/save/notification", summary="Save notif")
+async def save_notification(payload: Notification):
+    result = await db.Notifications.insert_one(payload.model_dump())
+    return {"message": "Notification updated successfully"}   
 
 # Change password
 @router.post("/update-password", summary="Change user password")

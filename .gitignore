@@ -3,6 +3,7 @@
 .vscode/
 **/*.log.*
 **/*.log
+**/celery_task
 
 # Node.js
 node_modules/

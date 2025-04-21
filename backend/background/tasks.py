@@ -16,7 +16,7 @@ celery = Celery("tasks",
 
 
 @celery.task(bind=True, max_retries=3)
-def send_notification(self, user, title: str, body: str):   
+def send_notification(self, user, title: str, body: str, device_id: int):   
     try:
         updated_tokens = user.get("fcm_tokens", [])
         for token in user.get("fcm_tokens", []):
@@ -37,7 +37,15 @@ def send_notification(self, user, title: str, body: str):
         requests.post("{}update_fcmtoken".format(os.getenv("BACKEND_ENDPOINT")), 
                     json={'fcm_tokens': updated_tokens},
                     headers=headers)
-
+        
+        requests.post("{}save/notification".format(os.getenv("BACKEND_ENDPOINT")), 
+                    json={
+                        'device_id': device_id,
+                        'message': body,
+                        'timestamp': datetime.now(),
+                    },
+                    headers=headers)
+        
         print({"message": "Notifications sent successfully"})
         return
     except Exception as e:
