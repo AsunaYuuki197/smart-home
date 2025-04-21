@@ -4,7 +4,7 @@ from config.general_cfg import *
 from routes.control import *
 from routes.autorule import *
 from utils.general_helper import receive_feed_value
-from notification.tasks import send_notification
+from background.tasks import send_notification
 import asyncio, time
 from utils.logger import Logger
 
@@ -19,8 +19,10 @@ async def get_sensor_data():
 
     cursor = user_collection.find({}, {'devices': 1, 'user_id': 1, 'noti': 1, '_id': 0})
     async for user in cursor:
-
+        temp_sensor = {'value': 0}
+        humid_sensor = {'value': 0}
         for device_id in user.get('devices', []):
+            
             device = await db.Devices.find_one({"device_id": device_id}, {'device_id':1 , 'type': 1})
             if not device:
                 continue
@@ -34,7 +36,7 @@ async def get_sensor_data():
             elif device['type'] == "Humidity sensor":
                 humid_sensor = receive_feed_value(os.getenv("AIO_KEY"), os.getenv("AIO_USERNAME"), os.getenv("HUMIDITY_FEED"), "last")     
 
-            asyncio.create_task(controlFan_by_condition(user,float(temp_sensor['value']),float(humid_sensor['value']),device))
+            asyncio.create_task(controlFan_by_condition(user,float(temp_sensor.get('value')),float(humid_sensor.get('value')),device))
 
     process_time = time.time() - start_time
 
@@ -109,11 +111,6 @@ async def controlLight_by_condition(user: dict, light_sensor_val: float, device:
     """
 
     pass
-
-# Auto control pump
-
-
-# Auto receive sensor data
 
 
 # Auto run countdown

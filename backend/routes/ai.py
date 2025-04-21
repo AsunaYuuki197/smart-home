@@ -15,7 +15,8 @@ generator = Generator()
 
 @router.post("/generate")
 async def generate(ModelRequest: ModelRequest):
-    user_wakeword = await db.Users.find_one({'user_id': ModelRequest.user_id}, {'wake_word': 1})
+    user = await db.Users.find_one({'user_id': ModelRequest.user_id}, {'wake_word': 1})
+    user_wakeword = user['wake_word']
     # Check 1st time wakeword and send wakeword token
     if user_wakeword.get('status') == "on" and not ModelRequest.wakeword_token:
         if ModelRequest.msg == user_wakeword.get('text'):
