@@ -3,10 +3,13 @@ importScripts("https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-comp
 
 // Cấu hình Firebase (cùng thông tin với frontend)
 firebase.initializeApp({
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  messagingSenderId: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: 'your_api_key',
+  authDomain: 'your_project_id.firebaseapp.com',
+  projectId: 'your_project_id',
+  storageBucket: 'your_project_id.appspot.com',
+  messagingSenderId: 'your_sender_id',
+  appId: 'your_app_id',
+  measurementId: 'your_measurement_id',
 });
 
 // Khởi tạo Firebase Messaging
