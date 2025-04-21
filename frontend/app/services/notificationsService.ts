@@ -1,5 +1,5 @@
 //API
-const token = sessionStorage.getItem("access_token");
+const token = localStorage.getItem("access_token");
 export const notificationsService = {
     getListNotifies: async () => {
         try {

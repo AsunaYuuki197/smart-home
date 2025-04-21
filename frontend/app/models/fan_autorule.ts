@@ -5,6 +5,7 @@ export interface fan_autorule{
     humidity: number
     level: number
     temperature: number
+    mode: string
     },
     
     time_rule?: {

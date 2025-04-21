@@ -55,7 +55,7 @@ export default function DateTimeWeather() {
 const weatherService = {
   getWeather: async (userId: string | number) => {
     try {
-      const token = sessionStorage.getItem("access_token");
+      const token = localStorage.getItem("access_token");
       if (!token) throw new Error("Token không hợp lệ");
       const response = await fetch(`${API_BASE_URL}/?user_id=${userId}`,{
         method: "GET",

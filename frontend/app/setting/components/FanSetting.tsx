@@ -140,7 +140,7 @@ function ControlByTime ({fanObj, isActive}:{fanObj:fan_autorule, isActive:boolea
     )
 }
 function ControlByTemp({fanObj, isActive}:{fanObj:fan_autorule, isActive:boolean}) {
-    const [selectConfig, setSelectConfig] = useState(fanObj["htsensor_rule"] == undefined ? "Mặc định" : "Tùy chỉnh");
+    const [selectConfig, setSelectConfig] = useState(fanObj["htsensor_rule"] == undefined ? "Mặc định" : fanObj["htsensor_rule"]["mode"]);
     const [selectLevel, setSelectLevel] = useState(fanObj["htsensor_rule"] == undefined ? 95 : fanObj["htsensor_rule"]["level"]);
     const [isOpen,setIsOpen] = useState(fanObj["htsensor_rule"] == undefined ? false : true);
     const [temperature, setTemperature] = useState(fanObj["htsensor_rule"] == undefined ? 25 : fanObj["htsensor_rule"]["temperature"]);
@@ -148,7 +148,7 @@ function ControlByTemp({fanObj, isActive}:{fanObj:fan_autorule, isActive:boolean
 
 
     const configs = ["Mặc định", "Tùy chỉnh"]
-    const fanLevels = [1,2,3,4]
+    const fanLevels = [20,50,95]
 
     const isFirstRender = useRef(true);
 
@@ -159,7 +159,7 @@ function ControlByTemp({fanObj, isActive}:{fanObj:fan_autorule, isActive:boolean
             humidity: humidity || 50,
             level: selectLevel || 95
         }
-        autoruleService.createHTSensor(1,tempConfig.temperature,tempConfig.humidity, tempConfig.level).then((response) => {
+        autoruleService.createHTSensor(1,"Tùy chỉnh",tempConfig.temperature,tempConfig.humidity, tempConfig.level).then((response) => {
             alert("Lưu cấu hình thành công");
         })
         .catch((error:any) => {
@@ -175,7 +175,7 @@ function ControlByTemp({fanObj, isActive}:{fanObj:fan_autorule, isActive:boolean
         const deleteTemp = async () => {
             await autoruleService.deleteHTSensor(fanObj["deviece_id"] || 1);
         }
-        const createTemp = async () => {
+        const createTemp = async (selectConfig:string) => {
             const tempConfig = {
                 deviece_id: fanObj["deviece_id"] || 1,
                 temperature: 25,
@@ -183,7 +183,7 @@ function ControlByTemp({fanObj, isActive}:{fanObj:fan_autorule, isActive:boolean
                 level: 95
             }
             try{
-                await autoruleService.createHTSensor(1,tempConfig.temperature,tempConfig.humidity, tempConfig.level).then((response) => {
+                await autoruleService.createHTSensor(1,selectConfig,tempConfig.temperature,tempConfig.humidity, tempConfig.level).then((response) => {
                     console.log("Create temp config successfully");
                 })
             }
@@ -202,9 +202,9 @@ function ControlByTemp({fanObj, isActive}:{fanObj:fan_autorule, isActive:boolean
         }
         if (isActive && isOpen) {
             // Bật ở chế độ mặc định
-            createTemp();
+            createTemp(selectConfig);
         }
-    },[isActive, isOpen])
+    },[isActive, isOpen,selectConfig])
     return (
       <>
             <div className = "flex flex-row gap-8 w-ful">
@@ -290,7 +290,7 @@ function DropDown({isOpen,selectValue,setSelectValue,values}
                         {/* DROPDOWN */}
                         <div className={`absolute left-0 top-full  mt-1 w-full bg-white rounded-md border z-[50]
                             overflow-hidden transition-all duration-300 ${
-                                dropDown && isOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+                                dropDown && isOpen ? "max-h opacity-100 " : "max-h-0 opacity-0"
                             }`}>
                             <ul className="py-1">
                             {values.map((value) => (

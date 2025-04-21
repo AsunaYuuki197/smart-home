@@ -21,26 +21,12 @@ export default function Login() {
     setIsClient(true);  // Đảm bảo rằng app đã được render trên client-side
   }, []);
   useEffect(() => {
-    const token = sessionStorage.getItem("access_token"); 
+    const token = localStorage.getItem("access_token"); 
     if (token) {
       router.push("/dashboard"); // nếu đã login rồi, chuyển hướng đến dashboard
     }
   }, [router]);
-  // const handleLogin = () => {
-  //   if (email === 'admin' && password === '123456') {
-  //     // Giả lập đăng nhập thành công
-  //     // Điều hướng đến Dashboard mà không cần kết nối DB
-  //     if (isClient) {
-  //       router.push('/dashboard');  // Chuyển hướng đến Dashboard
-  //     }
-  //   } else {
-  //     setError('Sai tài khoản hoặc mật khẩu!');
-  //   }
-  // };
-
-  // if (!isClient) {
-  //   return null;  // Trả về null để không render gì trước khi có client-side
-  // }
+  
   return (
     <div
       className="w-screen h-screen bg-cover bg-center relative"
