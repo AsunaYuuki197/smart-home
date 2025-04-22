@@ -78,6 +78,19 @@ export const autoruleService ={
             throw error;
         }
     },
+    postNotify: async (status: string, platform: string):Promise<any> =>{
+        try{
+            const response = await axiosClient.post(`${API_BASE_URL}/autorule/create/notify`, {
+                "status": status,
+                "platform": platform
+                }, {
+                    headers: { "Content-Type": "application/json" },
+                });
+    }catch (error:any){
+        console.error(`Error saving notify rules:`, error.message);
+        throw error;
+    }},
+
     createTimeFrame: async (device_id:number,start_time:string,end_time:string,repeat:number):Promise<any> =>{
         try{
             const response = await axiosClient.post(`${API_BASE_URL}/autorule/create/timeframe`, {
@@ -109,12 +122,13 @@ export const autoruleService ={
             throw error;
         }
     },
-    createLightSensor: async (device_id:number,light_intensity:number,color:string,level:number):Promise<any> =>{
+    createLightSensor: async (device_id:number,mode:string,light_intensity:number,color:string,level:number):Promise<any> =>{
     //set light sensor rule for operating device automatically
         try{
-            const response = await axiosClient.post(`${API_BASE_URL}/autorule/create/lightsensor`, {
+            const response = await axiosClient.post(`${API_BASE_URL}/autorule/create/light-sensor`, {
                 "user_id" : "1",
                 "device_id": device_id,
+                "mode": mode,
                 "light_intensity": light_intensity,
                 "color": color,
                 "level": level

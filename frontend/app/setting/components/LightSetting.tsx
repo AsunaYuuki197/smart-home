@@ -1,5 +1,5 @@
 "use client";
-import {useState, useEffect} from "react";
+import {useState, useEffect, useRef} from "react";
 import ActiveControl from "./ActiveControl";
 import { ChevronDown, Info } from "lucide-react";
 import { light_autorule } from "@/app/models/light_autorule";
@@ -14,6 +14,10 @@ const LIGHT_COLORS: Record<string, string> = {
     "green": "Xanh lá",
    "purple": "Tím",
 }
+const LIGHT_COLOR_KEYS = Object.entries(LIGHT_COLORS).reduce((acc, [key, value]) => {
+    acc[value] = key;
+    return acc;
+  }, {} as Record<string, string>);
 
 function LightSetting({lightObj}:{lightObj:light_autorule}) {
     const [isActive, setIsActive] = useState(Object.keys(lightObj).length == 0 ? false : true);
@@ -71,20 +75,54 @@ function TimeControl({lightObj,isActive}:{lightObj:light_autorule,isActive:boole
     const [to, setTo] = useState(lightObj["time_rule"] == undefined ? "11:00" : String(new Date(lightObj["time_rule"]["end_time"]).toTimeString().slice(0, 5)));
     const [frequency,setFrequency] = useState("tần suất")
     const freqs =["hàng ngày","1 lần","2 lần","3 lần","4 lần"]
-
-    const handleSaveTime = () => {
-        useEffect(() => {
-            const saveTime = async () => {
-                try {
-                    await autoruleService.createTimeFrame(2, from, to, 1);
-                    alert("Lưu thời gian thành công");
-                } catch (error) {
-                    console.error("Error saving time rule:", error);
-                }
-            };
-            saveTime();
-        }, []);
+    const isFirstRender = useRef(true);
+    useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+        const deleteTimeFrame = async () => {
+            await autoruleService.deleteTimeFrame( 2);
+        }
+        const createTimeFrame = async () => {
+            const timeFrame = {
+                deviece_id:  2,
+                start_time: from,
+                end_time: to,
+                repeat: frequency
+            }
+            try{
+                await autoruleService.createTimeFrame(1,timeFrame.start_time,timeFrame.end_time, 1).then((response) => {
+                    console.log("Create time frame successfully");
+                })
+            }
+            catch (error:any){
+                console.error(`Error creating time frame:`, error.message);
+            }
+            
+        }
+        if(!isActive || !isActiveTime) {
+            // setFrom("07:00");
+            // setTo("11:00");
+            setFrequency("tần suất")
+            setIsActiveTime(false);
+            deleteTimeFrame();
+        }
+        if (isActive && isActiveTime) {
+            // Bật ở chế độ mặc định
+            createTimeFrame();
+        }
+    },[isActive, isActiveTime])
+    const handleSaveTime = async () => {
+        try {
+            await autoruleService.createTimeFrame(2, from, to, 1);
+            alert("Lưu thời gian thành công");
+        } catch (error) {
+            console.error("Error saving time rule:", error);
+        }
     }
+
+   
     return(
         <div className = "flex flex-row gap-8 w-ful">
                 <div className="flex flex-col w-full items-start gap-2 font-bold">
@@ -146,13 +184,60 @@ function Control({lightObj,isActive}:{lightObj:light_autorule,isActive:boolean})
     const configs = ["Mặc định", "Tùy chỉnh"]
     const lightLevels = [1,2,3,4]
 
+    const isFirstRender = useRef(true);
+    useEffect( () => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+        const createLightSensor = async (selectConfig:any) => {
+            try {
+                await autoruleService.createLightSensor(2, selectConfig, light, LIGHT_COLOR_KEYS[selectColor], selectLevel); //DEVICE ID
+            } catch (error) {
+                console.error("Error saving light sensor rule:", error);
+            }
+        }
+        const deleteLightSensor = async () => {
+            try {
+                setIsOpen(false);
+                await autoruleService.deleteLightSensor(2); //DEVICE ID
+            } catch (error) {
+                console.error("Error deleting light sensor rule:", error);
+            }
+        }
+        if(!isActive || !isOpen){
+            deleteLightSensor()
+        }
+        if(isActive && isOpen){
+            createLightSensor(selectConfig)
+        }
+    }, [isActive,isOpen,selectConfig]);
+    
+    const handleChangeColor = async(value:any) => {
+        try {
+            await autoruleService.createLightSensor(2, selectConfig, light, LIGHT_COLOR_KEYS[value], selectLevel); //DEVICE ID
+        } catch (error) {
+            console.error("Error saving light sensor rule:", error);
+        }
+    }
+
+    const handleSubmit = async () => { 
+        try {
+            await autoruleService.createLightSensor(2, selectConfig, light, LIGHT_COLOR_KEYS[selectColor], selectLevel); //DEVICE ID
+            alert("Lưu cài đặt thành công");
+        } catch (error) {
+            console.error("Error saving light sensor rule:", error);
+        }
+    }
+
     return (
       <>
             <div className = "flex flex-row gap-8 w-ful">
                 <div className = {`flex flex-col justify-around w-full font-bold gap-2 `}>
                     <div className = {`flex flex-row justify-between w-full font-bold gap-4 ${isOpen ? "cursor-pointer":"opacity-60 pointer-events-none"}`}>
                         <span className={`flex flex-2/3 items-center `}>Điều khiển theo cường độ ánh sáng</span>
-                        <DropDown isOpen = {isOpen} selectValue={selectConfig} setSelectValue={setSelectConfig} values={configs} size ="flex-1/3"/>
+                        <DropDown isOpen = {isOpen} selectValue={selectConfig} setSelectValue={setSelectConfig} 
+                            values={configs} size ="flex-1/3"/>
                     </div>
                     <div className ={`flex flex-row justify-between w-full font-bold text-sm gap-4 z-50 ${isOpen ? "cursor-pointer":"opacity-60 pointer-events-none"}`}>
                     {!(selectConfig ==="Tùy chỉnh") ? (    
@@ -161,7 +246,10 @@ function Control({lightObj,isActive}:{lightObj:light_autorule,isActive:boolean})
                                                 <Info  className="w-5 h-5" />
                                                 <span className="ml-2">Tùy vào cường độ ánh sáng, đèn sẽ tự động điều chỉnh theo từng mức độ.</span>
                                             </div>
-                                            <DropDown isOpen = {isOpen} selectValue={selectColor} setSelectValue={setSelectColor} values={Object.values(LIGHT_COLORS)} size="flex-1/3"/>
+                                            <DropDown isOpen = {isOpen} selectValue={selectColor}
+                                             setSelectValue={setSelectColor} values={Object.values(LIGHT_COLORS)}
+                                            handleClick={handleChangeColor}
+                                             size="flex-1/3"/>
                                         </>
                                     ) 
                                 : (
@@ -203,7 +291,7 @@ function Control({lightObj,isActive}:{lightObj:light_autorule,isActive:boolean})
                 </label>
                 {selectConfig ==="Tùy chỉnh" ? (<button className={`w-fit text-sm font-bold text-black bg-[#E2E8F1] rounded-[5px] px-2 py-1 cursor-pointer hover:opacity-50
                                         ${isOpen && (selectConfig ==="Tùy chỉnh") ? "opacity-100 ":"opacity-40 pointer-events-none"}`}
-                                            onClick = {()=>{console.log("Lưu")}}>
+                                            onClick = {handleSubmit}>
                                             Lưu
                 </button>) : <div></div>} 
                 
@@ -219,16 +307,15 @@ function DropDown({isOpen,selectValue,setSelectValue,values,size,handleClick}
                 setSelectValue:(selectValue:any)=>void,
                 values:any[],
                 size?:string,
-                handleClick?:()=>void
+                handleClick?:(param:any)=>void
                 }) {
-
     const [dropDown, setDropDown] = useState(false)
     return(
                     <div className={`relative flex ${size ||"flex-1/2"} items-center rounded-[5px] pl-2 text-sm border-1 border-[#000000]  
                                  ${isOpen ? "cursor-pointer hover:bg-gray-100":"pointer-events-none opacity-40"}`}
                         onClick={() => setDropDown(!dropDown)}
                         >
-                        <span>{typeof(selectValue) === "string" ? selectValue : ` ${selectValue}`}</span>
+                        <span>{typeof(selectValue) === "string" ? selectValue : `${selectValue}`}</span>
                         <ChevronDown size={20} 
                                     className={`absolute right-1 transition-transform 
                                                 ${dropDown && isOpen ? "rotate-180" : ""}`} />
@@ -243,10 +330,11 @@ function DropDown({isOpen,selectValue,setSelectValue,values,size,handleClick}
                                 <li
                                 key={value}
                                 className="px-4 py-2  hover:bg-gray-100 cursor-pointer"
-                                onClick={() => {
+                                onClick={()=>{
                                     setSelectValue(value);
                                     setDropDown(false);
-                                }}
+                                    handleClick && handleClick(value);
+                                } }
                                 >
                                 <span>{typeof(value) === "string" ? value : `${value}`}</span>
                                 </li>
