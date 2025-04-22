@@ -33,11 +33,11 @@ def send_notification(self, user, title: str, body: str, device_id: int):
             return {"message": "Invalid Tokens"}
 
         headers["Authorization"] = "Bearer {}".format(create_access_token(data={"sub": str(user['user_id'])}))
-        requests.post("{}update_fcmtoken".format(os.getenv("BACKEND_ENDPOINT")), 
+        requests.post("{}/update_fcmtoken".format(os.getenv("BACKEND_ENDPOINT")), 
                     json={'fcm_tokens': updated_tokens},
                     headers=headers)
         
-        requests.post("{}save/notification".format(os.getenv("BACKEND_ENDPOINT")), 
+        requests.post("{}/save/notification".format(os.getenv("BACKEND_ENDPOINT")), 
                     json={
                         'device_id': device_id,
                         'message': body,
@@ -53,7 +53,7 @@ def send_notification(self, user, title: str, body: str, device_id: int):
 @celery.task
 def countdown_finished(user_id: str):
     headers["Authorization"] = "Bearer {}".format(create_access_token(data={"sub": str(user_id)}))
-    requests.post("{}autorule/save/countdown".format(os.getenv("BACKEND_ENDPOINT")), 
+    requests.post("{}/autorule/save/countdown".format(os.getenv("BACKEND_ENDPOINT")), 
                   json={'status': 'off', 'time': 0},
                   headers=headers)
 

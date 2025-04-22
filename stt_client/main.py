@@ -15,14 +15,12 @@ headers = {
     "ngrok-skip-browser-warning": "true",
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/91.0 Safari/537.36"
 }
-wakeword_token = ""
-
-login_res = requests.post("{}/login".format(os.getenv("BACKEND_ENDPOINT")), json={
+login_res = requests.post("{}/login".format(os.getenv("BACKEND_ENDPOINT")), data={
     'username': os.getenv("USERNAME"),
     'password': os.getenv("PASSWORD"),
-}, headers=headers).json()
+}, headers=headers)
 
-if login_res.status_code == 200:
+if login_res.status_code == 200:    
     login_data = login_res.json()
     headers["Authorization"] = f"Bearer {login_data.get('access_token')}"
 else:
@@ -31,12 +29,16 @@ else:
 
 st.title('Device Control by Speech')
 
-def send_to_api(text: str):
+def initialize_session_state():
+    if "wakeword_token" not in st.session_state:
+        st.session_state["wakeword_token"] = ""
+
+def send_to_api(text: str, wakeword_token: str):
     try:
         response = requests.post(API_URL, json={"msg": text, "wakeword_token": wakeword_token}, headers=headers)
         response = response.json()
         wakeword_token = response.get("wakeword_token", "")
-        return response
+        return response, wakeword_token
     except Exception as e:
         print(f"Lỗi khi gửi đến API: {e}")
         return False
@@ -58,7 +60,7 @@ def recognize_speech(audio_bytes):
     except sr.RequestError as e:
         return f"Recognition error: {e}"
 
-
+initialize_session_state()
 audio_file = st.audio_input("Record your command")
 
 if audio_file:
@@ -75,13 +77,13 @@ if audio_file:
         status_container = st.empty()
         
         api_complete = threading.Event()
-        response = [None] 
+        response = [None,None] 
         
-        def api_thread():
-            response[0] = send_to_api(command)
+        def api_thread(wakeword_token):
+            response[0], response[1] = send_to_api(command, wakeword_token)
             api_complete.set()
         
-        thread = threading.Thread(target=api_thread)
+        thread = threading.Thread(target=api_thread, args=(st.session_state["wakeword_token"],))
         thread.start()
         
         progress = 0
@@ -95,6 +97,8 @@ if audio_file:
             st.progress(1.0, text="Processing complete! (100%)")
         progress_container.empty()
         status_container.empty()
+
+        st.session_state["wakeword_token"] = response[1]
 
         if type(response[0]) == dict and 'assistant' in response[0].keys():
             st.write(f"**Assistant:** {response[0]['assistant']}")
