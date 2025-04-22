@@ -37,8 +37,8 @@ function FanSetting({fanObj}:{fanObj:fan_autorule}) {
 function ControlByTime ({fanObj, isActive}:{fanObj:fan_autorule, isActive:boolean}) {
     const [isActiveTime, setIsActiveTime] = useState(fanObj["time_rule"] == undefined ? false : true);
     
-    const [from, setFrom] = useState(fanObj["time_rule"] == undefined ? "" : String(new Date(fanObj["time_rule"]["start_time"]).toTimeString().slice(0, 5)));
-    const [to, setTo] = useState(fanObj["time_rule"] == undefined ? "" : String(new Date(fanObj["time_rule"]["end_time"]).toTimeString().slice(0, 5)));
+    const [from, setFrom] = useState(fanObj["time_rule"] == undefined ? "7:00" : String(new Date(fanObj["time_rule"]["start_time"]).toTimeString().slice(0, 5)));
+    const [to, setTo] = useState(fanObj["time_rule"] == undefined ? "11:00" : String(new Date(fanObj["time_rule"]["end_time"]).toTimeString().slice(0, 5)));
     const [frequency,setFrequency] = useState("tần suất")
     const freqs =["Hàng ngày","1 lần","2 lần","3 lần","4 lần"]
 
@@ -54,8 +54,8 @@ function ControlByTime ({fanObj, isActive}:{fanObj:fan_autorule, isActive:boolea
         const createTimeFrame = async () => {
             const timeFrame = {
                 deviece_id: fanObj["deviece_id"] || 1,
-                start_time: "07:00",
-                end_time: "11:00",
+                start_time: from,
+                end_time: to,
                 repeat: frequency
             }
             try{
@@ -69,8 +69,8 @@ function ControlByTime ({fanObj, isActive}:{fanObj:fan_autorule, isActive:boolea
             
         }
         if(!isActive || !isActiveTime) {
-            setFrom("07:00");
-            setTo("11:00");
+            // setFrom("07:00");
+            // setTo("11:00");
             setFrequency("tần suất")
             setIsActiveTime(false);
             deleteTimeFrame();
@@ -88,7 +88,14 @@ function ControlByTime ({fanObj, isActive}:{fanObj:fan_autorule, isActive:boolea
             end_time: to,
             repeat: frequency
         }
+        if (from > to) {
+            alert("Thời gian không hợp lệ");
+            setFrom("");
+            setTo("");
+            return;
+        }
         await autoruleService.createTimeFrame(1,timeFrame.start_time,timeFrame.end_time, 1)
+        alert("Lưu thời gian thành công");
     }
     return (
         <div className = "flex flex-row gap-8 w-ful">
@@ -135,7 +142,7 @@ function ControlByTime ({fanObj, isActive}:{fanObj:fan_autorule, isActive:boolea
                                             Lưu
                 </button>
                 
-                </div>
+        </div>
     </div>
     )
 }
@@ -193,7 +200,7 @@ function ControlByTemp({fanObj, isActive}:{fanObj:fan_autorule, isActive:boolean
             
         }
         if(!isActive || !isOpen) {
-            setSelectConfig("Mặc định");
+            // setSelectConfig("Mặc định");
             setSelectLevel(95);
             setTemperature(25);
             setHumidity(50);

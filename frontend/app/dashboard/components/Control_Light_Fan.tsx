@@ -224,7 +224,7 @@ export function ControlItem({
           min={minValue}
           max={maxValue}
           step={step}
-          value={speed}
+          value={speed||0}
           onChange={(e) => handleChangeSpeed(Number(e.target.value))}
           className="w-full h-2 rounded-lg appearance-none cursor-pointer transition-all duration-200 ease-in-out bg-gray-200"
           style={{
@@ -257,7 +257,7 @@ export function ControlItem({
       >
         <ul className="py-1">
           {Object.keys(LIGHT_COLORS).map((lightColor) => (
-           
+            
            <li
               key={lightColor}
               className={`relative flex items-center px-4 py-1 hover:bg-gray-300 cursor-pointer border-b-1 border-b-gray-200 rounded-[4px]`}

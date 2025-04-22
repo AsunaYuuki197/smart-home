@@ -142,7 +142,7 @@ function CountDown({isCountDown,time}:{isCountDown:boolean,time:number}) {
                  >
                     <span>Lưu</span>
             </button>
-            <span className={`font-medium ml-auto text-black ${!isRunning?"":"opacity-50"}`}>
+            <span className={`font-medium ml-auto text-black ${isRunning?"":"opacity-50"}`}>
                   {formatTime(timeLeft)}
             </span>
             </div>

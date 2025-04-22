@@ -94,8 +94,20 @@ export const autoruleService ={
             throw error;
         }
     },
-    createMotion: async ():Promise<any> =>{
-    //TODO
+    createMotion: async (device_id:number):Promise<any> =>{
+        try{
+            const resp = await axiosClient.post(`${API_BASE_URL}/autorule/create/motion?device_id=${device_id}`,{
+                headers: { "Content-Type": "application/json" },
+                });
+            if (!resp) {
+                throw new Error(`Error creating motion sensor rules`);
+            }
+            const data = await resp.data;
+            return data;
+        }catch(error:any){
+            console.error(`Error saving notify rules:`, error.message);
+            throw error;
+        }
     },
     createLightSensor: async (device_id:number,light_intensity:number,color:string,level:number):Promise<any> =>{
     //set light sensor rule for operating device automatically
@@ -167,7 +179,7 @@ export const autoruleService ={
     },
     deleteMotion: async (device_id:number): Promise<any> => {
         try{
-            const response = await axiosClient.delete(`${API_BASE_URL}/autorule/delete/motion-sensor?device_id=${device_id}`, {
+            const response = await axiosClient.delete(`${API_BASE_URL}/autorule/delete/motion?device_id=${device_id}`, {
                 headers: { "Content-Type": "application/json" },
             });
             if(!response){

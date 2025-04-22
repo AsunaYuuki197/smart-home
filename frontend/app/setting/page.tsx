@@ -6,7 +6,7 @@ import LightSetting from './components/LightSetting'
 import { settingService } from '../services/settingService';
 import {useState, useEffect } from 'react';
 import {fan_autorule} from '../models/fan_autorule';
-
+import { light_autorule } from '../models/light_autorule';
 
 export default function Setting() {
 //isCountDown,time,isWakeup,text
@@ -17,7 +17,7 @@ const [isWakeup, setIsWakeup] = useState(false);
 const [text, setText] = useState("");
 
 const [fanObj, setFanObj] = useState<fan_autorule>({});
-const [lightObj, setLightObj] = useState<Object>({});
+const [lightObj, setLightObj] = useState<light_autorule>({});
 useEffect(() => {
   const fetchData = async () => {
     const data = await settingService.getConfiguration();
@@ -28,7 +28,7 @@ useEffect(() => {
     setText(data.wake_word.text);
     //TODO
     setFanObj(data.fan_autorule == null ? {} : data.fan_autorule[0]["1"]);
-    setLightObj(data.light_autorule == null ? {} : data.light_autorule[0]["1"]);
+    setLightObj(data.light_autorule == null ? {} : data.light_autorule[0]["2"]);
     setIsLoading(false);
   };
   fetchData();
@@ -54,7 +54,7 @@ useEffect(() => {
           </div>
           {/* Đèn */}
           <div className="flex flex-col flex-3/5 gap-6">
-            <LightSetting />
+            <LightSetting lightObj={lightObj}/>
           </div>
         </div>
 

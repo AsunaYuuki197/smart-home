@@ -57,7 +57,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, [token]);
 
   return (
-    <div className={`min-h-screen bg-[#DCE9FC] p-5 flex flex-row ${inter.className}`}>
+    <div className={`min-h-screen bg-[#DCE9FC] p-5 flex flex-row `}>
       {showSidebar && (
         <div className="relative">
           <Sidebar />
