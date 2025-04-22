@@ -33,9 +33,9 @@ def initialize_session_state():
     if "wakeword_token" not in st.session_state:
         st.session_state["wakeword_token"] = ""
 
-def send_to_api(text: str, wakeword_token: str):
+def send_to_api(text: str, wakeword_token: str, model_name: str):
     try:
-        response = requests.post(API_URL, json={"msg": text, "wakeword_token": wakeword_token}, headers=headers)
+        response = requests.post(API_URL, json={"msg": text, "wakeword_token": wakeword_token, "model_name": model_name}, headers=headers)
         response = response.json()
         wakeword_token = response.get("wakeword_token", "")
         return response, wakeword_token
@@ -62,7 +62,7 @@ def recognize_speech(audio_bytes):
 
 initialize_session_state()
 audio_file = st.audio_input("Record your command")
-
+model_name = st.selectbox("Choose your model", ['hiieu/Vistral-7B-Chat-function-calling','gemini-2.5-pro-preview-03-25','gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.5-flash-8b'])
 if audio_file:
     audio_bytes = audio_file.read()
 
@@ -80,7 +80,7 @@ if audio_file:
         response = [None,None] 
         
         def api_thread(wakeword_token):
-            response[0], response[1] = send_to_api(command, wakeword_token)
+            response[0], response[1] = send_to_api(command, wakeword_token, model_name)
             api_complete.set()
         
         thread = threading.Thread(target=api_thread, args=(st.session_state["wakeword_token"],))
@@ -98,7 +98,8 @@ if audio_file:
         progress_container.empty()
         status_container.empty()
 
-        st.session_state["wakeword_token"] = response[1]
+        if response[1] and response[1] != st.session_state["wakeword_token"]:
+            st.session_state["wakeword_token"] = response[1]
 
         if type(response[0]) == dict and 'assistant' in response[0].keys():
             st.write(f"**Assistant:** {response[0]['assistant']}")
