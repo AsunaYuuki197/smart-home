@@ -4,7 +4,7 @@ from config.general_cfg import *
 from routes.control import *
 from routes.autorule import *
 from utils.general_helper import receive_feed_value
-from notification.tasks import send_notification
+from background.tasks import send_notification
 import asyncio, time
 from utils.logger import Logger
 
@@ -17,10 +17,12 @@ scheduler = AsyncIOScheduler()
 async def get_sensor_data():
     start_time = time.time()
 
-    cursor = user_collection.find({}, {'devices': 1, 'user_id': 1, 'noti': 1, '_id': 0})
+    cursor = user_collection.find({}, {'fcm_tokens':1,'devices': 1, 'user_id': 1, 'noti': 1, '_id': 0})
     async for user in cursor:
-
+        temp_sensor = {'value': 0}
+        humid_sensor = {'value': 0}
         for device_id in user.get('devices', []):
+            
             device = await db.Devices.find_one({"device_id": device_id}, {'device_id':1 , 'type': 1})
             if not device:
                 continue
@@ -30,11 +32,11 @@ async def get_sensor_data():
             elif device['type'] == "Temperature sensor":
                 temp_sensor = receive_feed_value(os.getenv("AIO_KEY"), os.getenv("AIO_USERNAME"), os.getenv("TEMPERATURE_FEED"), "last")   
                 asyncio.create_task(fire_alarm(user,float(temp_sensor['value']),device))
-                asyncio.create_task(hot_alarm(user,float(temp_sensor['value'])))
+                asyncio.create_task(hot_alarm(user,float(temp_sensor['value']), device))
             elif device['type'] == "Humidity sensor":
                 humid_sensor = receive_feed_value(os.getenv("AIO_KEY"), os.getenv("AIO_USERNAME"), os.getenv("HUMIDITY_FEED"), "last")     
 
-            asyncio.create_task(controlFan_by_condition(user,float(temp_sensor['value']),float(humid_sensor['value']),device))
+            asyncio.create_task(controlFan_by_condition(user,float(temp_sensor.get('value')),float(humid_sensor.get('value')),device))
 
     process_time = time.time() - start_time
 
@@ -63,7 +65,7 @@ async def fire_alarm(user: dict, temp_sensor_val: float, device):
         ))
         return 
     
-    send_notification.apply_async(args=[user, "Cháy rồi bro ơi 😭😭", "Máy bơm đang hoạt động để dập lửa, mau gọi cứu hỏa đi ..."])
+    send_notification.apply_async(args=[user, "Cháy rồi bro ơi 😭😭", "Máy bơm đang hoạt động để dập lửa, mau gọi cứu hỏa đi ...", device['device_id']])
     user_id_ctx.set(user['user_id'])
     await turn_on_pump(ActionLog(
         device_id=device['device_id'],
@@ -73,14 +75,14 @@ async def fire_alarm(user: dict, temp_sensor_val: float, device):
     return
 
 
-async def hot_alarm(user: dict, temp_sensor_val: float):
+async def hot_alarm(user: dict, temp_sensor_val: float, device: dict):
     if user['noti'].get('hot_notif', "off") == "off":
         return
 
     if temp_sensor_val < user['noti']['temp']:
         return 
     
-    send_notification.apply_async(args=[user, "Nóng quá 🥵🥵", "Bạn có muốn bật quạt không :)))"])
+    send_notification.apply_async(args=[user, "Nóng quá 🥵🥵", "Bạn có muốn bật quạt không :)))", device['device_id']])
     
     return
 
@@ -109,11 +111,6 @@ async def controlLight_by_condition(user: dict, light_sensor_val: float, device:
     """
 
     pass
-
-# Auto control pump
-
-
-# Auto receive sensor data
 
 
 # Auto run countdown
