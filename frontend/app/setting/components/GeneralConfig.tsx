@@ -3,7 +3,6 @@ import {useState, useEffect} from "react";
 import ActiveControl from "./ActiveControl";
 import { autoruleService } from "@/app/services/autoruleService";
 function GeneralConfig({isCountDown,time,isWakeup,text}:{isCountDown:boolean,time:number,isWakeup:boolean,text:string}) {
-  console.log("generalConfig",isCountDown,time,isWakeup,text);
     return (
     <>
     <span className = "font-bold text-3xl ml-10 "> Cấu hình chung </span>
@@ -143,7 +142,7 @@ function CountDown({isCountDown,time}:{isCountDown:boolean,time:number}) {
                  >
                     <span>Lưu</span>
             </button>
-            <span className={`font-medium ml-auto text-black ${!isRunning?"":"opacity-50"}`}>
+            <span className={`font-medium ml-auto text-black ${isRunning?"":"opacity-50"}`}>
                   {formatTime(timeLeft)}
             </span>
             </div>

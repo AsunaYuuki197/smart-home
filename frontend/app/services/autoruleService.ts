@@ -78,13 +78,26 @@ export const autoruleService ={
             throw error;
         }
     },
-    createTimeFrame: async (device_id:number,start_time:Date,end_time:Date,repeat:number):Promise<any> =>{
+    postNotify: async (status: string, platform: string):Promise<any> =>{
+        try{
+            const response = await axiosClient.post(`${API_BASE_URL}/autorule/create/notify`, {
+                "status": status,
+                "platform": platform
+                }, {
+                    headers: { "Content-Type": "application/json" },
+                });
+    }catch (error:any){
+        console.error(`Error saving notify rules:`, error.message);
+        throw error;
+    }},
+
+    createTimeFrame: async (device_id:number,start_time:string,end_time:string,repeat:number):Promise<any> =>{
         try{
             const response = await axiosClient.post(`${API_BASE_URL}/autorule/create/timeframe`, {
-                "user_id" : "1",
+                "user_id" : 1,
                 "device_id": device_id,
-                "start_time": start_time,
-                "end_time": end_time,
+                "start_time": (new Date(`2025-04-21T${start_time}:00`).toLocaleString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' }).replace(" ", "T")),
+                "end_time": (new Date(`2025-04-21T${end_time}:00`).toLocaleString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' }).replace(" ", "T")),
                 "repeat": repeat
             }, {
                 headers: { "Content-Type": "application/json" },
@@ -94,15 +107,28 @@ export const autoruleService ={
             throw error;
         }
     },
-    createMotion: async ():Promise<any> =>{
-    //TODO
+    createMotion: async (device_id:number):Promise<any> =>{
+        try{
+            const resp = await axiosClient.post(`${API_BASE_URL}/autorule/create/motion?device_id=${device_id}`,{
+                headers: { "Content-Type": "application/json" },
+                });
+            if (!resp) {
+                throw new Error(`Error creating motion sensor rules`);
+            }
+            const data = await resp.data;
+            return data;
+        }catch(error:any){
+            console.error(`Error saving notify rules:`, error.message);
+            throw error;
+        }
     },
-    createLightSensor: async (device_id:number,light_intensity:number,color:string,level:number):Promise<any> =>{
+    createLightSensor: async (device_id:number,mode:string,light_intensity:number,color:string,level:number):Promise<any> =>{
     //set light sensor rule for operating device automatically
         try{
-            const response = await axiosClient.post(`${API_BASE_URL}/autorule/create/lightsensor`, {
+            const response = await axiosClient.post(`${API_BASE_URL}/autorule/create/light-sensor`, {
                 "user_id" : "1",
                 "device_id": device_id,
+                "mode": mode,
                 "light_intensity": light_intensity,
                 "color": color,
                 "level": level
@@ -114,12 +140,13 @@ export const autoruleService ={
             throw error;
         }
     },
-    createHTSensor: async (device_id:number,humidity:number,temperature:number,level:number):Promise<any> =>{
+    createHTSensor: async (device_id:number,mode:string,humidity:number,temperature:number,level:number):Promise<any> =>{
     // set humidity and temp sensor rule for operating device automatically
         try{
-            const response = await axiosClient.post(`${API_BASE_URL}/autorule/create/humiditysensor`, {
+            const response = await axiosClient.post(`${API_BASE_URL}/autorule/create/ht-sensor`, {
                 "user_id" : "1",
                 "device_id": device_id,
+                "mode": mode,
                 "humidity": humidity,
                 "temperature": temperature,
                 "level": level
@@ -166,7 +193,7 @@ export const autoruleService ={
     },
     deleteMotion: async (device_id:number): Promise<any> => {
         try{
-            const response = await axiosClient.delete(`${API_BASE_URL}/autorule/delete/motion-sensor?device_id=${device_id}`, {
+            const response = await axiosClient.delete(`${API_BASE_URL}/autorule/delete/motion?device_id=${device_id}`, {
                 headers: { "Content-Type": "application/json" },
             });
             if(!response){

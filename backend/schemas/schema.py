@@ -2,6 +2,7 @@ from datetime import date, datetime
 from pydantic import BaseModel, model_validator 
 from typing import Optional
 from config.ai_cfg import LLMConfig
+from config.general_cfg import *
 from contextvars import ContextVar
 
 user_id_ctx: ContextVar[int] = ContextVar("user_id", default=None)
@@ -46,7 +47,7 @@ class PasswordUpdate(UserModel):
     old_password: str
     new_password: str 
 
-class Notification(BaseModel):
+class Notification(UserModel):
     device_id: int
     message: str
     timestamp: datetime
@@ -85,15 +86,17 @@ class TimeFrameUpdateRequest(UserModel):
 
 class LightSensorRule(UserModel):
     device_id: int
-    light_intensity: Optional[float] = 50
-    color: Optional[str] = "white"
-    level: Optional[int] = 3
+    mode: Optional[str] = "Default"
+    light_intensity: Optional[float] = LIGHT_INTENSITY_THRESHOLD
+    color: Optional[str] = LIGHTCOLOR_DEFAULT
+    level: Optional[int] = LIGHTLEVEL_DEFAULT
 
 class HTSensorRule(UserModel):
     device_id: int
-    humidity: Optional[float] = 65.0
-    temperature: Optional[float] = 25
-    level: Optional[int] = 95
+    mode: Optional[str] = "Default"
+    humidity: Optional[float] = FAN_HUMIDITY_THRESHOLD
+    temperature: Optional[float] = FAN_TEMPERATURE_THRESHOLD
+    level: Optional[int] = FAN_AUTOSPEED
 
 class ActionLog(UserModel):
     device_id: int
@@ -113,3 +116,7 @@ class ModelRequest(UserModel):
     msg: str
     model_name: Optional[str] = LLMConfig.MODEL_NAME
     wakeword_token: Optional[str] = ""
+
+
+class FCMTokens(BaseModel):
+    fcm_tokens: list[str]

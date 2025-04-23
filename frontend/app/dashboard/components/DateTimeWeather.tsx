@@ -53,15 +53,17 @@ export default function DateTimeWeather() {
 
 // Service cho việc gọi API
 const weatherService = {
-  getWeather: async (userId: string | number) => {
+  getWeather: async () => {
     try {
-      const token = sessionStorage.getItem("access_token");
+      const token = localStorage.getItem("access_token");
       if (!token) throw new Error("Token không hợp lệ");
-      const response = await fetch(`${API_BASE_URL}/?user_id=${userId}`,{
+      const response = await fetch(`${API_BASE_URL}`,{
         method: "GET",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        headers: { "ngrok-skip-browser-warning": "true",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/91.0 Safari/537.36",
+        "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
       });
-
+      console.log(response);
       if (!response.ok) throw new Error("Lỗi khi lấy dữ liệu nhiệt độ!");
       const data = await response.json();
       return data;
@@ -108,21 +110,12 @@ function useWeather() {
 
 
   useEffect(() => {
-    const getUserId = () => {
-      try {
-        return parseInt(localStorage.getItem("user_id")|| "1") ;
-      } catch (e) {
-        // Xử lý trường hợp localStorage không khả dụng (ví dụ: trong SSR)
-        console.warn("Không thể truy cập localStorage, sử dụng user_id mặc định");
-        return 1;
-      }
-    };
 
     const fetchWeather = async () => {
       setIsLoading(true);
       try {
-        const userId = getUserId();
-        const weather = await weatherService.getWeather(userId);
+        // const userId = 1;
+        const weather = await weatherService.getWeather();
 
         setTemperature(weather['temperature']);
         setHumidity(weather['humidity']);

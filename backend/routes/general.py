@@ -153,7 +153,7 @@ async def save_profile(data: UserProfile):
 
 
 # Get all notifications
-@router.get("/notifications", summary="Get All Notifications", response_model=list[Notification])
+@router.get("/notifications", summary="Get All Notifications")
 async def notifications():
     """
     Retrieves a list of all notifications.
@@ -186,15 +186,11 @@ async def change_notif_status(status: str, platform: str):
 
 
 
-# Search notifications
-@router.get("/notifications/search", summary="Search Notifications", response_model=list[Notification])
-async def search_notifications(query: str):
-    """
-    Searches notifications based on a query string.
-    Covered in FE
-    """
-    pass
-
+# save notification
+@router.post("/save/notification", summary="Save notif")
+async def save_notification(payload: Notification):
+    result = await db.Notifications.insert_one(payload.model_dump())
+    return {"message": "Notification updated successfully"}   
 
 # Change password
 @router.post("/update-password", summary="Change user password")
@@ -274,7 +270,7 @@ async def save_settings():
 # Device/app FCM token
 @router.post("/register_token", summary="Device/App FCM token")
 async def register_token(token: str):
-    user = await user_collection.find_one({'user_id': user_id_ctx.get()})
+    user = await user_collection.find_one({'user_id': user_id_ctx.get()}, {'fcm_tokens': 1, 'user_id': 1})
 
     if user:
         fcm_tokens = user.get('fcm_tokens', [])
@@ -290,3 +286,15 @@ async def register_token(token: str):
 
     raise HTTPException(404, "User not found")
 
+# Update FCM Tokens
+@router.post("/update_fcmtoken", summary="Update FCM Tokens")
+async def update_fcmtoken(payload: FCMTokens):
+    user = await user_collection.find_one({'user_id': user_id_ctx.get()}, {'fcm_tokens': 1, 'user_id': 1})
+    if user:
+        await db.Users.update_one(
+            {"user_id": user['user_id']},
+            {"$set": payload.model_dump()},
+        )
+        return {"message": "FCM token saved"}
+
+    raise HTTPException(404, "User not found")

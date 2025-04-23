@@ -12,7 +12,6 @@ function ActiveControl({ name,title,status,setStatus,handleChange }:
         if(isOn){
             console.log("Tắt tự động điều khiển " + name);
         }
-        //TODO: Call API Tắt tự động điều khiển
     }
      // Thẻ cha là flex items-center
   return (

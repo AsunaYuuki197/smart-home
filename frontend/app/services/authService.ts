@@ -1,9 +1,7 @@
 import axiosClient from "./axiosClient";
-import { messaging } from '@/lib/firebase';
-import { getToken, onMessage } from 'firebase/messaging';
+import { getFirebaseMessaging, getToken, onMessage } from "@/lib/firebase";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_ENDPOINT
-const API_VAPID_KEY = process.env.NEXT_PUBLIC_VAPID_KEY
 export const authService = {
   login: async (email: string, password: string) => {
     const formData = new URLSearchParams();
@@ -14,33 +12,14 @@ export const authService = {
     formData.append('client_id', '');
     formData.append('client_secret', '');
     try {
+
+
       const res = await axiosClient.post(`${API_BASE_URL}/login`, formData,{
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
         
       });
-
-      const { access_token } = res.data;
-
-      sessionStorage.setItem("access_token", access_token);
-      
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
-        return;
-      }
-
-      const deviceToken = await getToken(messaging, {
-        vapidKey: API_VAPID_KEY,
-      });
-      console.log("deviceToken", deviceToken);
-      if (deviceToken) {
-        await axiosClient.post(`${API_BASE_URL}/register_token?token=${deviceToken}`, {
-        });
-      } else {
-        alert("Đăng nhập không thành công. Vui lòng thử lại sau.");
-        throw new Error("No registration token available. Request permission to generate one.");
-      }
       return res.data;
     } catch (error: any) {
       alert("Đăng nhập không thành công. Vui lòng thử lại sau.");
@@ -71,7 +50,13 @@ export const authService = {
   },
   logout: () => {
     // Xóa token khỏi sessionStorage
-    sessionStorage.removeItem("access_token");
-    // return axiosClient.post("/auth/logout");
+    // axiosClient.post(`${API_BASE_URL}/logout`);
+    if (typeof window !== "undefined") {
+      const storedToken = localStorage.getItem("access_token");
+      if (storedToken) {
+        localStorage.removeItem("access_token");
+      }
+    }
+    return ;
   },
 };

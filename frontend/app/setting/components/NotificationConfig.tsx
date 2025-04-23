@@ -2,9 +2,22 @@
 import {useState, useEffect} from "react";
 import ActiveControl from "./ActiveControl";
 import { ChevronDown } from "lucide-react";
-function NotificationConfig() {
-    const [isActive, setIsActive] = useState(false);
+import {autoruleService} from "@/app/services/autoruleService";
+import { notify_autorule } from "@/app/models/notify_autorule"; 
 
+function NotificationConfig({notifyObj}:{notifyObj:notify_autorule}) {
+    console.log("NOTIFY OBJ",notifyObj);
+    const status = notifyObj["status"] == "on" ? true : false;
+    const hot_notify = notifyObj["hot_notif"] == "on" ? true : false;
+    const platform = notifyObj["platform"]
+    const temp= notifyObj["temp"]
+
+    const [isActive, setIsActive] = useState(status);
+    const handleActiveChange = async () => {
+        const newStatus = isActive ? "off" : "on";
+        setIsActive(!isActive);
+        await autoruleService.postNotify(newStatus, "Website");
+    }
     return (
         <>
         <span className = "font-bold text-3xl ml-10 "> Thông báo </span>
@@ -13,16 +26,16 @@ function NotificationConfig() {
         </div>
         <div className = {`flex-4/5 flex flex-col justify-around bg-white rounded-4xl pt-2 pb-2 pl-10 pr-10
                             ${isActive ? "opacity-80" : "opacity-40 pointer-events-none" } `}>
-            <DeviceNotification key={`device-${isActive}`} isActive = {isActive}/> {/* Nhận thông báo ? */}
+            <DeviceNotification key={`device-notify`} isActive = {isActive} platform={platform}/> {/* Nhận thông báo qua ? */}
             <span className=" border-1 border-gray-600 w-full"></span>
-            <HotNotification key={`hot-${isActive}`} isActive = {isActive}/> {/* THÔNG BÁO NÓNG */}
+            <HotNotification key={`hot-notify`} isActive = {isActive} hot_notify={hot_notify} temp = {temp}/> {/* THÔNG BÁO NÓNG */}
         </div>
         </>
     );
 }
 
-function DeviceNotification({isActive}:{isActive:boolean}) {
-    const [deviceNotify, setDeviceNotify] = useState("Tất cả")
+function DeviceNotification({isActive,platform}:{isActive:boolean,platform:string}) {
+    const [deviceNotify, setDeviceNotify] = useState(platform || "Tất cả")
     const [isOpen,setIsOpen ] = useState(false)
     const devices = ["Website", "Telegram", "Tất cả"]
     return (
@@ -64,11 +77,11 @@ function DeviceNotification({isActive}:{isActive:boolean}) {
     )
 }
 
-function HotNotification({isActive}:{isActive:boolean}) {
+function HotNotification({isActive,hot_notify,temp}:{isActive:boolean,hot_notify:boolean,temp:number}) {
     const [hotNotify, setHotNotify] = useState("Mặc định")
-    const [isHotNotify, setIsHotNotify] = useState(false)
-    const [isOpen,setIsOpen] = useState(false)
-    const [temperature, setTemperature] = useState(0)
+    const [isHotNotify, setIsHotNotify] = useState(false)   
+    const [isOpen,setIsOpen] = useState(hot_notify || false)
+    const [temperature, setTemperature] = useState(temp || 25)
 
     const configs = ["Mặc định", "Tùy chỉnh"]
 

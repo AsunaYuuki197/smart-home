@@ -2,7 +2,6 @@ import uvicorn
 import subprocess
 import time
 
-
 def run_redis():
     try:
         result = subprocess.check_output(['docker', 'ps'], text=True)
@@ -16,12 +15,15 @@ def run_redis():
         print(f"Failed to start Redis: {e}")
 
 def run_celery():
-    subprocess.Popen(["celery", "-A", "notification.tasks", "worker", "--loglevel=info", "--pool=gevent", "--concurrency=100"])
+    return subprocess.Popen(["celery", "-A", "background.tasks", "worker", "--loglevel=info", "--pool=gevent", "--concurrency=100"])
 
 def run_uvicorn():
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
 
 if __name__ == "__main__":
     # run_redis() 
-    run_celery()
+    celery_task = run_celery()
+    time.sleep(10)
+    with open('celery_task', 'w') as fp:
+        fp.write(str(celery_task.pid))
     run_uvicorn()

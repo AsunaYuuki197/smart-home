@@ -1,9 +1,10 @@
 "use client";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Home, Bell, BarChart2, Settings } from "lucide-react";
+import { Home, Bell, BarChart2, Settings ,LogOut} from "lucide-react";
 import Notifications from "./Notifications"
 import {useState,useRef,useCallback,useEffect} from 'react'
+import {useAuth} from "@/app/hooks/useAuth"
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -14,6 +15,8 @@ export default function Sidebar() {
   function turnOffNotifications (){
     if (isActiveNoty) setIsActiveNoty(!isActiveNoty)
   }
+
+  const {handleLogout} = useAuth()
 
   const modalRef = useRef<HTMLDivElement>(null);
   const handleClickOutside = useCallback((event: MouseEvent) => {
@@ -46,6 +49,7 @@ export default function Sidebar() {
         <SidebarButton icon={<Bell size={30} />} active={isActiveNoty} onClick={toggleNotifications} />
         <SidebarButton icon={<BarChart2 size={30} />} active={pathname.startsWith("/statistical")}  href="/statistical" onClick={turnOffNotifications} />
         <SidebarButton icon={<Settings size={30} />} active={pathname.startsWith("/setting")}  href="/setting" onClick={turnOffNotifications} />
+        <SidebarButton icon={< LogOut size={30} />} active={pathname.startsWith("/login")}  href="/login" onClick={handleLogout} />
     </div>
     </div>
   );

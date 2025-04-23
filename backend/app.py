@@ -1,4 +1,4 @@
-import sys
+import sys, signal, os
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent))
 
@@ -9,12 +9,20 @@ from contextlib import asynccontextmanager
 from routes.base import router 
 from agent.agent import start_agent, shutdown_agent
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     start_agent()
-    yield
-    shutdown_agent()
+    try:
+        yield
+    finally:
+        shutdown_agent()
+        try:
+            with open("celery_task", "r") as f:
+                pid = int(f.read().strip())
+                os.kill(pid, signal.SIGTERM)
+        except (FileNotFoundError, ValueError, ProcessLookupError) as e:
+            print(f"[lifespan] Error terminating celery process: {e}")
+
 
 app = FastAPI(lifespan=lifespan)
 

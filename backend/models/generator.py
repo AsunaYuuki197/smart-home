@@ -24,7 +24,7 @@ class Generator:
     def __init__(self):
         self.LLM_FuncCall = LLM_FuncCall()
         self.tools = [turn_on_fan,turn_off_fan,change_fan_speed,turn_on_light,turn_off_light,change_light_color,change_light_level,turn_on_pump,turn_off_pump]
-        # self.gemini_tools = [types.Tool(function_declarations=[FUNC['function'] for FUNC in FUNCTIONS_METADATA])]
+        self.gemini_tools = [types.Tool(function_declarations=[FUNC['function'] for FUNC in FUNCTIONS_METADATA])]
         self.gemini_tool_example = [
             types.Tool(
                 function_declarations=[
@@ -68,15 +68,18 @@ class Generator:
         if model_name in ['gemini-2.5-pro-preview-03-25','gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.5-flash-8b']: # Add more Gemini Model
             self.LLM_FuncCall = client.chats.create(
                 model=model_name,
-                config=genai.types.GenerateContentConfig(
-                    # tools=[sync_wrapper(tool) for tool in self.tools],
-                    tools=self.gemini_tool_example,
-                    system_instruction=SMARTHOME_BOT,
-                ),
+                config= {
+                    "tools": self.gemini_tools,
+                    "automatic_function_calling": {"disable": True},
+                    "system_instruction": SMARTHOME_BOT,
+                },
             )
             
             assistant = self.LLM_FuncCall.send_message(message=f"user_id của tôi là {user_id}, Thực hiện lệnh sau: {msg}")
 
+            if assistant.function_calls is None:
+                return {"assistant": assistant.text, "calling_result": [""]}
+     
             calling_results = await self.call_function(assistant.function_calls)     
             LOGGER.log_model(model_name)
             LOGGER.log_response(str(assistant), str(calling_results))
