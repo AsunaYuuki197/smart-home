@@ -234,15 +234,15 @@ function ControlByTemp({fanObj, isActive}:{fanObj:fan_autorule, isActive:boolean
                                                 min = {0}
                                                 max = {50}
                                                 value = {temperature}
-                                                onChange = {(e) => setTemperature(parseInt(e.target.value))}
+                                                onChange = {(e) => setTemperature(parseInt(e.target.value)>50 ? 50 : parseInt(e.target.value) < 0?  0 : parseInt(e.target.value))}
                                                 />
                                         <span className="font-bold">Độ ẩm:</span>
                                         <input type="number" 
                                                 className="appearance-none w-[42px] rounded-[5px] border-1 pl-1 border-[#000000]" 
                                                 min = {0}
-                                                max = {50}
+                                                max = {100}
                                                 value = {humidity}
-                                                onChange = {(e) => setHumidity(parseInt(e.target.value))}
+                                                onChange = {(e) => setHumidity(parseInt(e.target.value) > 100 ? 100 : parseInt(e.target.value) < 0 ? 0 : parseInt(e.target.value))}
                                                 />
                                     </label>
                                     <div className="flex flex-1/2 flex-row gap-4 ">

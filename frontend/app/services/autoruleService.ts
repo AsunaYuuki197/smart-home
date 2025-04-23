@@ -1,4 +1,4 @@
-import axiosClient from "./axiosClient";
+import axiosClient from "../utils/axiosClient";
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_ENDPOINT;
 
 export const autoruleService ={
@@ -43,12 +43,22 @@ export const autoruleService ={
             }, {
                 headers: { "Content-Type": "application/json" },
             });
-
+            if (!response) {
+                throw new Error(`Error saving countdown rules`);
+            }
+            return response.data;
         }catch (error: any) {
             console.error(`Error saving countdown rules:`, error.message);
             throw error;
         }
     },
+    saveCountdownBeacon: async (status: string, timeLeft: number) => {
+        const token = localStorage.getItem("access_token");
+        const data = JSON.stringify({ status, timeLeft, token });
+        const blob = new Blob([data], { type: "application/json" });
+      
+        const success = navigator.sendBeacon("/api/autorule/autoUpdateTime", blob);
+      },
     saveWakeword: async (status: string, text: string ):Promise<any> =>{
         try{
             const response = await axiosClient.post(`${API_BASE_URL}/autorule/save/wakeword`, {
@@ -80,10 +90,7 @@ export const autoruleService ={
     },
     postNotify: async (status: string, platform: string):Promise<any> =>{
         try{
-            const response = await axiosClient.post(`${API_BASE_URL}/autorule/create/notify`, {
-                "status": status,
-                "platform": platform
-                }, {
+            const response = await axiosClient.post(`${API_BASE_URL}/notif/on?status=${status}&platform=${platform}`, {
                     headers: { "Content-Type": "application/json" },
                 });
     }catch (error:any){

@@ -2,6 +2,7 @@
 import {useState, useEffect} from "react";
 import ActiveControl from "./ActiveControl";
 import { autoruleService } from "@/app/services/autoruleService";
+
 function GeneralConfig({isCountDown,time,isWakeup,text}:{isCountDown:boolean,time:number,isWakeup:boolean,text:string}) {
     return (
     <>
@@ -74,48 +75,66 @@ function ConfigAI({status,text}:{status:boolean,text:string}) {
 function CountDown({isCountDown,time}:{isCountDown:boolean,time:number}) {
     const [isRunning, setIsRunning] = useState(isCountDown);
     const [timeConfig, setTimeConfig] = useState(time); //call API lấy thời gian tự động trả về
-    const [timeLeft, setTimeLeft] = useState(timeConfig); 
-
-    
+    const [timeLeft, setTimeLeft] = useState<number>(timeConfig); 
+    // useEffect(() => {
+    //     const sendTimeLeftToServer = () => {
+    //         const status = sessionStorage.getItem("isRunning") ?? "off"; 
+    //         const time = sessionStorage.getItem("timeLeft") === null ? 0 : Number(sessionStorage.getItem("timeLeft"));
+    //         console.log("//",status, time);
+    //         autoruleService.saveCountdownBeacon(status, time);
+    //     };
+      
+    //     // Khi đóng tab hoặc reload
+    //     window.addEventListener("beforeunload", sendTimeLeftToServer);
+      
+    //     // Khi unmount (chuyển route hoặc component bị hủy)
+    //     return () => {
+    //       sendTimeLeftToServer();
+    //       window.removeEventListener("beforeunload", sendTimeLeftToServer);
+    //     };
+    //   }, []);
+      
     useEffect(() => {
         let interval: NodeJS.Timeout | null = null
         if (timeLeft > 0  && isRunning ) {
           interval = setInterval(() => {
-            setTimeLeft((prev) => prev - 1)
-          }, 1000)
+                setTimeLeft((prev) => prev - 1)
+                sessionStorage.setItem("timeLeft", String(timeLeft));
+                sessionStorage.setItem("isRunning", String(isRunning? "on":"off"));
+            }, 1000)
+
         }
         else if(timeLeft < 0){
             //TODO: Call API thông báo trả về trạng thái tự động
-            autoruleService.saveCoundown("off",900) 
+            // setIsRunning(false);
         }
         return () => {
           if (interval) clearInterval(interval)
         }
       }, [isRunning,timeLeft])
-    const handleChange = () => {
-        const newState = !isRunning
-        setIsRunning(newState);
-        const status = newState?"on":"off";
-        autoruleService.saveCoundown(status,timeLeft)
-    }
-    const handleChangeTime = (e: string) => {
-        setTimeConfig(Number(e.split(":")[0])*3600 + Number(e.split(":")[1])*60);
-        //call API POST cập nhật thời gian tự động
-    }
-    const handleSaveTime = () => {
-        const status = isRunning?"on":"off";
-        autoruleService.saveCoundown(status,timeConfig)
-        .then((response) => {
+
+      const handleChange = () => {
+          const newState = !isRunning
+          setIsRunning(newState);
+          const status = newState?"on":"off";
+          autoruleService.saveCoundown(status,timeLeft)
+        }
+        const handleChangeTime = (e: string) => {
+            setTimeConfig(Number(e.split(":")[0])*3600 + Number(e.split(":")[1])*60);
+            //call API POST cập nhật thời gian tự động
+        }
+        const handleSaveTime = async () => {
+            const status = isRunning?"on":"off";
+            await autoruleService.saveCoundown(status,timeConfig)
             setTimeLeft(timeConfig);
-            console.log("Lưu thời gian thành công");
-        })
-    }
-    const formatTime = (seconds: number) => {
-      const hh = String(Math.floor(seconds / 3600)).padStart(2, "0");
-      const mm = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
-      const ss = String(seconds % 60).padStart(2, "0");
-      return `${hh}:${mm}:${ss}`;
-    };
+            alert("Lưu thời gian thành công");
+        }
+        const formatTime = (seconds: number) => {
+            const hh = String(Math.floor(seconds / 3600)).padStart(2, "0");
+            const mm = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
+            const ss = String(seconds % 60).padStart(2, "0");
+        return `${hh}:${mm}:${ss}`; 
+        };
 
     return(
         <>
@@ -129,7 +148,7 @@ function CountDown({isCountDown,time}:{isCountDown:boolean,time:number}) {
                 <span className=" text-sm">Trở về trạng thái tự động sau</span>
                 <input  
                 type="time"
-                min="00:00:00"
+                min="00:01:00"
                 max="00:59:00" 
                 className=" [&::-webkit-calendar-picker-indicator]:hidden"
                 onChange={(e) => {handleChangeTime(e.target.value)}}

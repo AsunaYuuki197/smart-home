@@ -1,4 +1,4 @@
-import axiosClient from "./axiosClient";
+import axiosClient from "../utils/axiosClient";
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_ENDPOINT;
 
 export const settingService = {

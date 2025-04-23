@@ -1,43 +1,57 @@
 "use client";
-import {useState, useEffect} from "react";
+import {useState, useEffect,useRef} from "react";
 import ActiveControl from "./ActiveControl";
 import { ChevronDown } from "lucide-react";
 import {autoruleService} from "@/app/services/autoruleService";
 import { notify_autorule } from "@/app/models/notify_autorule"; 
 
+const DEFAUTT_NOTIFY = {
+    "status": "off",
+    "hot_notif": "off",
+    "platform": "Tất cả",
+    "temp": 25
+}
+
 function NotificationConfig({notifyObj}:{notifyObj:notify_autorule}) {
-    console.log("NOTIFY OBJ",notifyObj);
+    // console.log("NOTIFY OBJ",notifyObj);
     const status = notifyObj["status"] == "on" ? true : false;
     const hot_notify = notifyObj["hot_notif"] == "on" ? true : false;
     const platform = notifyObj["platform"]
     const temp= notifyObj["temp"]
 
     const [isActive, setIsActive] = useState(status);
+    const [deviceNotify, setDeviceNotify] = useState(platform || "Tất cả")
+
     const handleActiveChange = async () => {
         const newStatus = isActive ? "off" : "on";
         setIsActive(!isActive);
-        await autoruleService.postNotify(newStatus, "Website");
+        await autoruleService.postNotify(newStatus, deviceNotify);
     }
     return (
         <>
         <span className = "font-bold text-3xl ml-10 "> Thông báo </span>
         <div className = "flex-1/5 flex items-center justify-between bg-white rounded-4xl pl-10 pr-10">
-            <ActiveControl name = "Notyfi" title = "Cho phép thông báo" status={isActive} setStatus = {setIsActive} />
+            <ActiveControl name = "Notyfi" title = "Cho phép thông báo" status={isActive} setStatus = {setIsActive} handleChange={handleActiveChange} />
         </div>
         <div className = {`flex-4/5 flex flex-col justify-around bg-white rounded-4xl pt-2 pb-2 pl-10 pr-10
                             ${isActive ? "opacity-80" : "opacity-40 pointer-events-none" } `}>
-            <DeviceNotification key={`device-notify`} isActive = {isActive} platform={platform}/> {/* Nhận thông báo qua ? */}
+            <DeviceNotification key={`device-notify`} isActive = {isActive} platform={platform}
+                                                        deviceNotify={deviceNotify} setDeviceNotify={setDeviceNotify}/> {/* Nhận thông báo qua ? */}
             <span className=" border-1 border-gray-600 w-full"></span>
-            <HotNotification key={`hot-notify`} isActive = {isActive} hot_notify={hot_notify} temp = {temp}/> {/* THÔNG BÁO NÓNG */}
+            <HotNotification key={`hot-notify`} isActive = {isActive} hot_notify={hot_notify} temp = {temp} platform={deviceNotify}/> {/* THÔNG BÁO NÓNG */}
         </div>
         </>
     );
 }
 
-function DeviceNotification({isActive,platform}:{isActive:boolean,platform:string}) {
-    const [deviceNotify, setDeviceNotify] = useState(platform || "Tất cả")
+function DeviceNotification({isActive,platform,deviceNotify,setDeviceNotify}:{isActive:boolean,platform:string,deviceNotify:string,setDeviceNotify:Function}) {
+    // const [deviceNotify, setDeviceNotify] = useState(platform || "Tất cả")
     const [isOpen,setIsOpen ] = useState(false)
     const devices = ["Website", "Telegram", "Tất cả"]
+    const handleDeviceNotifyChange = async (device:string) => {
+        await autoruleService.postNotify(isActive ? "on": "off", device);
+    }
+
     return (
       <>
         <div className = "Nhan_thong_bao flex justify-between w-full font-bold  ">
@@ -64,6 +78,7 @@ function DeviceNotification({isActive,platform}:{isActive:boolean,platform:strin
                             console.log(device);
                             setDeviceNotify(device);
                             setIsOpen(false);
+                            handleDeviceNotifyChange(device);
                         }}
                         >
                         {device}
@@ -77,16 +92,45 @@ function DeviceNotification({isActive,platform}:{isActive:boolean,platform:strin
     )
 }
 
-function HotNotification({isActive,hot_notify,temp}:{isActive:boolean,hot_notify:boolean,temp:number}) {
+function HotNotification({isActive,hot_notify,temp,platform}:{isActive:boolean,hot_notify:boolean,temp:number,platform:string}) {
     const [hotNotify, setHotNotify] = useState("Mặc định")
     const [isHotNotify, setIsHotNotify] = useState(false)   
     const [isOpen,setIsOpen] = useState(hot_notify || false)
-    const [temperature, setTemperature] = useState(temp || 25)
+    const [temperature, setTemperature] = useState(temp || DEFAUTT_NOTIFY.temp)
 
     const configs = ["Mặc định", "Tùy chỉnh"]
+    const isFisrtRender = useRef(true);
 
-    const handleHotNotifyChange = () => {
-        console.log("LUUWUW THONG BAO NONG");
+    useEffect(() => {
+        if (isFisrtRender.current) {
+            isFisrtRender.current = false;
+            return;
+        }
+        const offHotNotify = async () => {
+            await autoruleService.saveNotify("off", platform, temperature);
+        }
+        const onHotNotify = async () => {
+            await autoruleService.saveNotify("on", platform, temperature);
+        }
+        const newStatus = isOpen ? "on" : "off";
+        if(!isActive || !isOpen) {
+            setIsOpen(false);
+            offHotNotify();
+        }
+        if(isActive && isOpen) {
+            onHotNotify();
+        }
+
+    }, [isActive,isOpen,hotNotify]);
+    const handleConfigChange = async (config:string) => {
+        if (config === "Mặc định") {
+            setTemperature(DEFAUTT_NOTIFY.temp);
+            await autoruleService.saveNotify("on", platform, DEFAUTT_NOTIFY.temp);
+        }
+    }
+    const handleSaveHotNotify = async() => {
+        await autoruleService.saveNotify(isOpen ? "on" : "off", platform, temperature);
+        alert(`Đã lưu thông báo nóng với nhiệt độ ${temperature} °C`);
     }
     return (
       <>
@@ -117,6 +161,7 @@ function HotNotification({isActive,hot_notify,temp}:{isActive:boolean,hot_notify
                                 onClick={() => {
                                     setHotNotify(config);
                                     setIsHotNotify(false);
+                                    handleConfigChange(config);
                                 }}
                                 >
                                 {config}
@@ -147,13 +192,13 @@ function HotNotification({isActive,hot_notify,temp}:{isActive:boolean,hot_notify
                             min = {0}
                             max = {50}
                             value = {isNaN(temperature) ? 0 : temperature}
-                            onChange = {(e) => setTemperature(parseInt(e.target.value))}
+                            onChange = {(e) => setTemperature(parseInt(e.target.value) > 50 ? 50 : parseInt(e.target.value) < 0 ? 0 : parseInt(e.target.value))}
                             disabled={!isOpen}
                             />
                     <span className=" font-bold"> °C</span>
                 </label>
                 <button className="bg-[#E2E8F1] text-black rounded-[10px] px-2 py-1 font-bold cursor-pointer hover:opacity-50"
-                        onClick={handleHotNotifyChange}
+                        onClick={handleSaveHotNotify}
                         >
                     Lưu
                 </button>

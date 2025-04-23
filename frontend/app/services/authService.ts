@@ -1,4 +1,4 @@
-import axiosClient from "./axiosClient";
+import axiosClient from "../utils/axiosClient";
 import { getFirebaseMessaging, getToken, onMessage } from "@/lib/firebase";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_ENDPOINT

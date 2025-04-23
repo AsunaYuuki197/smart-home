@@ -261,7 +261,7 @@ function Control({lightObj,isActive}:{lightObj:light_autorule,isActive:boolean})
                                                 min = {0}
                                                 max = {1000}
                                                 value = {light}
-                                                onChange = {(e) => setLight(parseInt(e.target.value))}
+                                                onChange = {(e) => setLight(parseInt(e.target.value) > 100? 100 : parseInt(e.target.value) < 0 ? 0 : parseInt(e.target.value))}
                                                 disabled={!isOpen || !(selectConfig ==="Tùy chỉnh")}
                                                 />
                                     </label>
