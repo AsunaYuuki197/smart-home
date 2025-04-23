@@ -7,9 +7,12 @@ In the era of rapid technological development, the demand for automation in dail
 
 ## Technology Stack
 - Front-end: ReactJS, ...
-- Back-end: FastAPI, ....
+- Back-end: FastAPI, Uvicorn
 - Database: MongoDB.
-
+- Task Queue: Redis, Celery
+- Notifications: Firebase
+- Server Deploy: Kaggle, Ngrok
+- Client Deploy: Render
 
 ## Installation
 To use the application, you can follow the following steps:
@@ -97,23 +100,31 @@ Then, go to the "frontend" directory and do the same thing by entering these com
 
 You have installed all the dependencies.
 
-### Set up a database server
+### Set up server
 
-To be written later
+**1. Mongodb**
+
+**2. Redis**
+
 
 ## Run the application
 
 ### Start each folder separately
-Start two terminal instances in the **smart-home** directory. For the first instance, run these commands:
+Start three terminal instances in the **smart-home** directory. For the first instance, run these commands:
+```
+  celery -A background.tasks worker --loglevel=info --pool=gevent --concurrency=10
+```
+
+For the second one, run these commands:
 ```
   cd backend
   python server.py
 ```
 
-For the second one, run these commands:
+For the third one, run these commands:
 ```
   cd frontend
-  npm run dev
+  npm run dev  
 ```
 
 The application should be starting. The ReactJS application will run on http://localhost:3000 and the FastAPI application will run on http://localhost:8000.

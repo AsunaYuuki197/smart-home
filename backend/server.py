@@ -22,8 +22,8 @@ def run_uvicorn():
 
 if __name__ == "__main__":
     # run_redis() 
-    celery_task = run_celery()
-    time.sleep(10)
-    with open('celery_task', 'w') as fp:
-        fp.write(str(celery_task.pid))
+    # celery_task = run_celery()
+    # time.sleep(10)
+    # with open('celery_task', 'w') as fp:
+    #     fp.write(str(celery_task.pid))
     run_uvicorn()
