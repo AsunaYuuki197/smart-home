@@ -53,10 +53,9 @@ def send_notification(self, user, title: str, body: str, device_id: int):
 @celery.task
 def countdown_finished(user_id: str):
     headers["Authorization"] = "Bearer {}".format(create_access_token(data={"sub": str(user_id)}))
-    requests.post("{}/autorule/save/countdown".format(os.getenv("BACKEND_ENDPOINT")), 
-                  json={'status': 'off', 'time': 0},
-                  headers=headers)
-
+    # Finished Countdown => Resume Auto mode 
+    requests.get("{}/autorule/resume".format(os.getenv("BACKEND_ENDPOINT")),headers=headers)
+        
     return f"Countdown finished for user {user_id} at {datetime.now(timezone.utc)}"
 
 def schedule_countdown(user_id, end_time):

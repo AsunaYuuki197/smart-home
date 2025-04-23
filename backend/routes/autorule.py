@@ -7,6 +7,7 @@ sys.path.append(str(Path(__file__).parent))
 from fastapi import APIRouter, HTTPException, Query
 from schemas.schema import *
 from database.db import db
+from utils.redis_service import is_paused, pause_user, resume_user
 from background.tasks import schedule_countdown, celery
 from celery.result import AsyncResult
 router = APIRouter()
@@ -16,12 +17,23 @@ automationrule_collection = db["AutomationRule"]
 
 @router.get("/countdown", summary="Countdown Timer For Restarting Automatic Rule")
 async def countdown():
-    countdown = await user_collection.find_one({"user_id": user_id_ctx.get()}, {"_id": 0, "countdown": 1})
+    countdown_user = await user_collection.find_one({"user_id": user_id_ctx.get()}, {"_id": 0, "countdown": 1})
     
-    if not countdown:
+    if countdown_user.get("countdown") is None:
         raise HTTPException(status_code=404, detail="Countdown not found for user")
 
-    return countdown
+    if not countdown_user['countdown'].get("task_id") is None:
+        task = AsyncResult(countdown_user['countdown'].get("task_id"))
+        eta = countdown_user['countdown'].get('eta')
+        if task.state in ['PENDING', 'STARTED'] and eta:
+            remaining_time = (eta - datetime.now(timezone.utc())).total_seconds()
+            countdown_user['countdown']['remaining_time'] = max(remaining_time, 0)
+        elif task.state == 'SUCCESS':
+            countdown_user['countdown']['remaining_time'] = 0
+        else:
+            countdown_user['countdown']['remaining_time'] = None
+
+    return countdown_user
 
 
 @router.post("/save/countdown", summary="Saving Countdown Timer")
@@ -29,11 +41,18 @@ async def save_countdown(payload: CountdownUpdateRequest):
     end_time = datetime.now(timezone.utc) + timedelta(seconds=payload.time)
     user = await user_collection.find_one({"user_id": payload.user_id, "countdown.status": "on"}, {'countdown': 1})
 
+    '''
+    Check mode by redis is_paused
+
+    Automode - task_id and eta no need, so we check if it exists, we revoke it all, also we don't trigger schedule_countdown here cuz its triggered by manual action. By manual action, we will save to db the new schedule_countdown task_id with new endtime and eta.
+
+    Manual mode means there might/mightn't the running countdown (task_id), we revoke it, also save to db the new schedule_countdown task_id with new endtime and eta in case running countdown. 
+    '''
     if user and user['countdown'].get('task_id'):
         AsyncResult(user['countdown'].get('task_id'), app=celery).revoke(wait=True,timeout=3)
             
     if payload.status == "on":
-        task_id = schedule_countdown(payload.user_id, end_time)
+        task_id = schedule_countdown(payload.user_id, end_time) if await is_paused(payload.user_id) else None
 
         result = await user_collection.update_one(
             {"user_id": payload.user_id},
@@ -41,7 +60,8 @@ async def save_countdown(payload: CountdownUpdateRequest):
                 "$set": {
                     "countdown.status": payload.status,
                     "countdown.time": payload.time,
-                    "countdown.task_id": task_id
+                    "countdown.task_id": task_id,
+                    "countdown.eta": end_time.isoformat() if task_id else None,
                 }
             },
             upsert=True
@@ -56,7 +76,8 @@ async def save_countdown(payload: CountdownUpdateRequest):
                 "$set": {
                     "countdown.status": payload.status,
                     "countdown.time": payload.time,
-                    "countdown.task_id": None
+                    "countdown.task_id": None,
+                    "countdown.eta": None,
                 }
             },
             upsert=True
@@ -263,3 +284,15 @@ async def remove_ht_sensor(device_id: int):
     
     return {"message": "Humid & Temp sensor rule deleted successfully"}
 
+
+
+@router.get("/pause", summary="Pause auto mode")
+async def pause_auto():
+    await pause_user(user_id_ctx.get())
+    return {"message": f"Manual command for user {user_id_ctx.get()}. Auto mode paused."}
+
+
+@router.get("/resume", summary="Resume auto mode")
+async def resume_auto():
+    await resume_user(user_id_ctx.get())
+    return {"message": f"Auto mode resumed for user {user_id_ctx.get()}."}
