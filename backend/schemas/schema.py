@@ -103,6 +103,7 @@ class ActionLog(UserModel):
     action: int # Trạng thái hiện tại hoặc muốn điều chỉnh của thiết bị, 0 = Off, 1 = On
     level: Optional[int] = None # Với quạt, level chỉnh là speed [1,100], với đèn, level chính là level [1,4]
     color: Optional[str] = "" # Màu đèn
+    command_mode: Optional[str] = "manual" # Loại command là tự động hay thủ công
     # timestamp: Optional[datetime] = None
 
 

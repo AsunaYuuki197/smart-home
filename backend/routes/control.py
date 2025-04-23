@@ -9,7 +9,7 @@ from fastapi import APIRouter
 from schemas.schema import *
 from database.db import db
 from utils.control_helper import *
-
+from utils.redis_service import pause_user, is_paused
 from Adafruit_IO import MQTTClient
 from datetime import datetime
 import requests
@@ -37,6 +37,21 @@ async def turn_on_fan(action: ActionLog):
     devices_id = None
     if action_log['device_id'] == "all":
         devices_id = await db.Devices.find({"type": "Fan"}, {"device_id": 1}).to_list(None)
+
+    '''
+    Check command mode and system mode
+    auto operation
+    + manual mode <- impossible
+    + auto mode <- nothing to handle
+    manual operation
+    + manual mode <- nothing to handle 
+    + auto mode <- change to manual mode
+    '''
+    if action_log['command_mode'] == "auto" and await is_paused(user_id_ctx.get()):
+        return "System tried to operate automatic command while your mode is manual."
+
+    if action_log['command_mode'] == "manual" and not await is_paused(user_id_ctx.get()):
+        await pause_user(user_id_ctx.get())
 
     try:
         aio.publish(os.getenv("FAN_BTN_FEED"), 1)
@@ -68,6 +83,13 @@ async def turn_off_fan(action: ActionLog):
     devices_id = None
     if action_log['device_id'] == "all":
         devices_id = await db.Devices.find({"type": "Fan"}, {"device_id": 1}).to_list(None)
+
+    # Check command mode and system mode
+    if action_log['command_mode'] == "auto" and await is_paused(user_id_ctx.get()):
+        return "System tried to operate automatic command while your mode is manual."
+
+    if action_log['command_mode'] == "manual" and not await is_paused(user_id_ctx.get()):
+        await pause_user(user_id_ctx.get())
 
     try:
         aio.publish(os.getenv("FAN_BTN_FEED"), 0)
@@ -106,6 +128,13 @@ async def change_fan_speed(action: ActionLog):
     if action_log['device_id'] == "all":
         devices_id = await db.Devices.find({"type": "Fan"}, {"device_id": 1}).to_list(None)
 
+    # Check command mode and system mode
+    if action_log['command_mode'] == "auto" and await is_paused(user_id_ctx.get()):
+        return "System tried to operate automatic command while your mode is manual."
+
+    if action_log['command_mode'] == "manual" and not await is_paused(user_id_ctx.get()):
+        await pause_user(user_id_ctx.get())
+
     try:
         aio.publish(os.getenv("FAN_BTN_FEED"), action_log['action'])
         aio.publish(os.getenv("FAN_SPEED_FEED"), speed)
@@ -141,6 +170,13 @@ async def turn_on_light(action: ActionLog):
     if action_log['device_id'] == "all":
         devices_id = await db.Devices.find({"type": "Light"}, {"device_id": 1}).to_list(None)
 
+    # Check command mode and system mode
+    if action_log['command_mode'] == "auto" and await is_paused(user_id_ctx.get()):
+        return "System tried to operate automatic command while your mode is manual."
+
+    if action_log['command_mode'] == "manual" and not await is_paused(user_id_ctx.get()):
+        await pause_user(user_id_ctx.get())
+
     try:
         aio.publish(os.getenv("LIGHT_BTN_FEED"), 1)
 
@@ -174,6 +210,13 @@ async def turn_off_light(action: ActionLog):
     devices_id = None
     if action_log['device_id'] == "all":
         devices_id = await db.Devices.find({"type": "Light"}, {"device_id": 1}).to_list(None)
+
+    # Check command mode and system mode
+    if action_log['command_mode'] == "auto" and await is_paused(user_id_ctx.get()):
+        return "System tried to operate automatic command while your mode is manual."
+
+    if action_log['command_mode'] == "manual" and not await is_paused(user_id_ctx.get()):
+        await pause_user(user_id_ctx.get())
 
     try:
         aio.publish(os.getenv("LIGHT_BTN_FEED"), 0)
@@ -216,6 +259,13 @@ async def change_light_color(action: ActionLog):
     if action_log['device_id'] == "all":
         devices_id = await db.Devices.find({"type": "Light"}, {"device_id": 1}).to_list(None)
 
+    # Check command mode and system mode
+    if action_log['command_mode'] == "auto" and await is_paused(user_id_ctx.get()):
+        return "System tried to operate automatic command while your mode is manual."
+
+    if action_log['command_mode'] == "manual" and not await is_paused(user_id_ctx.get()):
+        await pause_user(user_id_ctx.get())
+
     try:
         aio.publish(os.getenv("LIGHT_BTN_FEED"), action_log['action'])
         aio.publish(os.getenv("LIGHT_COLOR_FEED"), color)
@@ -254,6 +304,13 @@ async def change_light_level(action: ActionLog):
 
     if action_log['device_id'] == "all":
         devices_id = await db.Devices.find({"type": "Light"}, {"device_id": 1}).to_list(None)
+
+    # Check command mode and system mode
+    if action_log['command_mode'] == "auto" and await is_paused(user_id_ctx.get()):
+        return "System tried to operate automatic command while your mode is manual."
+
+    if action_log['command_mode'] == "manual" and not await is_paused(user_id_ctx.get()):
+        await pause_user(user_id_ctx.get())
 
     try:
         aio.publish(os.getenv("LIGHT_BTN_FEED"), action_log['action'])
@@ -497,8 +554,6 @@ async def light_usage():
 
     return light_usage
         
-
-
 
 
 # Humidity statistics
