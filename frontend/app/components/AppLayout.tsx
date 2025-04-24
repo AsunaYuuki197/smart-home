@@ -27,7 +27,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const setupFCM = async () => {
       if (typeof window === "undefined") return;
-      const storedToken = localStorage.getItem("access_token");
+      const storedToken = sessionStorage.getItem("access_token");
       
       if (!storedToken) return;
       if (Notification.permission !== 'granted') {
@@ -51,7 +51,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         const { title, body } = payload.notification || {};
         const alertKey = `alert-${title}`;
         if (!sessionStorage.getItem("access_token")) {
-          sessionStorage.removeItem(`alert-${title}`); // Xóa alertKey nếu không có token
+          sessionStorage.removeItem(alertKey); // Xóa alertKey nếu không có token
         }
         if ( title && body && showSidebar && !sessionStorage.getItem(alertKey)) {
           alert(`Notification: ${title}\n${body}`);

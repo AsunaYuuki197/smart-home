@@ -26,7 +26,7 @@ export const useAuth = () => {
           vapidKey: API_VAPID_KEY,
         });
 
-      console.log("deviceToken", deviceToken);
+      // console.log("deviceToken", deviceToken);
       if (deviceToken) {
         await axiosClient.post(`${API_BASE_URL}/register_token?token=${deviceToken}`, {
         });

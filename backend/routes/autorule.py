@@ -24,16 +24,22 @@ async def countdown():
 
     if not countdown_user['countdown'].get("task_id") is None:
         task = AsyncResult(countdown_user['countdown'].get("task_id"))
-        eta = countdown_user['countdown'].get('eta')
-        if task.state in ['PENDING', 'STARTED'] and eta:
-            remaining_time = (eta - datetime.now(timezone.utc)).total_seconds()
-            countdown_user['countdown']['remaining_time'] = max(remaining_time, 0)
+        eta_str = countdown_user['countdown'].get('eta')
+
+        if task.state in ['PENDING', 'STARTED'] and eta_str:
+            try:
+                eta = datetime.fromisoformat(eta_str.replace("Z", "+00:00"))
+                remaining_time = (eta - datetime.now(timezone.utc)).total_seconds()
+                countdown_user['countdown']['remaining_time'] = max(remaining_time, 0)
+            except Exception as e:
+                countdown_user['countdown']['remaining_time'] = None
         elif task.state == 'SUCCESS':
             countdown_user['countdown']['remaining_time'] = 0
         else:
             countdown_user['countdown']['remaining_time'] = None
 
     return countdown_user
+
 
 
 @router.post("/save/countdown", summary="Saving Countdown Timer")

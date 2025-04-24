@@ -32,9 +32,12 @@ useEffect(() => {
     console.log('Fetched configuration:', data);
     setIsCountDown(data.countdown.status == "on");
     setTime(data.countdown.time);
+    const eta = data.countdown.eta
+    const remainingTime = Math.floor((new Date(eta).getTime() - new Date().getTime()) / 1000);
+    setRemainingTime(remainingTime);
+
     setIsWakeup(data.wake_word.status == "on");
     setText(data.wake_word.text);
-    setRemainingTime(data.wake_word.remaining_time);
     //TODO
     setFanObj(data.fan_autorule == null ? {} : data.fan_autorule[0]["1"]);
     setLightObj(data.light_autorule == null ? {} : data.light_autorule[0]["2"]);

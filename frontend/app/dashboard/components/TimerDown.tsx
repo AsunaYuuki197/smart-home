@@ -1,12 +1,27 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { autoruleService } from "@/app/services/autoruleService"
+
 
 export default function Timer() {
   const [isPaused, setIsPaused] = useState(true)
-  //TODO: Call API lấy thời gian hẹn giờ tự động init
-  const [seconds, setSeconds] = useState(900) //15:00
+  const [seconds, setSeconds] = useState(0)
 
+  useEffect(() => {
+    const fetchTime = async () => {
+      try {
+        const response = await autoruleService.getCoundown()
+        const data = await response
+        setSeconds(Math.floor(data.countdown.remaining_time))
+        setIsPaused(data.countdown.status !== "on")
+      } catch (error) {
+        console.error("Error fetching time:", error)
+      }
+    }
+
+    fetchTime()
+  }, []),
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
@@ -16,7 +31,14 @@ export default function Timer() {
         setSeconds((prev) => prev - 1)
       }, 1000)
     }
-
+    else if (seconds <= 0) {
+      // Call API to update status
+      const turnOff = async () => {
+        setIsPaused(true)
+        await autoruleService.saveCoundown("off", 0)
+      }
+      turnOff()
+    }
     return () => {
       if (interval) clearInterval(interval)
     }
@@ -26,6 +48,12 @@ export default function Timer() {
   const remainingSeconds = seconds % 60
   const timeDisplay = `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`
 
+  const handleClick = () => {
+    const newState = !isPaused
+    setIsPaused(newState)
+    const status = newState?"off":"on";
+    autoruleService.saveCoundown(status,seconds)
+  }
   return (
     <div className="bg-red-100 rounded-xl p-4 flex flex-col items-center justify-between h-full border-2 border-red-500">
       <div className="text-center text-red-600">

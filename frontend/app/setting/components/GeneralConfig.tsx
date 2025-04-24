@@ -9,15 +9,15 @@ function GeneralConfig({isCountDown,time,isWakeup,text,remaining_time}:
     <>
     <span className = "font-bold text-3xl ml-10 "> Cấu hình chung </span>
     <div className = "flex-2/5 flex flex-col justify-around bg-white rounded-4xl pt-2 pb-2 pl-10 pr-10 ">
-        <CountDown isCountDown ={isCountDown} time = {time}/>
+        <CountDown isCountDown ={isCountDown} time = {time} remaining_time = {remaining_time}/>
     </div>
     <div className = "flex-3/5 flex flex-col justify-around bg-white rounded-4xl pt-2 pb-2 pl-10 pr-10">
-        <ConfigAI status = {isWakeup} text = {text} remaining_time = {remaining_time}/>
+        <ConfigAI status = {isWakeup} text = {text} />
     </div>
     </>
   );
 }
-function ConfigAI({status,text,remaining_time}:{status:boolean,text:string,remaining_time:any}) {
+function ConfigAI({status,text,}:{status:boolean,text:string}) {
     const [isActive, setIsActive] = useState(status);
     const [currentCommand, setCurrentCommand] = useState(text || ""); //call API lấy lệnh hiện tại trả về
     const handleChange = () => {   
@@ -73,10 +73,10 @@ function ConfigAI({status,text,remaining_time}:{status:boolean,text:string,remai
     )
 }
 
-function CountDown({isCountDown,time}:{isCountDown:boolean,time:number}) {
+function CountDown({isCountDown,time,remaining_time}:{isCountDown:boolean,time:number,remaining_time:number}) {
     const [isRunning, setIsRunning] = useState(isCountDown);
-    const [timeConfig, setTimeConfig] = useState(time); //call API lấy thời gian tự động trả về
-    const [timeLeft, setTimeLeft] = useState<number>(timeConfig); 
+    const [timeConfig, setTimeConfig] = useState(remaining_time); //call API lấy thời gian tự động trả về
+    const [timeLeft, setTimeLeft] = useState<number>(remaining_time); 
 
       
     useEffect(() => {
@@ -91,21 +91,26 @@ function CountDown({isCountDown,time}:{isCountDown:boolean,time:number}) {
         }
         else if(timeLeft < 0){
             //TODO: Call API thông báo trả về trạng thái tự động
-            // setIsRunning(false);
+            const turnOff = async () => {
+                setIsRunning(false);
+                await autoruleService.saveCoundown("off",0)
+            }
+        turnOff();
+
         }
         return () => {
           if (interval) clearInterval(interval)
         }
       }, [isRunning,timeLeft])
 
-      const handleChange = () => {
+      const handleChange = async () => {
           const newState = !isRunning
           setIsRunning(newState);
           const status = newState?"on":"off";
-          autoruleService.saveCoundown(status,timeLeft)
+          await autoruleService.saveCoundown(status,timeLeft)
         }
         const handleChangeTime = (e: string) => {
-            setTimeConfig(Number(e.split(":")[0])*3600 + Number(e.split(":")[1])*60);
+            setTimeConfig(Number(e.split(":")[0])*3600 + Number(e.split(":")[1])*60 + Number(e.split(":")[2]));
             //call API POST cập nhật thời gian tự động
         }
         const handleSaveTime = async () => {
@@ -131,13 +136,13 @@ function CountDown({isCountDown,time}:{isCountDown:boolean,time:number}) {
             <div className = {`flex items-center justify-between w-full font-bold
                             `}>
                 <span className=" text-sm">Trở về trạng thái tự động sau</span>
-                <input  
+                <input
                 type="time"
-                min="00:01:00"
-                max="00:59:00" 
-                className=" [&::-webkit-calendar-picker-indicator]:hidden"
-                onChange={(e) => {handleChangeTime(e.target.value)}}
-                // disabled={!isRunning}
+                step="1" // Cho phép nhập giây
+                min="00:00:01"
+                max="00:59:59"
+                className="w-24 [&::-webkit-datetime-edit-hour-field]:hidden [&::-webkit-datetime-edit-hour-field]:w-0 [&::-webkit-calendar-picker-indicator]:hidden"
+                onChange={(e) => handleChangeTime(e.target.value)}
                 />
             </div>
             <div className = {`flex justify-between w-full`}>
