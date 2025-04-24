@@ -91,11 +91,6 @@ function CountDown({isCountDown,time,remaining_time}:{isCountDown:boolean,time:n
         }
         else if(timeLeft < 0){
             //TODO: Call API thông báo trả về trạng thái tự động
-            const turnOff = async () => {
-                setIsRunning(false);
-                await autoruleService.saveCoundown("off",0)
-            }
-        turnOff();
 
         }
         return () => {
@@ -107,7 +102,7 @@ function CountDown({isCountDown,time,remaining_time}:{isCountDown:boolean,time:n
           const newState = !isRunning
           setIsRunning(newState);
           const status = newState?"on":"off";
-          await autoruleService.saveCoundown(status,timeLeft)
+          await autoruleService.saveCoundown(status,timeLeft <= 0 ? 15:timeLeft)
         }
         const handleChangeTime = (e: string) => {
             setTimeConfig(Number(e.split(":")[0])*3600 + Number(e.split(":")[1])*60 + Number(e.split(":")[2]));

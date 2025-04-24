@@ -31,14 +31,7 @@ export default function Timer() {
         setSeconds((prev) => prev - 1)
       }, 1000)
     }
-    else if (seconds <= 0) {
-      // Call API to update status
-      const turnOff = async () => {
-        setIsPaused(true)
-        await autoruleService.saveCoundown("off", 0)
-      }
-      turnOff()
-    }
+
     return () => {
       if (interval) clearInterval(interval)
     }
@@ -52,7 +45,7 @@ export default function Timer() {
     const newState = !isPaused
     setIsPaused(newState)
     const status = newState?"off":"on";
-    autoruleService.saveCoundown(status,seconds)
+    autoruleService.saveCoundown(status,seconds <= 0 ? 15:seconds)
   }
   return (
     <div className="bg-red-100 rounded-xl p-4 flex flex-col items-center justify-between h-full border-2 border-red-500">
