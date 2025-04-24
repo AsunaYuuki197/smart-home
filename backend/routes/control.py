@@ -63,8 +63,9 @@ async def turn_on_fan(action: ActionLog):
                 list(map(lambda device: {**action_log, "device_id": device['device_id']}, devices_id))
             ])
 
-        countdown_user = await db.Users.find_one({"user_id": user_id_ctx.get()}, {"countdown": 1})
-        await save_countdown(CountdownUpdateRequest(**countdown_user.get("countdown")))
+        if action_log['command_mode'] == "manual":
+            countdown_user = await db.Users.find_one({"user_id": user_id_ctx.get()}, {"countdown": 1})
+            await save_countdown(CountdownUpdateRequest(**countdown_user.get("countdown")))
         return "successfully"
     except Exception as e:
         return e
@@ -103,8 +104,9 @@ async def turn_off_fan(action: ActionLog):
                 list(map(lambda device: {**action_log, "device_id": device['device_id']}, devices_id))
             ])
 
-        countdown_user = await db.Users.find_one({"user_id": user_id_ctx.get()}, {"countdown": 1})
-        await save_countdown(CountdownUpdateRequest(**countdown_user.get("countdown")))
+        if action_log['command_mode'] == "manual":
+            countdown_user = await db.Users.find_one({"user_id": user_id_ctx.get()}, {"countdown": 1})
+            await save_countdown(CountdownUpdateRequest(**countdown_user.get("countdown")))
         return "successfully"
     except Exception as e:
         return e
@@ -151,8 +153,9 @@ async def change_fan_speed(action: ActionLog):
                 list(map(lambda device: {**action_log, "device_id": device['device_id']}, devices_id))
             ])
 
-        countdown_user = await db.Users.find_one({"user_id": user_id_ctx.get()}, {"countdown": 1})
-        await save_countdown(CountdownUpdateRequest(**countdown_user.get("countdown")))
+        if action_log['command_mode'] == "manual":
+            countdown_user = await db.Users.find_one({"user_id": user_id_ctx.get()}, {"countdown": 1})
+            await save_countdown(CountdownUpdateRequest(**countdown_user.get("countdown")))
         return "successfully"
     except Exception as e:
         return e
@@ -194,8 +197,9 @@ async def turn_on_light(action: ActionLog):
                 list(map(lambda device: {**action_log, "device_id": device['device_id']}, devices_id))
             ])
 
-        countdown_user = await db.Users.find_one({"user_id": user_id_ctx.get()}, {"countdown": 1})
-        await save_countdown(CountdownUpdateRequest(**countdown_user.get("countdown")))
+        if action_log['command_mode'] == "manual":
+            countdown_user = await db.Users.find_one({"user_id": user_id_ctx.get()}, {"countdown": 1})
+            await save_countdown(CountdownUpdateRequest(**countdown_user.get("countdown")))
         return "successfully"
     except Exception as e:
         return e
@@ -237,8 +241,9 @@ async def turn_off_light(action: ActionLog):
                 list(map(lambda device: {**action_log, "device_id": device['device_id']}, devices_id))
             ])
 
-        countdown_user = await db.Users.find_one({"user_id": user_id_ctx.get()}, {"countdown": 1})
-        await save_countdown(CountdownUpdateRequest(**countdown_user.get("countdown")))
+        if action_log['command_mode'] == "manual":
+            countdown_user = await db.Users.find_one({"user_id": user_id_ctx.get()}, {"countdown": 1})
+            await save_countdown(CountdownUpdateRequest(**countdown_user.get("countdown")))
         return "successfully"
     except Exception as e:
         return e
@@ -287,8 +292,9 @@ async def change_light_color(action: ActionLog):
             await db.ActionLog.insert_many([
                 list(map(lambda device: {**action_log, "device_id": device['device_id']}, devices_id))
             ])
-        countdown_user = await db.Users.find_one({"user_id": user_id_ctx.get()}, {"countdown": 1})
-        await save_countdown(CountdownUpdateRequest(**countdown_user.get("countdown")))
+        if action_log['command_mode'] == "manual":
+            countdown_user = await db.Users.find_one({"user_id": user_id_ctx.get()}, {"countdown": 1})
+            await save_countdown(CountdownUpdateRequest(**countdown_user.get("countdown")))
         return "successfully"
     except Exception as e:
         return e
@@ -334,8 +340,9 @@ async def change_light_level(action: ActionLog):
                 list(map(lambda device: {**action_log, "device_id": device['device_id']}, devices_id))
             ])
 
-        countdown_user = await db.Users.find_one({"user_id": user_id_ctx.get()}, {"countdown": 1})
-        await save_countdown(CountdownUpdateRequest(**countdown_user.get("countdown")))
+        if action_log['command_mode'] == "manual":
+            countdown_user = await db.Users.find_one({"user_id": user_id_ctx.get()}, {"countdown": 1})
+            await save_countdown(CountdownUpdateRequest(**countdown_user.get("countdown")))
         return "successfully"
     except Exception as e:
         return e

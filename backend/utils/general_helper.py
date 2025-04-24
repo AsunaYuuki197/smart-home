@@ -50,9 +50,9 @@ async def in_time_frame(rule: dict):
             now = datetime.now().time()
             start_time = start_time_dt.time()
             end_time = end_time_dt.time()
-            in_time_range = start_time <= now <= end_time if start_time <= end_time else (now >= start_time or now <= end_time)
+            in_time_range = start_time <= now <= end_time if start_time <= end_time else None
             if in_time_range:
                 return 1 #in time frame
-            else:
+            elif now > end_time:
                 return 0 #not in time frame
     return -1 #not satisfy condition
