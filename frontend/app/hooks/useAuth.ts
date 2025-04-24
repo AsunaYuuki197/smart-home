@@ -42,15 +42,16 @@ export const useAuth = () => {
   };
 
     // Đăng ký tài khoản
-  const handleSignup = async ( fname: "string",
-  lname: "string",
-  phone: "string",
-  email: "string",
-  password: "string",
-  birth: "string",
-  gender: "string") => {
+  const handleSignup = async ( 
+  fname: string,
+  lname: string,
+  phone: string,
+  email: string,
+  password: string,
+  birth: string,
+  gender: string) => {
     try{
-        await authService.signup(fname,lname,phone,email,password,birth,gender);
+        const res = await authService.signup(fname,lname,phone,email,password,birth,gender);
     }catch (err){
         console.error('Signup failed', err);
     }

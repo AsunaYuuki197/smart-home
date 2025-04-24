@@ -19,6 +19,25 @@ export const notificationsService = {
             throw error;
         }
     },
+    saveNotification: async (device_id:number, message: string): Promise<any> => {
+        try{
+            const response = await axiosClient.post(`${API_BASE_URL}/save/notification`, {
+                user_id: 1,
+                device_id: device_id,
+                message: message,
+                timestamp: new Date().toISOString(),
+            }, {
+                headers: { "Content-Type": "application/json" },
+            });
+            if (!response) {
+                throw new Error(`Lỗi khi lưu thông báo...`);
+            }
+            return response.data;
+        }catch (error: any) {
+            console.error(`Error saving notification:`, error.message);
+            throw error;
+        }
+    },
     queryNotify: async(query:string)=>{
         try {
   

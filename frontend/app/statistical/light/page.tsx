@@ -14,7 +14,7 @@ import {
   Line,
 } from "recharts";
 import { useDeviceStatistics } from "../../hooks/useDeviceStatistics";
-import axiosClient from "@/app/services/axiosClient";
+import axiosClient from "@/app/utils/axiosClient";
 export default function Statistical_Light() {
   const [activeDevice, setActiveDevice] = useState("light");
   const deviceOptions = ["fan", "light"];

@@ -26,13 +26,13 @@ export const authService = {
       throw new Error(error.response?.data?.detail || "Login failed");
     }
   },
-  signup: async ( fname: "string",
-  lname: "string",
-  phone: "string",
-  email: "string",
-  password: "string",
-  birth: "string",
-  gender: "string") => {
+  signup: async ( fname: string,
+  lname: string,
+  phone: string,
+  email: string,
+  password: string,
+  birth: string,
+  gender: string) => {
     try {
       const res = await axiosClient.post(`${API_BASE_URL}/signup`, {
         fname,
@@ -42,7 +42,14 @@ export const authService = {
         password,
         birth,
         gender,
+      },{
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
+      if(res){
+        alert("Đăng ký thành công. Vui lòng đăng nhập lại.");
+      }
       return res.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.detail || "Signup failed");

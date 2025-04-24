@@ -50,8 +50,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       onMessage(messaging, (payload) => {
         const { title, body } = payload.notification || {};
         const alertKey = `alert-${title}`;
-
-        if ( title && body && !sessionStorage.getItem(alertKey)) {
+        if (!sessionStorage.getItem("access_token")) {
+          sessionStorage.removeItem(`alert-${title}`); // Xóa alertKey nếu không có token
+        }
+        if ( title && body && showSidebar && !sessionStorage.getItem(alertKey)) {
           alert(`Notification: ${title}\n${body}`);
           sessionStorage.setItem(alertKey, 'true');
         }
