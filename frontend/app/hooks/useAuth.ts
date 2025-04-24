@@ -13,7 +13,7 @@ export const useAuth = () => {
     try {
       const data = await authService.login(email, password);
       if (typeof window !== "undefined") {
-        localStorage.setItem("access_token", data.access_token);
+        sessionStorage.setItem("access_token", data.access_token);
       }
                   
       const messaging = await getFirebaseMessaging();

@@ -12,7 +12,7 @@ export const notificationsService = {
                 throw new Error(`Lỗi khi lấy dữ liệu thông báo...`);
             }
             const data = await response.data;
-            sessionStorage.setItem(`list_notify`, JSON.stringify(data));
+            // sessionStorage.setItem(`list_notify`, JSON.stringify(data));
             return data;
         } catch (error: any) {
             console.error(`Error fetching notifications:`, error.message);

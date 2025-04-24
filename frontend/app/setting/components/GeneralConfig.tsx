@@ -3,7 +3,8 @@ import {useState, useEffect} from "react";
 import ActiveControl from "./ActiveControl";
 import { autoruleService } from "@/app/services/autoruleService";
 
-function GeneralConfig({isCountDown,time,isWakeup,text}:{isCountDown:boolean,time:number,isWakeup:boolean,text:string}) {
+function GeneralConfig({isCountDown,time,isWakeup,text,remaining_time}:
+    {isCountDown:boolean,time:number,isWakeup:boolean,text:string,remaining_time:any}) {
     return (
     <>
     <span className = "font-bold text-3xl ml-10 "> Cấu hình chung </span>
@@ -11,12 +12,12 @@ function GeneralConfig({isCountDown,time,isWakeup,text}:{isCountDown:boolean,tim
         <CountDown isCountDown ={isCountDown} time = {time}/>
     </div>
     <div className = "flex-3/5 flex flex-col justify-around bg-white rounded-4xl pt-2 pb-2 pl-10 pr-10">
-        <ConfigAI status = {isWakeup} text = {text}/>
+        <ConfigAI status = {isWakeup} text = {text} remaining_time = {remaining_time}/>
     </div>
     </>
   );
 }
-function ConfigAI({status,text}:{status:boolean,text:string}) {
+function ConfigAI({status,text,remaining_time}:{status:boolean,text:string,remaining_time:any}) {
     const [isActive, setIsActive] = useState(status);
     const [currentCommand, setCurrentCommand] = useState(text || ""); //call API lấy lệnh hiện tại trả về
     const handleChange = () => {   
@@ -76,23 +77,7 @@ function CountDown({isCountDown,time}:{isCountDown:boolean,time:number}) {
     const [isRunning, setIsRunning] = useState(isCountDown);
     const [timeConfig, setTimeConfig] = useState(time); //call API lấy thời gian tự động trả về
     const [timeLeft, setTimeLeft] = useState<number>(timeConfig); 
-    // useEffect(() => {
-    //     const sendTimeLeftToServer = () => {
-    //         const status = sessionStorage.getItem("isRunning") ?? "off"; 
-    //         const time = sessionStorage.getItem("timeLeft") === null ? 0 : Number(sessionStorage.getItem("timeLeft"));
-    //         console.log("//",status, time);
-    //         autoruleService.saveCountdownBeacon(status, time);
-    //     };
-      
-    //     // Khi đóng tab hoặc reload
-    //     window.addEventListener("beforeunload", sendTimeLeftToServer);
-      
-    //     // Khi unmount (chuyển route hoặc component bị hủy)
-    //     return () => {
-    //       sendTimeLeftToServer();
-    //       window.removeEventListener("beforeunload", sendTimeLeftToServer);
-    //     };
-    //   }, []);
+
       
     useEffect(() => {
         let interval: NodeJS.Timeout | null = null

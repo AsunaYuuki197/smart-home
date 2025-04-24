@@ -43,9 +43,10 @@ export default function Dashboard() {
         <div className="md:col-span-3">
           <DateTimeWeather />
         </div>
-        {/* Cột phải: FanStats (Quạt) */}
+        {/* Cột phải: FanStats (Đèn) */}
         <div className="md:col-span-6">
-          <StatsBar title="Quạt" date={formattedDate} color="teal" />
+          <StatsBar title="Đèn" date={formattedDate} color="pink" />
+
         </div>
       </div>
 
@@ -60,9 +61,9 @@ export default function Dashboard() {
         <div className="md:col-span-2">
           <Timer />
         </div>
-        {/* Cột phải: FanStats (Đèn) */}
+        {/* Cột phải: FanStats (Quạt  ) */}
         <div className="md:col-span-6">
-          <StatsBar title="Đèn" date={formattedDate} color="pink" />
+          <StatsBar title="Quạt" date={formattedDate} color="teal" />
         </div>
       </div>
       

@@ -53,7 +53,7 @@ export const autoruleService ={
         }
     },
     saveCountdownBeacon: async (status: string, timeLeft: number) => {
-        const token = localStorage.getItem("access_token");
+        const token = sessionStorage.getItem("access_token");
         const data = JSON.stringify({ status, timeLeft, token });
         const blob = new Blob([data], { type: "application/json" });
       

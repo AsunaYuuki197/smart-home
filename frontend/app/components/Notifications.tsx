@@ -2,33 +2,6 @@
 import { Search } from "lucide-react";
 import { notificationsService } from "../services/notificationsService";
 import { useEffect, useRef, useCallback, useState, use } from "react";
-const fakeNotifies = [
-  {
-    id: 0,
-    message: "Hôm nay có thông báo 0....",
-    timestamp: "2025-03-23T15:55:12.944000",
-  },
-  {
-    id: 1,
-    message: "Hôm nay có thông báo 1....",
-    timestamp: "2025-03-23T12:55:12.944000",
-  },
-  {
-    id: 2,
-    message: "Hôm nay có thông báo 2....",
-    timestamp: "2025-03-23T10:55:12.944000",
-  },
-  {
-    id: 3,
-    message: "Hôm nay có thông báo 3....",
-    timestamp: "2025-03-23T08:55:12.944000",
-  },
-  {
-    id: 4,
-    message: "Hôm nay có thông báo 4....",
-    timestamp: "2025-03-22T15:55:12.944000",
-  },
-];
 export default function Notifications({
   isOpen,
   setIsOpen,
@@ -37,8 +10,7 @@ export default function Notifications({
   setIsOpen: (isOn: boolean) => void;
 }) {
   const [notifies, setNotifies] = useState([]);
-  const [query, setQuery] = useState<string>("");
-  const [id,setId] =useState<number>(0);
+  const [query, setQuery] = useState(""); // Gán vào filter sau 1s
 
   useEffect(() => {
     async function fetchGetNotify() {
@@ -59,24 +31,11 @@ export default function Notifications({
     fetchGetNotify();
     // }
   }, []);
-  console.log("notifications", notifies);
 
-  // FAKE DATA
-  // const {formattedDate,formattedTime} = fakeNotifies['timestamp'].split("T")[0];
 
-  // useEffect(() => {
-  //   async function fetchFilteredNotifications() {
-  //     const filteredNotifications = await notificationsService.queryNotify(key);
-  //     setNotifies(filteredNotifications);
-  //   }
-  //   if (key !== "") {
-  //     fetchFilteredNotifications();
-  //   }
-  // }, [key]);
-
-  // const keyChangeHandler = (e) => {
-  //   setKey(e.target.value);
-  // };
+  const filteredNotifies = notifies.filter((notify:any) =>
+    notify?.message.toLowerCase().includes(query.toLowerCase())
+  );
 
   return (
     <div
@@ -97,14 +56,13 @@ export default function Notifications({
       </div>
       <div className="overflow-y-scroll transition-all duration-300 ">
         <ul className="flex flex-col gap-3 h-full w-[95%] ">
-          {notifies.map((notify: any) => {
+          {filteredNotifies.map((notify: any,index) => {
             const [date, time] = notify["timestamp"].split("T");
             const [hours, minutes] = time.split(":");
             const mess = notify?.message;
-            setId(id + 1);
             return (
               <li
-                key={id}
+                key={index}
                 className="flex flex-col gap-2 bg-white h-[165px] shadow-2xs rounded-[20px] p-4"
               >
                 <span className="font-mono text-black opacity-50">{`${date}: ${hours}:${minutes}`}</span>
