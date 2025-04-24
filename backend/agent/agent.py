@@ -35,7 +35,7 @@ async def get_sensor_data():
             elif device['type'] == "Humidity sensor":
                 humid_sensor = receive_feed_value(os.getenv("AIO_KEY"), os.getenv("AIO_USERNAME"), os.getenv("HUMIDITY_FEED"), "last")     
             
-            if temp_sensor['value'] < float('inf') or  humid_sensor['value'] < float('inf'):
+            if float(temp_sensor['value']) < float('inf') or  float(humid_sensor['value']) < float('inf'):
                 asyncio.create_task(controlFan_by_condition(user,float(temp_sensor.get('value')),float(humid_sensor.get('value')),device))
 
     process_time = time.time() - start_time
@@ -87,24 +87,6 @@ async def hot_alarm(user: dict, temp_sensor_val: float, device: dict):
     return
 
 
-def in_time_frame(time_rule: dict):
-    if time_rule and time_rule.get("rule_time", "off") == "on" and time_rule.get("repeat", 0) > 0:
-        auto_field = time_rule.get("auto_field", [])
-        if all(f in auto_field for f in ["start_time", "end_time", "repeat"]):
-            start_time_dt = time_rule.get("start_time")
-            end_time_dt = time_rule.get("end_time")
-            if start_time_dt and end_time_dt:
-                now = datetime.now().time()
-                start_time = start_time_dt.time()
-                end_time = end_time_dt.time()
-                in_time_range = start_time <= now <= end_time if start_time <= end_time else (now >= start_time or now <= end_time)
-                if in_time_range:
-                    return 1 #in time frame
-                else:
-                    return 0 #not in time frame
-    return -1 #not satisfy condition
-
-
 # Auto control fan by condition
 async def controlFan_by_condition(user: dict, temp_sensor_val: float, humid_sensor_val: float, device: dict):
 
@@ -125,7 +107,7 @@ async def controlFan_by_condition(user: dict, temp_sensor_val: float, humid_sens
     humid_threshold = fan_rule.get("humidity", FAN_HUMIDITY_THRESHOLD)
     fan_level = fan_rule.get("fan_level", FAN_AUTOSPEED)
 
-    fan_status = await device_status(user["user_id"], 1)
+    fan_status = await device_status(1)
     fan_is_on = fan_status.get("action") == 1 if fan_status else False
     current_level = fan_status.get("level") if fan_status else None
 
@@ -175,7 +157,7 @@ async def controlLight_by_condition(user: dict, light_sensor_val: float, device:
     color = light_rule.get("color", LIGHTCOLOR_DEFAULT) 
     level = light_rule.get("light_level", LIGHTLEVEL_DEFAULT)
 
-    status = await device_status(user["user_id"], 2)
+    status = await device_status(2)
     is_on = status.get("action", 0) == 1 if status else False
     current_color = status.get("color") if status else None
     current_level = status.get("level") if status else None
@@ -240,7 +222,7 @@ async def control_by_time():
 
             user_id_ctx.set(user_id)
 
-            device_status_now = await device_status(user_id, device_id)
+            device_status_now = await device_status(device_id)
             
             if not await is_paused(user_id):
                 continue
