@@ -7,6 +7,7 @@ import { settingService } from '../services/settingService';
 import {useState, useEffect } from 'react';
 import {fan_autorule} from '../models/fan_autorule';
 import { light_autorule } from '../models/light_autorule';
+import { notify_autorule } from '../models/notify_autorule';
 
 export default function Setting() {
 //isCountDown,time,isWakeup,text
@@ -15,9 +16,16 @@ const [isCountDown, setIsCountDown] = useState(false);
 const [time, setTime] = useState(0);
 const [isWakeup, setIsWakeup] = useState(false);
 const [text, setText] = useState("");
-
+const [remaining_time, setRemainingTime] = useState(0);
 const [fanObj, setFanObj] = useState<fan_autorule>({});
 const [lightObj, setLightObj] = useState<light_autorule>({});
+const [notifyObj, setNotifyObj] = useState<notify_autorule>({
+  temp: 25,
+  platform: "Tất cả",
+  status: "off",
+  hot_notif: "off"
+});
+
 useEffect(() => {
   const fetchData = async () => {
     const data = await settingService.getConfiguration();
@@ -26,9 +34,11 @@ useEffect(() => {
     setTime(data.countdown.time);
     setIsWakeup(data.wake_word.status == "on");
     setText(data.wake_word.text);
+    setRemainingTime(data.wake_word.remaining_time);
     //TODO
     setFanObj(data.fan_autorule == null ? {} : data.fan_autorule[0]["1"]);
     setLightObj(data.light_autorule == null ? {} : data.light_autorule[0]["2"]);
+    setNotifyObj(data.noti);
     setIsLoading(false);
   };
   fetchData();
@@ -50,7 +60,7 @@ useEffect(() => {
         <div className="flex flex-5 gap-24">
           {/* Cấu hình chung */}
           <div className="flex flex-col flex-2/5 gap-6">
-            <GeneralConfig isCountDown={isCountDown} time={time} isWakeup={isWakeup} text={text} />
+            <GeneralConfig isCountDown={isCountDown} time={time} isWakeup={isWakeup} text={text} remaining_time = {remaining_time} />
           </div>
           {/* Đèn */}
           <div className="flex flex-col flex-3/5 gap-6">
@@ -62,7 +72,7 @@ useEffect(() => {
         <div className="flex flex-4 gap-24">
           {/* Thông báo */}
           <div className="flex flex-col flex-2/5 gap-6">
-            <NotificationConfig />
+            <NotificationConfig notifyObj = {notifyObj}/>
           </div>
           {/* Quạt */}
           <div className="flex flex-col flex-3/5 gap-6">

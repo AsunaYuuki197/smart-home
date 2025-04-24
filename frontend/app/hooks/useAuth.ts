@@ -1,6 +1,6 @@
 import { authService} from '../services/authService';
 import { useRouter } from 'next/navigation'; // Sử dụng đúng cách với App Router
-import axiosClient from "@/app/services/axiosClient";
+import axiosClient from "@/app/utils/axiosClient";
 import { getFirebaseMessaging, getToken, onMessage } from "@/lib/firebase";
 
 const API_VAPID_KEY = process.env.NEXT_PUBLIC_VAPID_KEY
@@ -13,7 +13,7 @@ export const useAuth = () => {
     try {
       const data = await authService.login(email, password);
       if (typeof window !== "undefined") {
-        localStorage.setItem("access_token", data.access_token);
+        sessionStorage.setItem("access_token", data.access_token);
       }
                   
       const messaging = await getFirebaseMessaging();

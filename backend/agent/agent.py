@@ -23,15 +23,13 @@ async def get_sensor_data():
         temp_sensor = {'value': float('inf')}
         humid_sensor = {'value': float('inf')}
         for device_id in user.get('devices', []):
-            
             device = await db.Devices.find_one({"device_id": device_id}, {'device_id':1 , 'type': 1})
             if not device:
                 continue
             if device['type'] == "Light sensor":
                 light_sensor = receive_feed_value(os.getenv("AIO_KEY"), os.getenv("AIO_USERNAME"), os.getenv("LIGHT_SENSOR_FEED"), "last")   
                 asyncio.create_task(controlLight_by_condition(user,float(light_sensor['value']),device))
-            elif device['type'] == "Temperature sensor":
-                temp_sensor = receive_feed_value(os.getenv("AIO_KEY"), os.getenv("AIO_USERNAME"), os.getenv("TEMPERATURE_FEED"), "last")   
+            elif device['type'] == "Temperature sensor":   
                 asyncio.create_task(fire_alarm(user,float(temp_sensor['value']),device))
                 asyncio.create_task(hot_alarm(user,float(temp_sensor['value']), device))
             elif device['type'] == "Humidity sensor":
@@ -87,6 +85,24 @@ async def hot_alarm(user: dict, temp_sensor_val: float, device: dict):
     send_notification.apply_async(args=[user, "Nóng quá 🥵🥵", "Bạn có muốn bật quạt không :)))", device['device_id']])
     
     return
+
+
+def in_time_frame(time_rule: dict):
+    if time_rule and time_rule.get("rule_time", "off") == "on" and time_rule.get("repeat", 0) > 0:
+        auto_field = time_rule.get("auto_field", [])
+        if all(f in auto_field for f in ["start_time", "end_time", "repeat"]):
+            start_time_dt = time_rule.get("start_time")
+            end_time_dt = time_rule.get("end_time")
+            if start_time_dt and end_time_dt:
+                now = datetime.now().time()
+                start_time = start_time_dt.time()
+                end_time = end_time_dt.time()
+                in_time_range = start_time <= now <= end_time if start_time <= end_time else (now >= start_time or now <= end_time)
+                if in_time_range:
+                    return 1 #in time frame
+                else:
+                    return 0 #not in time frame
+    return -1 #not satisfy condition
 
 
 # Auto control fan by condition
@@ -202,6 +218,7 @@ async def controlLight_by_condition(user: dict, light_sensor_val: float, device:
 
 # DATAFRAME_FLAG = False
 # Auto control by time
+DATAFRAME_FLAG = False
 async def control_by_time():
     # global DATAFRAME_FLAG
     cursor = user_collection.find({}, {'devices': 1, 'user_id': 1, '_id': 0})

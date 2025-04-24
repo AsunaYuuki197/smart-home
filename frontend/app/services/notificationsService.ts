@@ -1,16 +1,18 @@
 //API
-const token = localStorage.getItem("access_token");
+import axiosClient from "../utils/axiosClient";
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_ENDPOINT;
+
 export const notificationsService = {
     getListNotifies: async () => {
         try {
-            const response = await fetch(`/api/notifications`,{
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+            const response = await axiosClient.get(`${API_BASE_URL}/notifications`,{
+                headers: { "Content-Type": "application/json" },
             });
-            if (!response.ok) {
+            if (!response) {
                 throw new Error(`Lỗi khi lấy dữ liệu thông báo...`);
             }
-            const data = await response.json();
-            sessionStorage.setItem(`list_notify`, JSON.stringify(data));
+            const data = await response.data;
+            // sessionStorage.setItem(`list_notify`, JSON.stringify(data));
             return data;
         } catch (error: any) {
             console.error(`Error fetching notifications:`, error.message);
@@ -20,15 +22,13 @@ export const notificationsService = {
     queryNotify: async(query:string)=>{
         try {
   
-            const response = await fetch(`/api/notifications/search?query=${query}`,{
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+            const response = await axiosClient.get(`${API_BASE_URL}/notifications/search?query=${query}`,{
+                headers: { "Content-Type": "application/json" },
             });
-            if (!response.ok) {
+            if (!response) {
               throw new Error(`Lỗi khi lấy query notify...`);
             }
-            const data = await response.json()
-      
-      
+            const data = await response.data;
             return data;
           } catch (error: any) {
             console.error(`Error fetching query notify:`, error.message);

@@ -1,6 +1,8 @@
 "use client"
 
 import React, { useEffect, useState, useCallback ,useRef} from 'react';
+import { useWeather } from '@/app/hooks/useWeather'; 
+
 // Component chính
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_ENDPOINT;
 
@@ -50,31 +52,8 @@ export default function DateTimeWeather() {
     </div>
   );
 }
-
-// Service cho việc gọi API
-const weatherService = {
-  getWeather: async () => {
-    try {
-      const token = localStorage.getItem("access_token");
-      if (!token) throw new Error("Token không hợp lệ");
-      const response = await fetch(`${API_BASE_URL}`,{
-        method: "GET",
-        headers: { "ngrok-skip-browser-warning": "true",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/91.0 Safari/537.36",
-        "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-      });
-      console.log(response);
-      if (!response.ok) throw new Error("Lỗi khi lấy dữ liệu nhiệt độ!");
-      const data = await response.json();
-      return data;
-    } catch (error: any) {
-      console.error("Lỗi khi lấy dữ liệu nhiệt độ:", error.message);
-      throw error;
-    }
-  }
-};
-
 // Custom hook để quản lý thời gian
+
 function useDateTime() {
   const [dateTime, setDateTime] = useState({
     date: "",
@@ -98,50 +77,6 @@ function useDateTime() {
   }, [updateDateTime]);
 
   return dateTime;
-}
-
-// Custom hook để quản lý nhiệt độ
-function useWeather() {
-  const [temperature, setTemperature] = useState(null);
-  const [humidity, setHumidity] = useState(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
-
-
-  useEffect(() => {
-
-    const fetchWeather = async () => {
-      setIsLoading(true);
-      try {
-        // const userId = 1;
-        const weather = await weatherService.getWeather();
-
-        setTemperature(weather['temperature']);
-        setHumidity(weather['humidity']);
-
-        setError(null);
-      } catch (err: any) {
-        setError(err.message);
-        console.error("Lỗi khi lấy nhiệt độ & độ ẩm:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    if(!temperature){ // nếu không có dữ liệu thì fetch -> fetch lần đầu tiên
-        fetchWeather();
-    }
-    
-    // Cập nhật nhiệt độ mỗi 15 giây
-    intervalRef.current = setInterval(fetchWeather, 15000);
-
-    // Cleanup khi component unmount
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  return { temperature, humidity, isLoading, error };
 }
 
 // Thành phần giao diện

@@ -1,4 +1,4 @@
-import axiosClient from "./axiosClient";
+import axiosClient from "../utils/axiosClient";
 import { getFirebaseMessaging, getToken, onMessage } from "@/lib/firebase";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_ENDPOINT
@@ -50,12 +50,13 @@ export const authService = {
   },
   logout: () => {
     // Xóa token khỏi sessionStorage
+    // axiosClient.post(`${API_BASE_URL}/logout`);
     if (typeof window !== "undefined") {
-      const storedToken = localStorage.getItem("access_token");
+      const storedToken = sessionStorage.getItem("access_token");
       if (storedToken) {
-        localStorage.removeItem("access_token");
+        sessionStorage.removeItem("access_token");
       }
     }
-    return axiosClient.post("/logout");
+    return ;
   },
 };

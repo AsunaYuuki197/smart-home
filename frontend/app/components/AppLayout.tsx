@@ -27,7 +27,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const setupFCM = async () => {
       if (typeof window === "undefined") return;
-      if (!token) return;
+      const storedToken = localStorage.getItem("access_token");
+      
+      if (!storedToken) return;
       if (Notification.permission !== 'granted') {
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') {
@@ -41,7 +43,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         console.warn("🚫 Messaging not supported in this browser.");
         return;
       }
-
+      if ('serviceWorker' in navigator) {
+        await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+      }
+      
       onMessage(messaging, (payload) => {
         const { title, body } = payload.notification || {};
         const alertKey = `alert-${title}`;
