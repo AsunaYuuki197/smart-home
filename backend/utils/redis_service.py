@@ -22,7 +22,7 @@ async def resume_user(user_id: str):
 # Check automode is paused
 async def is_paused(user_id: str) -> bool:
     paused = await redis_client.get(redis_key(user_id))
-    return paused == "true"
+    return paused == b'true'
 
 # Set DATAFRAME_FLAG/ 1st time turn off/on
 async def set_dataframe_flag(user_id: str, device_id: str, dataframe_flag: int):

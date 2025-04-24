@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback,useRef } from "react";
 import { deviceService } from "../services/deviceService";
+import { notificationsService } from "../services/notificationsService";
 
 export function useDeviceControl({
   user_ID,
@@ -27,12 +28,13 @@ export function useDeviceControl({
   const handleSelectLightColor = useCallback((lightColor: string) => {
     setSelectLightColor(lightColor);
     setIsOpen(false);
-    sessionStorage.setItem(`color_${user_ID}_${deviceID}`, JSON.stringify(lightColor));
+    notificationsService.saveNotification(deviceID,`Thông báo: Thay đổi màu đèn:  ${lightColor} `)
+
   }, []);
 
   const handleChangeSpeed = useCallback((newSpeed: number) => {
     setSpeed(newSpeed);
-    sessionStorage.setItem(`level_${user_ID}_${deviceID}`, JSON.stringify(newSpeed));
+    // sessionStorage.setItem(`level_${user_ID}_${deviceID}`, JSON.stringify(newSpeed));
   }, []);
 
   

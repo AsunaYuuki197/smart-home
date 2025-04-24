@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { deviceService } from "../services/deviceService";
-import { usePathname } from "next/navigation";
-
+import { notificationsService } from "../services/notificationsService";
 // Custom hook for device state
 export function  useDeviceState(name: string,id_user:number,id_device:number,isLoading:boolean,color:string,level:number,
             isOn:boolean|null,setIsOn:(Active:React.SetStateAction<boolean|null>)=>void) {
@@ -11,9 +10,10 @@ export function  useDeviceState(name: string,id_user:number,id_device:number,isL
     const toggleDeviceState = useCallback(() => {
         setIsOn(prev => {
           const newState = !prev;
-          sessionStorage.setItem(`action_${id_user}_${id_device}`, JSON.stringify(newState));
+          notificationsService.saveNotification(id_device,`Thông báo: ${newState ? "Bật" : "Tắt"} ${name}`)
           return newState;
         });
+        
     }, [deviceType]);
 
     useEffect(() => {

@@ -7,16 +7,16 @@ import { useAuth } from "@/app/hooks/useAuth";
 
 export default function Login() {
   // State for form fields
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [birthDate, setBirthDate] = useState(""); // Default to current date
-  const [gender, setGender] = useState("male"); // Default to male
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [firstName, setFirstName] = useState<string>("");
+  const [lastName, setLastName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [phone, setPhone] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [birthDate, setBirthDate] = useState<string>(""); // Default to current date
+  const [gender, setGender] = useState<string>("male"); // Default to male
+  const [error, setError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const router = useRouter();
   const { handleSignup } = useAuth();
@@ -51,8 +51,10 @@ export default function Login() {
   };
 
   const registerHandler = async () => {
-    if (!validateForm()) return;
-
+    if (!validateForm()) {
+      alert("Vui lòng điền đầy đủ thông tin");
+      return;
+    }
     setIsLoading(true);
     try {
       // Call the signup function with all the form values
@@ -69,6 +71,7 @@ export default function Login() {
       router.push("/login");
     } catch (err: any) {
       setError(err.message || "Đăng ký thất bại. Vui lòng thử lại.");
+      alert(err)
     } finally {
       setIsLoading(false);
     }
@@ -150,7 +153,8 @@ export default function Login() {
                 type="date"
                 className="w-full p-2 border rounded-xl"
                 value={birthDate}
-                onChange={(e) => setBirthDate(e.target.value)}
+                onChange={(e) =>{ setBirthDate(e.target.value);
+                console.log(e.target.value)}}
               />
             </div>
             <div className="w-1/2">

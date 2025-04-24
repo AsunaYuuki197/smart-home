@@ -33,7 +33,7 @@ export default function Notifications({
   }, []);
 
 
-  const filteredNotifies = notifies.filter((notify:any) =>
+  const filteredNotifies =notifies.slice(0,10).filter((notify:any) =>
     notify?.message.toLowerCase().includes(query.toLowerCase())
   );
 
