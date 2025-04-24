@@ -1,6 +1,8 @@
 import asyncio
 import functools
 import requests
+from datetime import datetime 
+
 timeRule_fields = ['start_time', 'end_time', 'repeat']
 htsensorRule_fields = ['level', 'humidity', 'temperature', 'mode']
 motionRule_fields = ['motion_trigger']
@@ -15,6 +17,9 @@ def sync_wrapper(async_func):
 
 # For extract field from general rule to built specific rule
 def extract_rule(rule: dict, keys: list[str]):
+    if not rule:
+        return {}
+
     return {k: rule[k] for k in keys} if all(rule.get(k) is not None for k in keys) else None
 
 # For get value from feed 
@@ -33,3 +38,21 @@ def receive_feed_value(aio_key, aio_username, feed_id, endpoint):
         return response.json()
     
     return {'error': response.status_code}
+
+
+async def in_time_frame(rule: dict):
+    time_rule = extract_rule(rule,timeRule_fields)
+    
+    if time_rule and time_rule.get("repeat", 0) > 0:
+        start_time_dt = time_rule.get("start_time")
+        end_time_dt = time_rule.get("end_time")
+        if start_time_dt and end_time_dt:
+            now = datetime.now().time()
+            start_time = start_time_dt.time()
+            end_time = end_time_dt.time()
+            in_time_range = start_time <= now <= end_time if start_time <= end_time else (now >= start_time or now <= end_time)
+            if in_time_range:
+                return 1 #in time frame
+            else:
+                return 0 #not in time frame
+    return -1 #not satisfy condition

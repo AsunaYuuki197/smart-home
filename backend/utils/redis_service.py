@@ -23,3 +23,12 @@ async def resume_user(user_id: str):
 async def is_paused(user_id: str) -> bool:
     paused = await redis_client.get(redis_key(user_id))
     return paused == "true"
+
+# Set DATAFRAME_FLAG/ 1st time turn off/on
+async def set_dataframe_flag(user_id: str, device_id: str, dataframe_flag: int):
+    await redis_client.set(redis_pair_key(user_id, device_id), dataframe_flag)
+
+# Set DATAFRAME_FLAG
+async def get_dataframe_flag(user_id: str, device_id: str):
+    dataframe_flag = await redis_client.get(redis_pair_key(user_id, device_id))
+    return dataframe_flag
