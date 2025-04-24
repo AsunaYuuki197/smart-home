@@ -1,10 +1,11 @@
 //API
 import axiosClient from "../utils/axiosClient";
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_ENDPOINT;
 
 export const notificationsService = {
     getListNotifies: async () => {
         try {
-            const response = await axiosClient.get(`/api/notifications`,{
+            const response = await axiosClient.get(`${API_BASE_URL}/notifications`,{
                 headers: { "Content-Type": "application/json" },
             });
             if (!response) {
@@ -21,7 +22,7 @@ export const notificationsService = {
     queryNotify: async(query:string)=>{
         try {
   
-            const response = await axiosClient.get(`/api/notifications/search?query=${query}`,{
+            const response = await axiosClient.get(`${API_BASE_URL}/notifications/search?query=${query}`,{
                 headers: { "Content-Type": "application/json" },
             });
             if (!response) {

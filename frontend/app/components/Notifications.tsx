@@ -1,7 +1,7 @@
 "use client";
 import { Search } from "lucide-react";
 import { notificationsService } from "../services/notificationsService";
-import { useEffect, useRef, useCallback, useState } from "react";
+import { useEffect, useRef, useCallback, useState, use } from "react";
 const fakeNotifies = [
   {
     id: 0,
@@ -36,9 +36,9 @@ export default function Notifications({
   isOpen: boolean;
   setIsOpen: (isOn: boolean) => void;
 }) {
-  // CALL API GET NOTIFY
   const [notifies, setNotifies] = useState([]);
-  const [key, setKey] = useState(undefined);
+  const [query, setQuery] = useState<string>("");
+  const [id,setId] =useState<number>(0);
 
   useEffect(() => {
     async function fetchGetNotify() {
@@ -64,19 +64,19 @@ export default function Notifications({
   // FAKE DATA
   // const {formattedDate,formattedTime} = fakeNotifies['timestamp'].split("T")[0];
 
-  useEffect(() => {
-    async function fetchFilteredNotifications() {
-      const filteredNotifications = await notificationsService.queryNotify(key);
-      setNotifies(filteredNotifications);
-    }
-    if (key !== undefined) {
-      fetchFilteredNotifications();
-    }
-  }, [key]);
+  // useEffect(() => {
+  //   async function fetchFilteredNotifications() {
+  //     const filteredNotifications = await notificationsService.queryNotify(key);
+  //     setNotifies(filteredNotifications);
+  //   }
+  //   if (key !== "") {
+  //     fetchFilteredNotifications();
+  //   }
+  // }, [key]);
 
-  const keyChangeHandler = (e) => {
-    setKey(e.target.value);
-  };
+  // const keyChangeHandler = (e) => {
+  //   setKey(e.target.value);
+  // };
 
   return (
     <div
@@ -91,8 +91,8 @@ export default function Notifications({
           type="search"
           placeholder="Tìm kiếm thông báo..."
           className="w-full pl-10 pr-3 rounded-[20px] outline-none "
-          value={key}
-          onChange={keyChangeHandler}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
         />
       </div>
       <div className="overflow-y-scroll transition-all duration-300 ">
@@ -101,9 +101,10 @@ export default function Notifications({
             const [date, time] = notify["timestamp"].split("T");
             const [hours, minutes] = time.split(":");
             const mess = notify?.message;
+            setId(id + 1);
             return (
               <li
-                key={notify.id}
+                key={id}
                 className="flex flex-col gap-2 bg-white h-[165px] shadow-2xs rounded-[20px] p-4"
               >
                 <span className="font-mono text-black opacity-50">{`${date}: ${hours}:${minutes}`}</span>
