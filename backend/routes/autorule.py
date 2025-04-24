@@ -26,7 +26,7 @@ async def countdown():
         task = AsyncResult(countdown_user['countdown'].get("task_id"))
         eta = countdown_user['countdown'].get('eta')
         if task.state in ['PENDING', 'STARTED'] and eta:
-            remaining_time = (eta - datetime.now(timezone.utc())).total_seconds()
+            remaining_time = (eta - datetime.now(timezone.utc)).total_seconds()
             countdown_user['countdown']['remaining_time'] = max(remaining_time, 0)
         elif task.state == 'SUCCESS':
             countdown_user['countdown']['remaining_time'] = 0

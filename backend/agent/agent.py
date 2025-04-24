@@ -30,17 +30,19 @@ async def get_sensor_data():
                 light_sensor = receive_feed_value(os.getenv("AIO_KEY"), os.getenv("AIO_USERNAME"), os.getenv("LIGHT_SENSOR_FEED"), "last")   
                 asyncio.create_task(controlLight_by_condition(user,float(light_sensor['value']),device))
             elif device['type'] == "Temperature sensor":   
+                temp_sensor = receive_feed_value(os.getenv("AIO_KEY"), os.getenv("AIO_USERNAME"), os.getenv("TEMPERATURE_FEED"), "last")   
                 asyncio.create_task(fire_alarm(user,float(temp_sensor['value']),device))
                 asyncio.create_task(hot_alarm(user,float(temp_sensor['value']), device))
             elif device['type'] == "Humidity sensor":
                 humid_sensor = receive_feed_value(os.getenv("AIO_KEY"), os.getenv("AIO_USERNAME"), os.getenv("HUMIDITY_FEED"), "last")     
             
-            if float(temp_sensor['value']) < float('inf') or  float(humid_sensor['value']) < float('inf'):
+            if float(temp_sensor['value']) < float('inf') and float(humid_sensor['value']) < float('inf'):
                 asyncio.create_task(controlFan_by_condition(user,float(temp_sensor.get('value')),float(humid_sensor.get('value')),device))
 
     process_time = time.time() - start_time
 
     next_run = datetime.now() + timedelta(seconds=10)
+    print("Jobs executed successfully")
     try:
         LOGGER.log.info(
             f'Job "get_sensor_data (trigger: interval[10 seconds], '
@@ -73,7 +75,7 @@ async def fire_alarm(user: dict, temp_sensor_val: float, device):
         device_id=6,
         action=1
     ))
-
+    print("Fire alarm executed successfully")
     return
 
 
@@ -84,7 +86,8 @@ async def hot_alarm(user: dict, temp_sensor_val: float, device: dict):
         return 
     
     send_notification.apply_async(args=[user, "Nóng quá 🥵🥵", "Bạn có muốn bật quạt không :)))", device['device_id']])
-    
+    print("Hot alarm executed successfully")
+
     return
 
 
@@ -98,10 +101,12 @@ async def controlFan_by_condition(user: dict, temp_sensor_val: float, humid_sens
 
     # Nếu time frame đang chạy thì không điều khiển theo cảm biến
     if await in_time_frame(rule) == 1:
+        print("In Timeframe, Not control fan by condition")
         return
 
     fan_rule = extract_rule(rule, htsensorRule_fields)
     if not fan_rule:
+        print("There is no Fan Rule")
         return    
 
     temp_threshold = fan_rule.get("temperature", FAN_TEMPERATURE_THRESHOLD)
@@ -114,28 +119,34 @@ async def controlFan_by_condition(user: dict, temp_sensor_val: float, humid_sens
 
     user_id_ctx.set(user["user_id"])
 
+    if await is_paused(user['user_id']):
+        print("Auto model is pausing")
+        return 
+    
     if temp_sensor_val <= temp_threshold and humid_sensor_val > humid_threshold:
         # Nếu chưa vượt ngưỡng và quạt đang bật thì tắt quạt
-        if fan_is_on and not await is_paused(user['user_id']):
+        if fan_is_on:
             await turn_off_fan(ActionLog(
                 device_id=1,
                 action=0
             ))
+            print("Turn off Fan By Condition Successfully")
     elif temp_sensor_val > temp_threshold or humid_sensor_val <= humid_threshold:
         # Nếu một trong hai thông số cảm biến vượt ngưỡng thì bật quạt nếu chưa bật, thay đổi tốc độ quạt nếu tốc độ quạt hiện tại chưa đúng
-        if not fan_is_on and not await is_paused(user['user_id']):
+        if not fan_is_on:
             await turn_on_fan(ActionLog(
                 device_id=1,
                 action=1
             ))
 
-        if current_level != fan_level and not await is_paused(user['user_id']):
+        if current_level != fan_level:
             await change_fan_speed(ActionLog(
                 device_id=1,
                 action=1,
                 level=fan_level
             ))
 
+        print("Turn On Fan By Condition Successfully")
 
 # Auto control light by condition
 async def controlLight_by_condition(user: dict, light_sensor_val: float, device: dict):
@@ -165,16 +176,21 @@ async def controlLight_by_condition(user: dict, light_sensor_val: float, device:
 
     user_id_ctx.set(user["user_id"])
 
+    if await is_paused(user['user_id']):
+        return
+
     if light_sensor_val >= threshold:
         # Nếu cường độ ánh sáng không thấp hơn ngưỡng, thì tắt đèn nếu nó chưa tắt
-        if is_on and not await is_paused(user['user_id']):
+        if is_on:
             await turn_off_light(ActionLog(
                 device_id=2,
                 action=0
             ))
+            print("Turn Off Light By Condition Successfully")
+
     elif light_sensor_val < threshold:
         # Nếu cường độ ánh sáng thấp hơn ngưỡng, thì bật đèn nếu chưa bật, chỉnh màu và mức nếu chúng chưa ở màu và mức đó
-        if not is_on and not await is_paused(user['user_id']):
+        if not is_on:
             await turn_on_light(ActionLog(
                 device_id=2,
                 action=1, 
@@ -182,7 +198,7 @@ async def controlLight_by_condition(user: dict, light_sensor_val: float, device:
                 level=current_level
             ))
 
-        if current_color != color and not await is_paused(user['user_id']):
+        if current_color != color:
             await change_light_color(ActionLog(
                 device_id=2,
                 action=1,
@@ -190,7 +206,7 @@ async def controlLight_by_condition(user: dict, light_sensor_val: float, device:
                 level=current_level
 
             ))
-        if current_level != level and not await is_paused(user['user_id']):
+        if current_level != level:
             await change_light_level(ActionLog(
                 device_id=2,
                 action=1,
@@ -198,12 +214,11 @@ async def controlLight_by_condition(user: dict, light_sensor_val: float, device:
                 level=level
             ))
 
+        print("ControlLight By Condition Successfully")
 
-# DATAFRAME_FLAG = False
+
 # Auto control by time
-DATAFRAME_FLAG = False
 async def control_by_time():
-    # global DATAFRAME_FLAG
     cursor = user_collection.find({}, {'devices': 1, 'user_id': 1, '_id': 0})
     async for user in cursor:
         user_id = user['user_id']
@@ -243,7 +258,6 @@ async def control_by_time():
                         ))
 
                 await set_dataframe_flag(user_id, device_id, 1)
-                # DATAFRAME_FLAG = True
 
             elif await in_time_frame(rule) == 0 and await get_dataframe_flag(user_id, device_id):
                 # Nếu ngoài timeframe thì kiểm tra xem thiết bị tắt chưa, nếu chưa thì tắt
@@ -263,13 +277,12 @@ async def control_by_time():
                     {'$inc': {'repeat': -1}}
                 ) 
                 await set_dataframe_flag(user_id, device_id, 0)
-                # DATAFRAME_FLAG = False
 
 
 # Start Agent Service
 def start_agent():
     scheduler.start()
-    scheduler.add_job(get_sensor_data, IntervalTrigger(seconds=30))
+    scheduler.add_job(get_sensor_data, IntervalTrigger(seconds=15))
     scheduler.add_job(control_by_time, IntervalTrigger(minutes=1))
 
 def shutdown_agent():
