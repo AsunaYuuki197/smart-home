@@ -102,7 +102,7 @@ async def signup(data: UserSignupInput):
         "phone": data.phone,
         "email": data.email,
         "password": hashed_password,  
-        "birth": data.birth,
+        "birth": data.birth.isoformat(),
         "gender": data.gender,
         "created_at": datetime.now(),
         "countdown": {

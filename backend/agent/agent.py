@@ -113,14 +113,14 @@ async def controlFan_by_condition(user: dict, temp_sensor_val: float, humid_sens
 
     user_id_ctx.set(user["user_id"])
 
-    if temp_sensor_val <= temp_threshold and humid_sensor_val <= humid_threshold:
+    if temp_sensor_val <= temp_threshold and humid_sensor_val > humid_threshold:
         # Nếu chưa vượt ngưỡng và quạt đang bật thì tắt quạt
         if fan_is_on and not await is_paused(user['user_id']):
             await turn_off_fan(ActionLog(
                 device_id=1,
                 action=0
             ))
-    elif temp_sensor_val > temp_threshold or humid_sensor_val > humid_threshold:
+    elif temp_sensor_val > temp_threshold or humid_sensor_val <= humid_threshold:
         # Nếu một trong hai thông số cảm biến vượt ngưỡng thì bật quạt nếu chưa bật, thay đổi tốc độ quạt nếu tốc độ quạt hiện tại chưa đúng
         if not fan_is_on and not await is_paused(user['user_id']):
             await turn_on_fan(ActionLog(
