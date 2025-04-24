@@ -268,7 +268,7 @@ async def control_by_time():
 # Start Agent Service
 def start_agent():
     scheduler.start()
-    scheduler.add_job(get_sensor_data, IntervalTrigger(seconds=10))
+    scheduler.add_job(get_sensor_data, IntervalTrigger(seconds=30))
     scheduler.add_job(control_by_time, IntervalTrigger(minutes=1))
 
 def shutdown_agent():

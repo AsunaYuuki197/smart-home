@@ -158,7 +158,7 @@ async def notifications():
     """
     Retrieves a list of all notifications.
     """
-    cursor = db.Notifications.find({"user_id": user_id_ctx.get()}, {'_id': 0, 'user_id': 0}).batch_size(100)
+    cursor = db.Notifications.find({"user_id": user_id_ctx.get()}, {'_id': 0, 'user_id': 0},  sort=[("_id", -1)]).batch_size(100)
     notifs = []
     async for doc in cursor:
         notifs.append(doc)

@@ -56,9 +56,9 @@ async def turn_on_fan(action: ActionLog):
     try:
         aio.publish(os.getenv("FAN_BTN_FEED"), 1)
         if not devices_id:
-            db.ActionLog.insert_one(action_log)
+            await db.ActionLog.insert_one(action_log)
         else:
-            db.ActionLog.insert_many([
+            await db.ActionLog.insert_many([
                 list(map(lambda device: {**action_log, "device_id": device['device_id']}, devices_id))
             ])
 
@@ -94,9 +94,9 @@ async def turn_off_fan(action: ActionLog):
     try:
         aio.publish(os.getenv("FAN_BTN_FEED"), 0)
         if not devices_id:
-            db.ActionLog.insert_one(action_log)
+            await db.ActionLog.insert_one(action_log)
         else:
-            db.ActionLog.insert_many([
+            await db.ActionLog.insert_many([
                 list(map(lambda device: {**action_log, "device_id": device['device_id']}, devices_id))
             ])
 
@@ -140,9 +140,9 @@ async def change_fan_speed(action: ActionLog):
         aio.publish(os.getenv("FAN_SPEED_FEED"), speed)
 
         if not devices_id:
-            db.ActionLog.insert_one(action_log)
+            await db.ActionLog.insert_one(action_log)
         else:
-            db.ActionLog.insert_many([
+            await db.ActionLog.insert_many([
                 list(map(lambda device: {**action_log, "device_id": device['device_id']}, devices_id))
             ])
 
@@ -181,9 +181,9 @@ async def turn_on_light(action: ActionLog):
         aio.publish(os.getenv("LIGHT_BTN_FEED"), 1)
 
         if not devices_id:
-            db.ActionLog.insert_one(action_log)
+            await db.ActionLog.insert_one(action_log)
         else:
-            db.ActionLog.insert_many([
+            await db.ActionLog.insert_many([
                 list(map(lambda device: {**action_log, "device_id": device['device_id']}, devices_id))
             ])
 
@@ -222,9 +222,9 @@ async def turn_off_light(action: ActionLog):
         aio.publish(os.getenv("LIGHT_BTN_FEED"), 0)
 
         if not devices_id:
-            db.ActionLog.insert_one(action_log)
+            await db.ActionLog.insert_one(action_log)
         else:
-            db.ActionLog.insert_many([
+            await db.ActionLog.insert_many([
                 list(map(lambda device: {**action_log, "device_id": device['device_id']}, devices_id))
             ])
 
@@ -271,9 +271,9 @@ async def change_light_color(action: ActionLog):
         aio.publish(os.getenv("LIGHT_COLOR_FEED"), color)
 
         if not devices_id:
-            db.ActionLog.insert_one(action_log)
+            await db.ActionLog.insert_one(action_log)
         else:
-            db.ActionLog.insert_many([
+            await db.ActionLog.insert_many([
                 list(map(lambda device: {**action_log, "device_id": device['device_id']}, devices_id))
             ])
 
@@ -316,9 +316,9 @@ async def change_light_level(action: ActionLog):
         aio.publish(os.getenv("LIGHT_BTN_FEED"), action_log['action'])
         aio.publish(os.getenv("LIGHT_LEVEL_FEED"), level)
         if not devices_id:
-            db.ActionLog.insert_one(action_log)
+            await db.ActionLog.insert_one(action_log)
         else:
-            db.ActionLog.insert_many([
+            await db.ActionLog.insert_many([
                 list(map(lambda device: {**action_log, "device_id": device['device_id']}, devices_id))
             ])
 
@@ -351,9 +351,9 @@ async def turn_on_pump(action: ActionLog):
         aio.publish(os.getenv("PUMP_FEED"), 1)
 
         if not devices_id:
-            db.ActionLog.insert_one(action_log)
+            await db.ActionLog.insert_one(action_log)
         else:
-            db.ActionLog.insert_many([
+            await db.ActionLog.insert_many([
                 list(map(lambda device: {**action_log, "device_id": device['device_id']}, devices_id))
             ])
 
@@ -386,9 +386,9 @@ async def turn_off_pump(action: ActionLog):
         aio.publish(os.getenv("PUMP_FEED"), 0)
 
         if not devices_id:
-            db.ActionLog.insert_one(action_log)
+            await db.ActionLog.insert_one(action_log)
         else:
-            db.ActionLog.insert_many([
+            await db.ActionLog.insert_many([
                 list(map(lambda device: {**action_log, "device_id": device['device_id']}, devices_id))
             ])
 
