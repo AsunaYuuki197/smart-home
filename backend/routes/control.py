@@ -9,6 +9,7 @@ from fastapi import APIRouter
 from schemas.schema import *
 from database.db import db
 from utils.control_helper import *
+from routes.autorule import *
 from utils.redis_service import pause_user, is_paused
 from Adafruit_IO import MQTTClient
 from datetime import datetime
@@ -62,6 +63,8 @@ async def turn_on_fan(action: ActionLog):
                 list(map(lambda device: {**action_log, "device_id": device['device_id']}, devices_id))
             ])
 
+        countdown_user = await db.Users.find_one({"user_id": user_id_ctx.get()}, {"countdown": 1})
+        await save_countdown(CountdownUpdateRequest(**countdown_user.get("countdown")))
         return "successfully"
     except Exception as e:
         return e

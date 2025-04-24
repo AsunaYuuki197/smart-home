@@ -41,12 +41,14 @@ async def get_sensor_data():
     process_time = time.time() - start_time
 
     next_run = datetime.now() + timedelta(seconds=10)
-
-    LOGGER.log.info(
-        f'Job "get_sensor_data (trigger: interval[10 seconds], '
-        f'next run at: {next_run.strftime("%Y-%m-%d %H:%M:%S")})" '
-        f'executed successfully - {process_time:.2f}s'
-    )
+    try:
+        LOGGER.log.info(
+            f'Job "get_sensor_data (trigger: interval[10 seconds], '
+            f'next run at: {next_run.strftime("%Y-%m-%d %H:%M:%S")})" '
+            f'executed successfully - {process_time:.2f}s'
+        )
+    except:
+        return
 
 async def fire_alarm(user: dict, temp_sensor_val: float, device):
     if user['noti']['status'] == "off":

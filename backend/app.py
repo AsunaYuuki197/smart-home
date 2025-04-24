@@ -16,12 +16,12 @@ async def lifespan(app: FastAPI):
         yield
     finally:
         shutdown_agent()
-        try:
-            with open("celery_task", "r") as f:
-                pid = int(f.read().strip())
-                os.kill(pid, signal.SIGTERM)
-        except (FileNotFoundError, ValueError, ProcessLookupError) as e:
-            print(f"[lifespan] Error terminating celery process: {e}")
+        # try:
+        #     with open("celery_task", "r") as f:
+        #         pid = int(f.read().strip())
+        #         os.kill(pid, signal.SIGTERM)
+        # except (FileNotFoundError, ValueError, ProcessLookupError) as e:
+        #     print(f"[lifespan] Error terminating celery process: {e}")
 
 
 app = FastAPI(lifespan=lifespan)
