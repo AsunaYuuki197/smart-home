@@ -13,7 +13,7 @@ export default function Timer() {
       try {
         const response = await autoruleService.getCoundown()
         const data = await response
-        setSeconds(Math.floor(data.countdown.remaining_time))
+        setSeconds(Math.floor(data.countdown.remaining_time) || data.countdown.time )
         setIsPaused(data.countdown.status !== "on")
       } catch (error) {
         console.error("Error fetching time:", error)

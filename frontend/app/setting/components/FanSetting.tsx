@@ -166,7 +166,7 @@ function ControlByTemp({fanObj, isActive}:{fanObj:fan_autorule, isActive:boolean
             humidity: humidity || 50,
             level: selectLevel || 95
         }
-        autoruleService.createHTSensor(1,"Tùy chỉnh",tempConfig.temperature,tempConfig.humidity, tempConfig.level).then((response) => {
+        autoruleService.createHTSensor(1,"Tùy chỉnh",tempConfig.humidity,tempConfig.temperature, tempConfig.level).then((response) => {
             alert("Lưu cấu hình thành công");
         })
         .catch((error:any) => {
@@ -234,7 +234,7 @@ function ControlByTemp({fanObj, isActive}:{fanObj:fan_autorule, isActive:boolean
                                                 min = {0}
                                                 max = {50}
                                                 value = {temperature}
-                                                onChange = {(e) => setTemperature(parseInt(e.target.value)>50 ? 50 : parseInt(e.target.value) < 0?  0 : parseInt(e.target.value))}
+                                                onChange = {(e) => setTemperature(parseInt(e.target.value)>100 ? 100 : parseInt(e.target.value) < 0?  0 : parseInt(e.target.value))}
                                                 />
                                         <span className="font-bold">Độ ẩm:</span>
                                         <input type="number" 
