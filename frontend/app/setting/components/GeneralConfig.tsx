@@ -75,10 +75,11 @@ function ConfigAI({status,text,}:{status:boolean,text:string}) {
 
 function CountDown({isCountDown,time,remaining_time}:{isCountDown:boolean,time:number,remaining_time:number}) {
     const [isRunning, setIsRunning] = useState(isCountDown);
-    const [timeConfig, setTimeConfig] = useState(remaining_time || time); //call API lấy thời gian tự động trả về
-    const [timeLeft, setTimeLeft] = useState<number>(remaining_time || time); 
+    const [timeConfig, setTimeConfig] = useState(remaining_time < 0 ? time: remaining_time); //call API lấy thời gian tự động trả về
+    const [timeLeft, setTimeLeft] = useState<number>(remaining_time < 0 ? time: remaining_time); 
+    console.log("Time left:", timeLeft);
+    console.log("remaintime:", remaining_time);
 
-      
     useEffect(() => {
         let interval: NodeJS.Timeout | null = null
         if (timeLeft > 0  && isRunning ) {
@@ -89,10 +90,14 @@ function CountDown({isCountDown,time,remaining_time}:{isCountDown:boolean,time:n
             }, 1000)
 
         }
-        else if(timeLeft < 0){
-            //TODO: Call API thông báo trả về trạng thái tự động
-
-        }
+        // else if(timeLeft <= 0){
+        //     //TODO: Call API thông báo trả về trạng thái tự động
+        //     const turnOff = async () => {
+        //         await autoruleService.saveCoundown("off",15)
+        //         setIsRunning(false);
+        //     }
+        //     turnOff();
+        // }
         return () => {
           if (interval) clearInterval(interval)
         }
