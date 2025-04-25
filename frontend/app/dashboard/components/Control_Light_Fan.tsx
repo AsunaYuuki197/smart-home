@@ -4,9 +4,10 @@ import { useState, useEffect, useCallback,useContext } from "react";
 import { ChevronDown } from "lucide-react";
 import { useDeviceState } from "../../hooks/useDeviceState"
 import { useDeviceControl } from "../../hooks/useDeviceControl"
-import { deviceService } from "../../services/deviceService";
 import { useMqttClient } from "@/app/hooks/useMqttClient";
-import { setLogLevel } from "firebase/app";
+import { autoruleService } from "@/app/services/autoruleService";
+// import { deviceService } from "../../services/deviceService";
+// import { setLogLevel } from "firebase/app";
 
 // Constants moved outside component to prevent re-creation
 const ROOMS = ["Tất cả", "Phòng khách", "Phòng ngủ", "Phòng bếp", "Phòng tắm"];
@@ -75,16 +76,23 @@ const getLatestFeedValue = async (feed: string) => {
 
 }
 // Main component
-export default function Control({ name ,user_id}: { name: string,user_id:number }) {
+export default function Control({ name ,user_id,isPaused,setIsPaused,setTimeCountdown}:
+   { name: string,user_id:number,isPaused:boolean, setIsPaused(isPause:boolean):void, setTimeCountdown(time:number):void }) {
   const device_id = name ==="Quạt" ? 1 : 2
   const [isActive, setIsActive] = useState<boolean|null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true); 
   const [speed, setSpeed] = useState<number>((name === "Quạt" ? 100 : 4));
   const [selectLightColor, setSelectLightColor] = useState<string>("");
-
+  let timeCountdown = 15;
   useEffect(() => {
     async function fetchData() {
       try {
+        const response = await autoruleService.getCoundown()
+        const data = await response
+        // console.log("Data fetched:", data.countdown.status)
+        // setIsPaused(data.countdown.status != "on")
+        timeCountdown = Number.isNaN(Math.floor(data.countdown.remaining_time)) ? data.countdown.time : Math.floor(data.countdown.remaining_time)
+        setTimeCountdown(timeCountdown)
         if(device_id == 1){
           const status = await getLatestFeedValue("fan");
           const speed = await getLatestFeedValue("fanspeed")
@@ -102,6 +110,8 @@ export default function Control({ name ,user_id}: { name: string,user_id:number 
         }
       } catch (err) {
         console.error(" Error loading initial feed value", err);
+      } finally {
+        setIsLoading(false); // ✅ Thêm dòng này để kết thúc trạng thái loading
       }
     }
 
@@ -132,6 +142,11 @@ export default function Control({ name ,user_id}: { name: string,user_id:number 
                                                                                     speed,setSpeed,
                                                                                     selectLightColor,setSelectLightColor,
                                                                                   });
+  const handleSpeed = (newSpeed:number) => {
+    setIsPaused(false)
+    handleChangeSpeed(newSpeed)
+    setTimeCountdown(timeCountdown)
+  }
  
   return (
     <div className="flex flex-col justify-between bg-white rounded-xl p-2">
@@ -149,7 +164,10 @@ export default function Control({ name ,user_id}: { name: string,user_id:number 
             className="sr-only peer" 
             checked={isOn!==null?isOn:true} 
             onChange={()=>{toggleDeviceState()
-              setIsOpen(false)}} 
+              setIsOpen(false);
+              setIsPaused(false);
+              setTimeCountdown(timeCountdown)
+            }}
           />
           <div className="w-11 h-6 bg-gray-200 rounded-full 
                       peer peer-checked:bg-teal-600 peer-checked:after:translate-x-full 
@@ -170,13 +188,13 @@ export default function Control({ name ,user_id}: { name: string,user_id:number 
         {name === "Đèn" && (
           <ControlItem label="Màu" name={name} selectLightColor = {selectLightColor}  
                                       speed={speed} isOpen ={isOpen} setIsOpen ={setIsOpen}
-                                      handleChangeSpeed={handleChangeSpeed} handleSelectLightColor ={handleSelectLightColor}
+                                      handleChangeSpeed={()=>{handleSpeed}} handleSelectLightColor ={handleSelectLightColor}
                                     selectRoom={selectedRoom} />
         )}
 
         <ControlItem label="Mức" name={name} selectLightColor = {selectLightColor} 
                                       speed={speed} isOpen ={isOpen} setIsOpen ={setIsOpen}
-                                      handleChangeSpeed={handleChangeSpeed} handleSelectLightColor ={handleSelectLightColor}
+                                      handleChangeSpeed={handleSpeed} handleSelectLightColor ={handleSelectLightColor}
                                       selectRoom={selectedRoom}   />
       </div>
     </div>

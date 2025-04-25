@@ -76,7 +76,7 @@ function ConfigAI({status,text,}:{status:boolean,text:string}) {
 function CountDown({isCountDown,time,remaining_time}:{isCountDown:boolean,time:number,remaining_time:number}) {
     const [isRunning, setIsRunning] = useState(isCountDown);
     const [timeConfig, setTimeConfig] = useState(remaining_time < 0 ? time: remaining_time); //call API lấy thời gian tự động trả về
-    const [timeLeft, setTimeLeft] = useState<number>(remaining_time < 0 ? time: remaining_time); 
+    const [timeLeft, setTimeLeft] = useState<number>(remaining_time < 0 ? 0: remaining_time); 
     console.log("Time left:", timeLeft);
     console.log("remaintime:", remaining_time);
 
@@ -107,7 +107,7 @@ function CountDown({isCountDown,time,remaining_time}:{isCountDown:boolean,time:n
           const newState = !isRunning
           setIsRunning(newState);
           const status = newState?"on":"off";
-          await autoruleService.saveCoundown(status,timeLeft <= 0 ? 15:timeLeft)
+          await autoruleService.saveCoundown(status,timeLeft < 0 ? 15:timeLeft)
         }
         const handleChangeTime = (e: string) => {
             setTimeConfig(Number(e.split(":")[0])*3600 + Number(e.split(":")[1])*60 + Number(e.split(":")[2]));
