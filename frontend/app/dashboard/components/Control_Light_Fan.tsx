@@ -5,7 +5,8 @@ import { ChevronDown } from "lucide-react";
 import { useDeviceState } from "../../hooks/useDeviceState"
 import { useDeviceControl } from "../../hooks/useDeviceControl"
 import { deviceService } from "../../services/deviceService";
-
+import { useMqttClient } from "@/app/hooks/useMqttClient";
+import { setLogLevel } from "firebase/app";
 
 // Constants moved outside component to prevent re-creation
 const ROOMS = ["Tất cả", "Phòng khách", "Phòng ngủ", "Phòng bếp", "Phòng tắm"];
@@ -53,7 +54,26 @@ interface ControlItemProps {
   handleChangeSpeed: (newSpeed: number) => void;
   handleSelectLightColor:(lightColor:string)=>void;
 }
+const AIO_KEY = process.env.NEXT_PUBLIC_AIO_KEY;
+const AIO_USERNAME = process.env.NEXT_PUBLIC_AIO_USERNAME;
 
+const getLatestFeedValue = async (feed: string) => {
+  if (!AIO_KEY ){
+      throw new Error("AIO_KEY is not defined");
+  }
+  const res = await fetch(`https://io.adafruit.com/api/v2/${AIO_USERNAME}/feeds/${feed}/data?limit=1`, {
+      headers: {
+          "X-AIO-Key": AIO_KEY,
+      },
+      });
+
+  if (!res.ok) {
+      throw new Error("Failed to fetch feed data");
+      }
+  const data = await res.json();
+  return data[0]?.value || null;
+
+}
 // Main component
 export default function Control({ name ,user_id}: { name: string,user_id:number }) {
   const device_id = name ==="Quạt" ? 1 : 2
@@ -63,41 +83,45 @@ export default function Control({ name ,user_id}: { name: string,user_id:number 
   const [selectLightColor, setSelectLightColor] = useState<string>("");
 
   useEffect(() => {
-    async function fetchDeviceStatus() {
+    async function fetchData() {
       try {
-        const { action,level,color } = await deviceService.getDeviceStatus(user_id,name ==="Quạt" ? 1 : 2);
-        setIsActive(action ? true : false);
-        setSelectLightColor(color)
-        setSpeed(level)
-      } catch (error) {
-        console.error(error);
-      }finally{
-        setIsLoading(false);
+        if(device_id == 1){
+          const status = await getLatestFeedValue("fan");
+          const speed = await getLatestFeedValue("fanspeed")
+          setIsActive(status == "1" ?true:false)
+          setSpeed(Number(speed))
+        }
+        if(device_id == 2){
+          const status = await getLatestFeedValue("on-off-light");
+          const speed = await getLatestFeedValue("lightlevel")
+          const color = await getLatestFeedValue("lightcolor")
+
+          setIsActive(status == "1" ?true:false)
+          setSpeed(Number(speed))
+          setSelectLightColor(color)
+        }
+      } catch (err) {
+        console.error(" Error loading initial feed value", err);
       }
     }
-    const storedLevel = sessionStorage.getItem(`level_${user_id}_${name ==="Quạt" ? 1 : 2}`);
-    const storedColor = sessionStorage.getItem(`color_${user_id}_${name ==="Quạt" ? 1 : 2}`);
-    const storedAction = sessionStorage.getItem(`action_${user_id}_${name ==="Quạt" ? 1 : 2}`);
-    // console.log(name, storedLevel,storedColor,storedAction)
-    if (storedAction !== null) {
-      setIsActive(JSON.parse(storedAction))
-      setIsLoading(false);
-    }
-    if (storedLevel !== null) {
-      setSpeed(JSON.parse(storedLevel))
 
+    fetchData();
+  }, []);
+  const {publish } = useMqttClient((feed, value) => {
+    if (device_id == 1){
+      if (feed == "fan") setIsActive(value == "1"? true :false);
+      if (feed == "fanspeed"){
+        const newValue = Number(value)
+        setSpeed(newValue)
+      }
     }
-    if (storedColor !== null) {
-      setSelectLightColor(JSON.parse(storedColor))
+    //"on-off-light", "lightcolor", "lightlevel"
+    if (device_id==2) {
+      if (feed == "on-off-light" ) setIsActive(value == "1"? true :false);
+      if (feed == "lightcolor") setSelectLightColor(value);
+      if (feed == "lightlevel") setSpeed(Number(value))
     }
-
-    // Chỉ gọi API nếu chưa có dữ liệu trong sessionStorage
-    if (storedAction === null) {
-      console.log("Fetch..........")
-      fetchDeviceStatus();
-    }
-      // fetchDeviceStatus();
-  }, [user_id,name]);
+  });
 
   const { isOn, selectedRoom, setSelectedRoom, toggleDeviceState} = useDeviceState(name,user_id,
                                                                                   device_id,isLoading,
@@ -108,7 +132,7 @@ export default function Control({ name ,user_id}: { name: string,user_id:number 
                                                                                     speed,setSpeed,
                                                                                     selectLightColor,setSelectLightColor,
                                                                                   });
-  
+ 
   return (
     <div className="flex flex-col justify-between bg-white rounded-xl p-2">
       <div className="flex items-center justify-between mb-2">

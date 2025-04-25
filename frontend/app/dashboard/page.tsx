@@ -8,6 +8,7 @@ import Control from "./components/Control_Light_Fan"
 import StatsBar from "./components/StatsBar"
 import Timer from "./components/TimerDown"
 
+
 export default function Dashboard() {
   // Khởi tạo ngày theo định dạng "vi-VN"
   const [formattedDate, setFormattedDate] = useState(new Date().toLocaleDateString("vi-VN"))

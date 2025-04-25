@@ -6,15 +6,16 @@ import { autoruleService } from "@/app/services/autoruleService"
 
 export default function Timer() {
   const [isPaused, setIsPaused] = useState(true)
-  const [seconds, setSeconds] = useState(0)
+  const [seconds, setSeconds] = useState(15)
 
   useEffect(() => {
     const fetchTime = async () => {
       try {
         const response = await autoruleService.getCoundown()
         const data = await response
-        setSeconds(Math.floor(data.countdown.remaining_time) || data.countdown.time )
-        setIsPaused(data.countdown.status !== "on")
+        console.log("Data fetched:", data.countdown.status)
+        setSeconds(Number.isNaN(Math.floor(data.countdown.remaining_time)) ? data.countdown.time : Math.floor(data.countdown.remaining_time))
+        setIsPaused(data.countdown.status != "on")
       } catch (error) {
         console.error("Error fetching time:", error)
       }
@@ -31,7 +32,13 @@ export default function Timer() {
         setSeconds((prev) => prev - 1)
       }, 1000)
     }
-
+    // else if (seconds <=0) {
+    //   const turnOff = async () => {
+    //     setIsPaused(true)
+    //     await autoruleService.saveCoundown("off", 15)
+    //   }
+    //   turnOff()
+    // }
     return () => {
       if (interval) clearInterval(interval)
     }
@@ -55,7 +62,7 @@ export default function Timer() {
       </div>
 
       <button
-        onClick={() => setIsPaused(!isPaused)}
+        onClick={handleClick}
         className="w-18 h-18 bg-white rounded-full border-3 border-red-600 flex items-center justify-center 
                   text-red-600 my-4 transition-transform transform hover:scale-110"
       >
