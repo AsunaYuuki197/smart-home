@@ -4,7 +4,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent))
 
 
-FIRE_ALARM_THRESHOLD = 50.0
+FIRE_ALARM_THRESHOLD = 45.0
 FAN_TEMPERATURE_THRESHOLD = 40.0
 FAN_HUMIDITY_THRESHOLD = 50.0
 FAN_AUTOSPEED = 95
