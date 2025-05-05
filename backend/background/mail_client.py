@@ -8,7 +8,6 @@ load_dotenv()
 # Email credentials
 sender_email = os.getenv("SENDER_EMAIL")
 password = os.getenv("SENDER_APPPW")
-message = MIMEMultipart()
 
 def send_mail(receiver_email, subject, body, headers):
     res = requests.get("{}/autorule/email/sent".format(os.getenv("BACKEND_ENDPOINT")),params={'email': receiver_email},headers=headers)
@@ -16,6 +15,7 @@ def send_mail(receiver_email, subject, body, headers):
         print(f"Skipping {receiver_email} — sent too recently.")
         return
    
+    message = MIMEMultipart()
     message["From"] = sender_email
     message["To"] = receiver_email
     message["Subject"] = subject
