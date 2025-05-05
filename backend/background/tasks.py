@@ -60,6 +60,5 @@ def countdown_finished(user_id: str):
 
 def schedule_countdown(user_id, end_time):
     eta = end_time
-    print("111111111111",user_id)
     result = countdown_finished.apply_async((user_id,), eta=eta)
     return result.id

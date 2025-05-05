@@ -688,3 +688,55 @@ async def temp_stats():
 async def device_status(device_id: int):
     last_status = await db.ActionLog.find_one({"user_id": user_id_ctx.get(), "device_id": device_id}, {"_id": 0}, sort=[("_id", -1)])
     return last_status
+
+
+@router.post("/create/motion", summary="Set Motion Dectector For Operating Device Automatically.")
+async def new_motion(device_id: int):
+    """
+    Device_id = 2 -> Motion Trigger for Light
+    """
+    device_typ = await db.Devices.find_one({'device_id': device_id},{'type': 1}) 
+
+    try:
+        aio.publish(os.getenv("DETECT_BTN_FEED"), 1)
+    except Exception as e:
+        return e
+
+    result = await automationrule_collection.update_one(
+        {"user_id": user_id_ctx.get(), "device_id": device_id},
+        {   
+            "$set": {
+                "type": device_typ['type'],
+                "motion_trigger": "on"
+            }
+        },
+        upsert=True
+    )
+
+  
+    return {"message": "Motion trigger updated successfully"}
+
+
+@router.delete("/delete/motion", summary="Delete Motion Dectector.")
+async def remove_motion(device_id: int):
+    """
+    Device_id = 2 -> Motion Trigger for Light
+    """
+    try:
+        aio.publish(os.getenv("DETECT_BTN_FEED"), 0)
+    except Exception as e:
+        return e
+    
+
+    result = await automationrule_collection.update_one(
+        {'user_id': user_id_ctx.get(), 'device_id': device_id},
+        {
+            "$set": {
+                "motion_trigger": None
+            }
+        }
+    )
+    if result.matched_count == 0:
+        raise HTTPException(404, "User or device not found")
+    
+    return {"message": "Motion Trigger deleted successfully"}
