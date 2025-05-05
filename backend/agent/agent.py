@@ -18,7 +18,7 @@ scheduler = AsyncIOScheduler()
 async def get_sensor_data():
     start_time = time.time()
 
-    cursor = user_collection.find({}, {'fcm_tokens':1,'devices': 1, 'user_id': 1, 'noti': 1, '_id': 0})
+    cursor = user_collection.find({}, {'fcm_tokens':1,'devices': 1, 'user_id': 1, 'noti': 1, '_id': 0, 'email': 1})
     async for user in cursor:
         temp_sensor = {'value': float('inf')}
         humid_sensor = {'value': float('inf')}
@@ -85,7 +85,7 @@ async def hot_alarm(user: dict, temp_sensor_val: float, device: dict):
     if temp_sensor_val < user['noti']['temp']:
         return 
     
-    send_notification.apply_async(args=[user, "Nóng quá 🥵🥵", "Bạn có muốn bật quạt không :)))", device['device_id']])
+    send_notification.apply_async(args=[user, "Nóng quá 🥵🥵", "Bạn có muốn bật quạt không !!!!", device['device_id']])
     print("Hot alarm executed successfully")
 
     return

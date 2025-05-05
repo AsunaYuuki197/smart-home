@@ -1,6 +1,7 @@
 import redis.asyncio as redis
 from dotenv import load_dotenv
 import os 
+import time
 load_dotenv()
 
 redis_client = redis.from_url("redis://:{}@{}:{}/0".format(os.getenv("Redis_PW"), os.getenv("Redis_HOST"), os.getenv("Redis_PORT")))
@@ -32,3 +33,12 @@ async def set_dataframe_flag(user_id: str, device_id: str, dataframe_flag: int):
 async def get_dataframe_flag(user_id: str, device_id: str):
     dataframe_flag = await redis_client.get(redis_pair_key(user_id, device_id))
     return dataframe_flag
+
+
+# For sent mail
+async def can_send(email):
+    return await redis_client.get(email) is None
+
+async def record_sent(email, timeout=120):
+    now =  int(time.time())
+    await redis_client.setex(email, timeout, now)

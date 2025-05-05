@@ -7,7 +7,7 @@ sys.path.append(str(Path(__file__).parent))
 from fastapi import APIRouter, HTTPException, Query
 from schemas.schema import *
 from database.db import db
-from utils.redis_service import is_paused, pause_user, resume_user
+from utils.redis_service import is_paused, pause_user, resume_user, can_send, record_sent
 from background.tasks import schedule_countdown, celery
 from celery.result import AsyncResult
 router = APIRouter()
@@ -267,3 +267,14 @@ async def pause_auto():
 async def resume_auto():
     await resume_user(user_id_ctx.get())
     return {"message": f"Auto mode resumed for user {user_id_ctx.get()}."}
+
+
+@router.get("/email/sent", summary="Check email already sent")
+async def email_sent(email):
+    res = await can_send(email)
+    return {"message": res}
+
+@router.get("/email/record", summary="Recond email already sent")
+async def email_record(email):
+    await record_sent(email)
+    return {"message": f"Email record sent."}
