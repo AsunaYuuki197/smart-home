@@ -76,8 +76,7 @@ const getLatestFeedValue = async (feed: string) => {
 
 }
 // Main component
-export default function Control({ name ,user_id,isPaused,setIsPaused,setTimeCountdown}:
-   { name: string,user_id:number,isPaused:boolean, setIsPaused(isPause:boolean):void, setTimeCountdown(time:number):void }) {
+export default function Control({ name ,user_id, onChange }: { name: string, onChange: () => void, user_id:number }) {
   const device_id = name ==="Quạt" ? 1 : 2
   const [isActive, setIsActive] = useState<boolean|null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true); 
@@ -87,12 +86,6 @@ export default function Control({ name ,user_id,isPaused,setIsPaused,setTimeCoun
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await autoruleService.getCoundown()
-        const data = await response
-        // console.log("Data fetched:", data.countdown.status)
-        // setIsPaused(data.countdown.status != "on")
-        timeCountdown = Number.isNaN(Math.floor(data.countdown.remaining_time)) ? data.countdown.time : Math.floor(data.countdown.remaining_time)
-        setTimeCountdown(timeCountdown)
         if(device_id == 1){
           const status = await getLatestFeedValue("fan");
           const speed = await getLatestFeedValue("fanspeed")
@@ -111,13 +104,13 @@ export default function Control({ name ,user_id,isPaused,setIsPaused,setTimeCoun
       } catch (err) {
         console.error(" Error loading initial feed value", err);
       } finally {
-        setIsLoading(false); // ✅ Thêm dòng này để kết thúc trạng thái loading
+        setIsLoading(false); 
       }
     }
 
     fetchData();
   }, []);
-  const {publish } = useMqttClient((feed, value) => {
+  const {publish} = useMqttClient((feed, value) => {
     if (device_id == 1){
       if (feed == "fan") setIsActive(value == "1"? true :false);
       if (feed == "fanspeed"){
@@ -127,7 +120,7 @@ export default function Control({ name ,user_id,isPaused,setIsPaused,setTimeCoun
     }
     //"on-off-light", "lightcolor", "lightlevel"
     if (device_id==2) {
-      if (feed == "on-off-light" ) setIsActive(value == "1"? true :false);
+      if (feed == "on_off_light" ) setIsActive(value == "1"? true :false);
       if (feed == "lightcolor") setSelectLightColor(value);
       if (feed == "lightlevel") setSpeed(Number(value))
     }
@@ -143,9 +136,10 @@ export default function Control({ name ,user_id,isPaused,setIsPaused,setTimeCoun
                                                                                     selectLightColor,setSelectLightColor,
                                                                                   });
   const handleSpeed = (newSpeed:number) => {
-    setIsPaused(false)
+    // setIsPaused(false)
+    // setTimeCountdown(timeCountdown)
+    onChange()
     handleChangeSpeed(newSpeed)
-    setTimeCountdown(timeCountdown)
   }
  
   return (
@@ -165,8 +159,9 @@ export default function Control({ name ,user_id,isPaused,setIsPaused,setTimeCoun
             checked={isOn!==null?isOn:true} 
             onChange={()=>{toggleDeviceState()
               setIsOpen(false);
-              setIsPaused(false);
-              setTimeCountdown(timeCountdown)
+              onChange()
+              // setIsPaused(false);
+              // setTimeCountdown(timeCountdown)
             }}
           />
           <div className="w-11 h-6 bg-gray-200 rounded-full 

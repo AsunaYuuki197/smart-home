@@ -47,7 +47,7 @@ function NotificationConfig({notifyObj}:{notifyObj:notify_autorule}) {
 function DeviceNotification({isActive,platform,deviceNotify,setDeviceNotify}:{isActive:boolean,platform:string,deviceNotify:string,setDeviceNotify:Function}) {
     // const [deviceNotify, setDeviceNotify] = useState(platform || "Tất cả")
     const [isOpen,setIsOpen ] = useState(false)
-    const devices = ["Website", "Telegram", "Tất cả"]
+    const devices = ["website", "mail", "all"]
     const handleDeviceNotifyChange = async (device:string) => {
         await autoruleService.postNotify(isActive ? "on": "off", device);
     }

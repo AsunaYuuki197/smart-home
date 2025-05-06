@@ -1,33 +1,55 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect,useRef } from "react"
 import { autoruleService } from "@/app/services/autoruleService"
-import { Pause } from "lucide-react"
+
+// import { Pause } from "lucide-react"
 
 
-export default function Timer({isPaused, setIsPaused,seconds,setSeconds}: 
-  {isPaused:boolean, setIsPaused(isPause:boolean):void,seconds:number,setSeconds: React.Dispatch<React.SetStateAction<number>> }) {
+export default function Timer({lastChanged}:{lastChanged:number | null}) {
+  const [isPaused, setIsPaused] = useState<boolean>(true)
+  const [seconds, setSeconds] = useState<number>(0)
+  const timeRef = useRef<number | null>(null)
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await autoruleService.getCoundown()
+        const data = await response
+        console.log("Data fetched:", data.countdown.status)
+        setIsPaused(data.countdown.status != "on")
+        timeRef.current = data.countdown.time
+        const timeCountdown = Number.isNaN(Math.floor(data.countdown.remaining_time)) ? data.countdown.time : Math.floor(data.countdown.remaining_time)
+        setSeconds(timeCountdown)
+      } catch (error) {
+        console.error("Error fetching countdown:", error);
+      }
+    };
+    fetchData();
+  }, [])
 
 
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null
+    if (lastChanged === null) return;
+    // console.log("lastChanged", lastChanged)
+    setIsPaused(false)
+    setSeconds(timeRef.current || 0)
+    },[lastChanged])
 
-    if (!isPaused && seconds > 0) {
-      interval = setInterval(() => {
-        setSeconds((prev) => prev - 1)
-      }, 1000)
-    }
-    // else if (seconds <=0) {
-    //   const turnOff = async () => {
-    //     setIsPaused(true)
-    //     await autoruleService.saveCoundown("off", 15)
-    //   }
-    //   turnOff()
-    // }
-    return () => {
-      if (interval) clearInterval(interval)
-    }
-  }, [isPaused,seconds])
+    useEffect(() => {
+      if (isPaused) return;
+    
+      const interval = setInterval(() => {
+        setSeconds(prev => {
+          if (prev <= 0) {
+            // clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    
+      return () => clearInterval(interval);
+    }, [isPaused]);
 
   const minutes = Math.floor(seconds / 60)
   const remainingSeconds = seconds % 60
@@ -47,7 +69,7 @@ export default function Timer({isPaused, setIsPaused,seconds,setSeconds}:
       </div>
 
       <button
-        onClick={()=>setIsPaused(!isPaused)}
+        onClick={handleClick}
         className="w-18 h-18 bg-white rounded-full border-3 border-red-600 flex items-center justify-center 
                   text-red-600 my-4 transition-transform transform hover:scale-110"
       >

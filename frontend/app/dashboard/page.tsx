@@ -11,8 +11,10 @@ import Timer from "./components/TimerDown"
 
 export default function Dashboard() {
   // Khởi tạo ngày theo định dạng "vi-VN"
-  const [isPaused, setIsPaused] = useState<boolean>(true)
-  const [timeCountdown, setTimeCountdown] = useState<number>(15)
+  const [lastControlChange, setLastControlChange] = useState<number | null>(null)
+  const handleControlChange = () => {
+    setLastControlChange(Date.now()) 
+  }
   const [formattedDate, setFormattedDate] = useState(new Date().toLocaleDateString("vi-VN"))
   let userID =1;
   useEffect(() => {
@@ -57,12 +59,12 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 ">
         {/* Cột trái: LightControl và FanControl */}
         <div className="md:col-span-4 grid gap-4 ">
-          <Control name={'Đèn'} user_id={userID} isPaused = {isPaused} setIsPaused={setIsPaused} setTimeCountdown={setTimeCountdown}/>
-          <Control name={'Quạt'} user_id={userID}  isPaused = {isPaused} setIsPaused={setIsPaused} setTimeCountdown={setTimeCountdown}/>
+          <Control name={'Đèn'} user_id={userID} onChange={handleControlChange} />
+          <Control name={'Quạt'} user_id={userID} onChange={handleControlChange} />
         </div>
         {/* Cột giữa: Timer */}
         <div className="md:col-span-2">
-          <Timer isPaused = {isPaused} setIsPaused={setIsPaused} seconds={timeCountdown} setSeconds={setTimeCountdown}/>
+          <Timer lastChanged={lastControlChange} />
         </div>
         {/* Cột phải: FanStats (Quạt  ) */}
         <div className="md:col-span-6">

@@ -116,7 +116,7 @@ export const autoruleService ={
     },
     createMotion: async (device_id:number):Promise<any> =>{
         try{
-            const resp = await axiosClient.post(`${API_BASE_URL}/autorule/create/motion?device_id=${device_id}`,{
+            const resp = await axiosClient.post(`${API_BASE_URL}/device/create/motion?device_id=${device_id}`,{
                 headers: { "Content-Type": "application/json" },
                 });
             if (!resp) {
@@ -200,7 +200,7 @@ export const autoruleService ={
     },
     deleteMotion: async (device_id:number): Promise<any> => {
         try{
-            const response = await axiosClient.delete(`${API_BASE_URL}/autorule/delete/motion?device_id=${device_id}`, {
+            const response = await axiosClient.delete(`${API_BASE_URL}/device/delete/motion?device_id=${device_id}`, {
                 headers: { "Content-Type": "application/json" },
             });
             if(!response){

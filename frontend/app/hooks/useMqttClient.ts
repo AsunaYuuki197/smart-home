@@ -13,12 +13,20 @@ export function useMqttClient(onMessage: (feed: string, value: string) => void) 
     const client = mqtt.connect("wss://io.adafruit.com", {
       username: AIO_USERNAME,
       password: AIO_KEY,
+      reconnectPeriod: 1000,
     });
 
     client.on("connect", () => {
       console.log("✅ Connected to Adafruit MQTT from client");
       FEEDS.forEach((feed) => {
-        client.subscribe(`${AIO_USERNAME}/feeds/${feed}`);
+        const topic = `${AIO_USERNAME}/feeds/${feed}`;
+        client.subscribe(topic, (err) => {
+          if (err) {
+            console.error(`❌ Failed to subscribe to ${topic}`, err);
+          } else {
+            // console.log(`📡 Subscribed to ${topic}`);
+          }
+        });
       });
     });
 
@@ -26,12 +34,20 @@ export function useMqttClient(onMessage: (feed: string, value: string) => void) 
       const feed = topic.split("/").pop()!;
       const value = message.toString();
       onMessage(feed, value);
+      // console.log(`📥 Received message from ${topic}: ${value}`);
+    });
+    client.on("error", (err) => {
+      console.error("❌ MQTT Connection Error:", err);
     });
 
+    client.on("reconnect", () => {
+      console.warn("⚠️ Reconnecting to MQTT...");
+    });
     clientRef.current = client;
 
     return () => {
-      client.end();
+      console.log("❌ Disconnecting from MQTT");
+      client.end(true);
     };
   }, [onMessage]);
 
