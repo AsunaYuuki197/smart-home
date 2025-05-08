@@ -104,6 +104,7 @@ class Generator:
                     "tool_config": {"function_calling_config": {"mode": "auto"}},
                 },
             )
+            LLMConfig.MODEL_NAME = model_name
             return {"assistant": final_response.text, "calling_result": ["Successfully" if r.function_response.response.get('result') == "successfully" else "Try again" for r in calling_results]}
         
         if model_name != LLMConfig.MODEL_NAME:
@@ -128,7 +129,7 @@ class Generator:
                 use_cache=True,
             )
         except:
-            return {"assistant": assistant, "calling_result": "Try again with another model"}
+            return {"assistant": "Try again", "calling_result": "Try again with another model"}
             
 
         assistant = self.LLM_FuncCall.tokenizer.batch_decode(out_ids[:, input_ids.size(1): ], skip_special_tokens=True)[0].strip()
