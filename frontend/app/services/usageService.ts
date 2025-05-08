@@ -12,7 +12,7 @@ export interface UsageData {
 export const usageService = {
   getDeviceUsage: async (deviceType: "fan" | "light"): Promise<UsageData> => {
     try {
-      const response = await axiosClient.get(`/${deviceType}/usage`, {
+      const response = await axiosClient.get(`/device/${deviceType}/usage`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
