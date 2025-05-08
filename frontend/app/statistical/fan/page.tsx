@@ -75,7 +75,7 @@ export default function Statistical() {
     fetchGetNotify();
     // }
   }, []);
-  console.log("notifications", notifies);
+  // console.log("notifications", notifies);
   const handleDeviceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedDevice = e.target.value;
     setActiveDevice(selectedDevice);
@@ -84,12 +84,14 @@ export default function Statistical() {
 
   // const DeviceComponent = lazy(() => import(`./${activeDevice}/page.tsx`));
   const { data, isLoading, error } = useDeviceUsage(activeDevice as "fan" | "light");
-  const barData = data && data[activeDevice]
-  ? Object.entries(data[activeDevice]).map(([date, hoursObj]) => ({
+  console.log("Dataaa: ",data);
+  const barData = data && data[activeDevice == "fan" ? "1" : "2"] 
+  ? Object.entries(data[activeDevice == "fan" ? "1" : "2"]).map(([date, hoursObj]) => ({
       date,
       hours: hoursObj["all"] || 0,
     }))
   : [];
+  // console.log ("Bar data: ", barData);
   const { data: tempData } = useSensorStatistics("temp_sensor");
   const { data: humidData } = useSensorStatistics("humid_sensor");
 
@@ -214,7 +216,10 @@ export default function Statistical() {
           <ResponsiveContainer width="90%" height={300}>
             <BarChart data={barData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
+              <XAxis dataKey="date" 
+              angle={-45} 
+              textAnchor="end" 
+              height={80}/>
               <YAxis domain={[0, 16]} />
               <Bar
                 dataKey="hours"

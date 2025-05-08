@@ -1,4 +1,35 @@
+/*
 "use client";
+import{useState, useEffect} from 'react'
+export default function Statistical_FAN() {
+const [data, setData] = useState(null)
+  useEffect(() => {
+    const fetchStatus = async () => {
+    const user_id = localStorage.getItem("user_id") || 1;
+      try {
+        const response = await fetch(`/api/device/temp_sensor?user_id=${user_id}`);
+        if (!response.ok) throw new Error("Lỗi khi lấy dữ liệu!");
+
+        const data = await response.json();
+        setData(data)
+        console.log(" data " , data);
+      } catch (error: any) {
+        console.error("Error fetching  status:", error.message);
+      }
+    };
+
+    fetchStatus();
+  }, []);
+  return (
+    <>
+      <h1>temp_sensor </h1>
+      <div>{JSON.stringify(data, null, 2)}</div>
+    </>
+    )
+  }
+*/
+"use client";
+
 import { useRouter } from "next/navigation";
 // import { ChevronDown } from 'lucide-react';
 import React, { lazy, Suspense, useEffect, useState } from "react";
@@ -14,10 +45,12 @@ import {
   Line,
 } from "recharts";
 import { useDeviceStatistics } from "../../hooks/useDeviceStatistics";
+import { useSensorStatistics } from "../../hooks/useSensorStatistics";
 import { notificationsService } from "../../services/notificationsService";
 import { useDeviceUsage } from "../../hooks/useDeviceUsage";
-import axiosClient from "@/app/utils/axiosClient";
-export default function Statistical_Light() {
+import { useMemo } from "react";
+
+export default function Statistical() {
   const [activeDevice, setActiveDevice] = useState("light");
   const deviceOptions = ["fan", "light"];
   const router = useRouter();
@@ -42,48 +75,78 @@ export default function Statistical_Light() {
     fetchGetNotify();
     // }
   }, []);
-  console.log("notifications", notifies);
+  // console.log("notifications", notifies);
   const handleDeviceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedDevice = e.target.value;
     setActiveDevice(selectedDevice);
     router.push(`/statistical/${selectedDevice}`); // Chuyển trang
   };
 
+  // const DeviceComponent = lazy(() => import(`./${activeDevice}/page.tsx`));
   const { data, isLoading, error } = useDeviceUsage(activeDevice as "fan" | "light");
-  const barData = data && data[activeDevice]
-  ? Object.entries(data[activeDevice]).map(([date, hoursObj]) => ({
+  console.log("Dataaa: ",data);
+  const barData = data && data[activeDevice == "fan" ? "1" : "2"] 
+  ? Object.entries(data[activeDevice == "fan" ? "1" : "2"]).map(([date, hoursObj]) => ({
       date,
       hours: hoursObj["all"] || 0,
     }))
   : [];
+  // console.log ("Bar data: ", barData);
+  const { data: tempData } = useSensorStatistics("temp_sensor");
+  const { data: humidData } = useSensorStatistics("humid_sensor");
 
-  const lineData = [
-    { time: "03", temp: 25, humidity: 80 },
-    { time: "06", temp: 27, humidity: 75 },
-    { time: "09", temp: 29, humidity: 70 },
-    { time: "12", temp: 30, humidity: 65 },
-    { time: "15", temp: 28, humidity: 60 },
-    { time: "18", temp: 26, humidity: 70 },
-    { time: "21", temp: 24, humidity: 80 },
-  ];
+  // Wrap lineData in its own useMemo to prevent unnecessary re-renders
+  const lineData = useMemo(
+    () => [
+      { time: "03", temp: 25, humidity: 80 },
+      { time: "06", temp: 27, humidity: 75 },
+      { time: "09", temp: 29, humidity: 70 },
+      { time: "12", temp: 30, humidity: 65 },
+      { time: "15", temp: 28, humidity: 60 },
+      { time: "18", temp: 26, humidity: 70 },
+      { time: "21", temp: 24, humidity: 80 },
+    ],
+    []
+  );
+  // Giả sử cả hai cùng có dạng: [{ device_id, value, timestamp }]
+  const chartData = useMemo(() => {
+    const result: Record<
+      string,
+      { time: string; temp?: number; humidity?: number }
+    > = {};
 
-  const [data, setData] = useState(null);
-  useEffect(() => {
-    const fetchStatus = async () => {
-      const user_id = localStorage.getItem("user_id") || 1;
-      try {
-        const response = await axiosClient.get(
-          `/device/humid_sensor/statistics?user_id=${user_id}`
-        );
-        const data = response.data;
-        setData(data);
-      } catch (error: any) {
-        console.error("Error fetching  status:", error.message);
-      }
-    };
+    // Check if tempData is an array and has items
+    if (Array.isArray(tempData) && tempData.length > 0) {
+      tempData.forEach((item) => {
+        const time = new Date(item.timestamp).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        if (!result[time]) result[time] = { time };
+        result[time].temp = item.value;
+      });
+    }
 
-    fetchStatus();
-  }, []);
+    // Check if humidData is an array and has items
+    if (Array.isArray(humidData) && humidData.length > 0) {
+      humidData.forEach((item) => {
+        const time = new Date(item.timestamp).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        if (!result[time]) result[time] = { time };
+        result[time].humidity = item.value;
+      });
+    }
+
+    // If no data is available, use the sample lineData
+    if (Object.keys(result).length === 0) {
+      return lineData;
+    }
+
+    return Object.values(result).sort((a, b) => a.time.localeCompare(b.time));
+  }, [tempData, humidData, lineData]);
+
   return (
     <div className=" flex flex-col ml-10 mr-10 gap-8 h-full">
       <div className=" flex-1 flex flex-col gap-4 ">
@@ -105,8 +168,8 @@ export default function Statistical_Light() {
         </div>
       </div>
       {/* <Suspense fallback={<div>Loading...</div>}>
-            <DeviceComponent />
-          </Suspense> */}
+        <DeviceComponent />
+      </Suspense> */}
 
       <div className="flex-1 flex flex-row gap-12 ">
         <div className="flex-1 flex flex-col gap-4  ">
@@ -153,11 +216,14 @@ export default function Statistical_Light() {
           <ResponsiveContainer width="90%" height={300}>
             <BarChart data={barData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
+              <XAxis dataKey="date" 
+              angle={-45} 
+              textAnchor="end" 
+              height={80}/>
               <YAxis domain={[0, 16]} />
               <Bar
                 dataKey="hours"
-                fill="#1E88E5"
+                fill="rgba(236, 72, 153, 1)"
                 barSize={30}
                 radius={[5, 5, 0, 0]}
               />
@@ -165,7 +231,7 @@ export default function Statistical_Light() {
           </ResponsiveContainer>
         </div>
         <div className="flex-1 flex flex-col   gap-5">
-          <div className="bg-white p-4 rounded-lg  shadow-md flex flex-col h-full">
+          <div className="bg-white p-4 rounded-lg  shadow-md flex flex-col">
             <h3 className="text-lg  font-semibold mb-2">Nhật ký hoạt động</h3>
             <div className="grid grid-cols-2 gap-4">
               {notifies
@@ -173,7 +239,7 @@ export default function Statistical_Light() {
                   // Chỉ lấy thông báo bật tắt thiết bị fan hoặc light
                   return (
                     (noti.message.toLowerCase().includes("turn on") && noti.message.toLowerCase().includes("light")) ||
-                    (noti.message.toLowerCase().includes("turn off") && noti.message.toLowerCase().includes("light"))
+                    (noti.message.toLowerCase().includes("turn off") && noti.message.toLowerCase().includes("light")) 
                   );
                 })
                 .map((noti) => {
@@ -190,6 +256,56 @@ export default function Statistical_Light() {
                   );
                 })}
             </div>
+          </div>
+          <div className="flex-1 flex items-center bg-white flex-col rounded-[20px] ">
+            {/* <h3 className="text-lg font-semibold mb-2">Nhiệt độ & độ ẩm</h3> */}
+            <h3 className="text-lg font-semibold mb-2">Nhiệt độ & độ ẩm</h3>
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="time" />
+                <YAxis
+                  yAxisId="left"
+                  domain={["auto", "auto"]}
+                  tick={{ fill: "blue" }}
+                  label={{
+                    value: "Temp (°C)",
+                    angle: -90,
+                    position: "insideLeft",
+                    fill: "blue",
+                  }}
+                />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  domain={["auto", "auto"]}
+                  tick={{ fill: "orange" }}
+                  label={{
+                    value: "Humidity (%)",
+                    angle: -90,
+                    position: "insideRight",
+                    fill: "orange",
+                  }}
+                />
+                <Tooltip />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="temp"
+                  stroke="blue"
+                  strokeWidth={2}
+                  name="Nhiệt độ"
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="humidity"
+                  stroke="orange"
+                  strokeWidth={2}
+                  name="Độ ẩm"
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
