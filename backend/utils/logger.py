@@ -38,8 +38,8 @@ class Logger:
     def log_model(self, model_name):
         self.log.info(f"Model: {model_name}")
 
-    def log_response(self, answer, result_calling):
-        self.log.info(f"Answer: {answer} - Function Call Result: {result_calling} ")
+    def log_response(self, answer, result_calling, process_time):
+        self.log.info(f"Answer: {answer} - Function Call Result: {result_calling} {process_time:.2f}s")
 
 
 
