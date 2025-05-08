@@ -31,8 +31,10 @@ export default function Timer({lastChanged}:{lastChanged:number | null}) {
   useEffect(() => {
     if (lastChanged === null) return;
     // console.log("lastChanged", lastChanged)
-    setIsPaused(false)
-    setSeconds(timeRef.current || 0)
+    if(!isPaused) {
+      setIsPaused(false)
+      setSeconds(timeRef.current || 0)
+    }
     },[lastChanged])
 
     useEffect(() => {
@@ -54,12 +56,12 @@ export default function Timer({lastChanged}:{lastChanged:number | null}) {
   const minutes = Math.floor(seconds / 60)
   const remainingSeconds = seconds % 60
   const timeDisplay = `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`
-
+ 
   const handleClick = () => {
     const newState = !isPaused
     setIsPaused(newState)
     const status = newState?"off":"on";
-    autoruleService.saveCoundown(status,seconds <= 0 ? 15:seconds)
+    autoruleService.saveCoundown(status,seconds <= 0 ? timeRef.current||15:seconds)
   }
   return (
     <div className="bg-red-100 rounded-xl p-4 flex flex-col items-center justify-between h-full border-2 border-red-500">

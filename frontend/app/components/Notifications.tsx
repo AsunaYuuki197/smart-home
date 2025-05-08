@@ -17,7 +17,7 @@ export default function Notifications({
       try {
         const data = await notificationsService.getListNotifies();
         setNotifies(data);
-        console.log(data);
+        // console.log(data);
       } catch (error) {
         console.error(error);
       }
