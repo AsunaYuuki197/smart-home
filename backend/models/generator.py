@@ -13,7 +13,7 @@ from config.ai_cfg import *
 from .model import LLM_FuncCall
 from routes.control import *
 from utils.general_helper import *
-import time 
+import time
 
 load_dotenv()
 LOGGER = Logger(__file__, log_file="generator.log")
@@ -73,21 +73,36 @@ class Generator:
                     "tools": self.gemini_tools,
                     "automatic_function_calling": {"disable": True},
                     "system_instruction": SMARTHOME_BOT,
+                    "tool_config": {"function_calling_config": {"mode": "any"}},
                 },
             )
             
-            assistant = self.LLM_FuncCall.send_message(message=f"user_id của tôi là {user_id}, Thực hiện lệnh sau: {msg}")
+            assistant = self.LLM_FuncCall.send_message(
+                message=f"user_id của tôi là {user_id}, Thực hiện lệnh sau: {msg}", 
+                config= {
+                    "tools": self.gemini_tools,
+                    "automatic_function_calling": {"disable": True},
+                    "system_instruction": SMARTHOME_BOT,
+                    "tool_config": {"function_calling_config": {"mode": "any"}},
+                },
+            )
 
             if assistant.function_calls is None:
                 return {"assistant": assistant.text, "calling_result": [""]}
      
-            calling_results = await self.call_function(assistant.function_calls)     
-            process_time = time.time() - start_time
+            calling_results = await self.call_function(assistant.function_calls)   
+            process_time = time.time() - start_time  
             LOGGER.log_model(model_name)
             LOGGER.log_response(str(assistant), str(calling_results), process_time)
 
             final_response = self.LLM_FuncCall.send_message(
                 message=calling_results,
+                config= {
+                    "tools": self.gemini_tools,
+                    "automatic_function_calling": {"disable": True},
+                    "system_instruction": SMARTHOME_BOT,
+                    "tool_config": {"function_calling_config": {"mode": "auto"}},
+                },
             )
             return {"assistant": final_response.text, "calling_result": ["Successfully" if r.function_response.response.get('result') == "successfully" else "Try again" for r in calling_results]}
         
@@ -119,7 +134,8 @@ class Generator:
         assistant = self.LLM_FuncCall.tokenizer.batch_decode(out_ids[:, input_ids.size(1): ], skip_special_tokens=True)[0].strip()
 
         calling_results = await self.call_function(await self.process_command(assistant))
-        process_time = time.time() - start_time
+        process_time = time.time() - start_time  
+
         LOGGER.log_model(LLMConfig.MODEL_NAME)
         LOGGER.log_response(assistant, str(calling_results), process_time)
 
