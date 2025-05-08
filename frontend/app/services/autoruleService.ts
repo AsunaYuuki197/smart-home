@@ -100,11 +100,18 @@ export const autoruleService ={
 
     createTimeFrame: async (device_id:number,start_time:string,end_time:string,repeat:number):Promise<any> =>{
         try{
+            const currentDateStr = new Date().toDateString(); 
+            const dateObj = new Date(currentDateStr);        
+            
+            const pad = (num:any) => String(num).padStart(2, '0');
+            const formatted = `${dateObj.getFullYear()}-${pad(dateObj.getMonth() + 1)}-${pad(dateObj.getDate())}`;
+            
+
             const response = await axiosClient.post(`${API_BASE_URL}/autorule/create/timeframe`, {
                 "user_id" : 1,
                 "device_id": device_id,
-                "start_time": (new Date(`2025-04-21T${start_time}:00`).toLocaleString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' }).replace(" ", "T")),
-                "end_time": (new Date(`2025-04-21T${end_time}:00`).toLocaleString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' }).replace(" ", "T")),
+                "start_time": (new Date(`${formatted}T${start_time}:00`).toLocaleString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' }).replace(" ", "T")),
+                "end_time": (new Date(`${formatted}T${end_time}:00`).toLocaleString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' }).replace(" ", "T")),
                 "repeat": repeat
             }, {
                 headers: { "Content-Type": "application/json" },

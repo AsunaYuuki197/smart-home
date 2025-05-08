@@ -86,6 +86,7 @@ export default function Statistical() {
   };
 
   // const DeviceComponent = lazy(() => import(`./${activeDevice}/page.tsx`));
+  console.log("Active device: ", activeDevice);
   const { data, isLoading, error } = useDeviceUsage(activeDevice as "fan" | "light");
   console.log("Dataaa: ",data);
   const barData = data && data[activeDevice == "fan" ? "1" : "2"] 
@@ -94,7 +95,7 @@ export default function Statistical() {
       hours: hoursObj["all"] || 0,
     }))
   : [];
-  // console.log ("Bar data: ", barData);
+  console.log ("Bar data: ", barData);
   const { data: tempData } = useSensorStatistics("temp_sensor");
   const { data: humidData } = useSensorStatistics("humid_sensor");
 
