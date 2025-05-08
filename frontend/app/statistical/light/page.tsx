@@ -14,6 +14,8 @@ import {
   Line,
 } from "recharts";
 import { useDeviceStatistics } from "../../hooks/useDeviceStatistics";
+import { notificationsService } from "../../services/notificationsService";
+import { useDeviceUsage } from "../../hooks/useDeviceUsage";
 import axiosClient from "@/app/utils/axiosClient";
 export default function Statistical_Light() {
   const [activeDevice, setActiveDevice] = useState("light");
@@ -21,19 +23,39 @@ export default function Statistical_Light() {
   const router = useRouter();
   const [filter, setFilter] = useState("week");
   const filterOptions = ["week", "month"];
+  interface Notify {
+    device_id: string;
+    message: string;
+    timestamp: string;
+  }
+  const [notifies, setNotifies] = useState<Notify[]>([]);
+  useEffect(() => {
+    async function fetchGetNotify() {
+      try {
+        const data = await notificationsService.getListNotifies();
+        setNotifies(data);
+        console.log(data);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    fetchGetNotify();
+    // }
+  }, []);
+  console.log("notifications", notifies);
   const handleDeviceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedDevice = e.target.value;
     setActiveDevice(selectedDevice);
     router.push(`/statistical/${selectedDevice}`); // Chuyển trang
   };
 
-  const { statistics, isLoading, error } = useDeviceStatistics(activeDevice);
-  const barData = statistics
-    ? Object.keys(statistics).map((date) => ({
-        date,
-        hours: statistics[date],
-      }))
-    : [];
+  const { data, isLoading, error } = useDeviceUsage(activeDevice as "fan" | "light");
+  const barData = data && data[activeDevice]
+  ? Object.entries(data[activeDevice]).map(([date, hoursObj]) => ({
+      date,
+      hours: hoursObj["all"] || 0,
+    }))
+  : [];
 
   const lineData = [
     { time: "03", temp: 25, humidity: 80 },
@@ -146,15 +168,27 @@ export default function Statistical_Light() {
           <div className="bg-white p-4 rounded-lg  shadow-md flex flex-col h-full">
             <h3 className="text-lg  font-semibold mb-2">Nhật ký hoạt động</h3>
             <div className="grid grid-cols-2 gap-4">
-              {["18:37", "13:32", "12:10", "08:14"].map((time) => (
-                <div
-                  key={time}
-                  className="flex justify-between items-center p-2 border rounded-md bg-gray-100 w-full"
-                >
-                  <span>Hôm nay • {time}</span>
-                  <span>💡</span>
-                </div>
-              ))}
+              {notifies
+                .filter((noti) => {
+                  // Chỉ lấy thông báo bật tắt thiết bị fan hoặc light
+                  return (
+                    (noti.message.toLowerCase().includes("turn on") && noti.message.toLowerCase().includes("light")) ||
+                    (noti.message.toLowerCase().includes("turn off") && noti.message.toLowerCase().includes("light"))
+                  );
+                })
+                .map((noti) => {
+                  // Định dạng thời gian hiển thị
+                  const time = new Date(noti.timestamp).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
+                  return (
+                    <div
+                      key={noti.timestamp}
+                      className="flex justify-between items-center p-2 border rounded-md bg-gray-100 w-full"
+                    >
+                      <span>Hôm nay • {time}</span>
+                      <span>{noti.message.includes("fan") ? "💨" : "💡"}</span>
+                    </div>
+                  );
+                })}
             </div>
           </div>
         </div>
