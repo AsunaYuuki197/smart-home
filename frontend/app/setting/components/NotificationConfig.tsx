@@ -75,10 +75,11 @@ function DeviceNotification({isActive,platform,deviceNotify,setDeviceNotify}:{is
                         key={device}
                         className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                         onClick={() => {
-                            console.log(device);
+                            // console.log(device);
                             setDeviceNotify(device);
                             setIsOpen(false);
-                            handleDeviceNotifyChange(device);
+                            handleDeviceNotifyChange(device.toLowerCase());
+                            console.log(device.toLowerCase())
                         }}
                         >
                         {device}

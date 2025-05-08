@@ -77,7 +77,7 @@ function ConfigAI({status,text,}:{status:boolean,text:string}) {
 function CountDown({isCountDown,time,remaining_time}:{isCountDown:boolean,time:number,remaining_time:number}) {
     const [isRunning, setIsRunning] = useState(isCountDown);
     const [timeConfig, setTimeConfig] = useState(time || 0); //call API lấy thời gian tự động trả về
-    const [timeLeft, setTimeLeft] = useState<number>(remaining_time < 0 ? 0: remaining_time); 
+    const [timeLeft, setTimeLeft] = useState<number>(remaining_time < 0 ? time: remaining_time); 
 
 
     useEffect(() => {

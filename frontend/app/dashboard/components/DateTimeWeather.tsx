@@ -33,7 +33,6 @@ export default function DateTimeWeather() {
   const [humidity, setHumidity] = useState<string>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
 // lấy dữ liệu lần đầu
   useEffect(()=>{
     const fetchData = async()=>{
@@ -54,10 +53,11 @@ export default function DateTimeWeather() {
     fetchData()
   },[])
 
-  const {publish } = useMqttClient((feed, value) => {
+  const mqttCallback = useCallback((feed: string, value: string) => {
     if (feed == "temperature" ) setTemperature(value);
     if (feed == "huminity") setHumidity(value);
-  });
+  }, []);
+  const {publish } = useMqttClient(mqttCallback);
   // Gradient background styles
   const backgroundStyle = {
     background: 'linear-gradient(226.54deg, rgba(234, 50, 50, 0) 3.33%, rgba(234, 50, 50, 0.380622) 67.29%, rgba(234, 50, 50, 0.4) 73.26%), rgba(97, 122, 215, 0.51)',
