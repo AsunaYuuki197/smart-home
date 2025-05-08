@@ -39,6 +39,6 @@ async def get_dataframe_flag(user_id: str, device_id: str):
 async def can_send(email):
     return await redis_client.get(email) is None
 
-async def record_sent(email, timeout=120):
+async def record_sent(email, timeout=30):
     now =  int(time.time())
     await redis_client.setex(email, timeout, now)
