@@ -5,6 +5,7 @@ import { autoruleService } from "@/app/services/autoruleService";
 
 function GeneralConfig({isCountDown,time,isWakeup,text,remaining_time}:
     {isCountDown:boolean,time:number,isWakeup:boolean,text:string,remaining_time:any}) {
+
     return (
     <>
     <span className = "font-bold text-3xl ml-10 "> Cấu hình chung </span>
@@ -75,10 +76,9 @@ function ConfigAI({status,text,}:{status:boolean,text:string}) {
 
 function CountDown({isCountDown,time,remaining_time}:{isCountDown:boolean,time:number,remaining_time:number}) {
     const [isRunning, setIsRunning] = useState(isCountDown);
-    const [timeConfig, setTimeConfig] = useState(remaining_time < 0 ? time: remaining_time); //call API lấy thời gian tự động trả về
+    const [timeConfig, setTimeConfig] = useState(time || 0); //call API lấy thời gian tự động trả về
     const [timeLeft, setTimeLeft] = useState<number>(remaining_time < 0 ? 0: remaining_time); 
-    console.log("Time left:", timeLeft);
-    console.log("remaintime:", remaining_time);
+
 
     useEffect(() => {
         let interval: NodeJS.Timeout | null = null
@@ -141,6 +141,7 @@ function CountDown({isCountDown,time,remaining_time}:{isCountDown:boolean,time:n
                 step="1" // Cho phép nhập giây
                 min="00:00:01"
                 max="00:59:59"
+                value = {formatTime(timeConfig)??"00:00:00"}
                 className="w-24 [&::-webkit-datetime-edit-hour-field]:hidden [&::-webkit-datetime-edit-hour-field]:w-0 [&::-webkit-calendar-picker-indicator]:hidden"
                 onChange={(e) => handleChangeTime(e.target.value)}
                 />

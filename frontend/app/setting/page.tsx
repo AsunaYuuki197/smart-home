@@ -28,21 +28,29 @@ const [notifyObj, setNotifyObj] = useState<notify_autorule>({
 
 useEffect(() => {
   const fetchData = async () => {
-    const data = await settingService.getConfiguration();
-    console.log('Fetched configuration:', data);
-    setIsCountDown(data.countdown.status == "on");
-    setTime(data.countdown.time);
-    const eta = data.countdown.eta
-    const remainingTime = Math.floor((new Date(eta).getTime() - new Date().getTime()) / 1000);
-    setRemainingTime(remainingTime);
+    try{
 
-    setIsWakeup(data.wake_word.status == "on");
-    setText(data.wake_word.text);
-    //TODO
-    setFanObj(data.fan_autorule == null ? {} : data.fan_autorule[0]["1"]);
-    setLightObj(data.light_autorule == null ? {} : data.light_autorule[0]["2"]);
-    setNotifyObj(data.noti);
-    setIsLoading(false);
+      const data = await settingService.getConfiguration();
+      // console.log('Fetched configuration:', data);
+      setIsCountDown(data.countdown.status == "on");
+      const Time = data.countdown.time;
+      const eta = data.countdown.eta
+      const remainingTime = Math.floor((new Date(eta).getTime() - new Date().getTime()) / 1000);
+      setRemainingTime(remainingTime);
+      setTime(Time);
+      
+      setIsWakeup(data.wake_word.status == "on");
+      setText(data.wake_word.text);
+      setFanObj(data.fan_autorule == null ? {} : data.fan_autorule[0]["1"]);
+      setLightObj(data.light_autorule == null ? {} : data.light_autorule[0]["2"]);
+      setNotifyObj(data.noti);
+    }
+    catch (error) {
+      console.error('Error fetching configuration:', error);
+    }
+    finally {
+      setIsLoading(false);
+    }
   };
   fetchData();
 }, []);

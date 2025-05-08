@@ -110,20 +110,21 @@ export default function Control({ name ,user_id, onChange }: { name: string, onC
 
     fetchData();
   }, []);
-  const {publish} = useMqttClient((feed, value) => {
-    if (device_id == 1){
-      if (feed == "fan") setIsActive(value == "1"? true :false);
-      if (feed == "fanspeed"){
-        const newValue = Number(value)
-        setSpeed(newValue)
+
+    const {publish} = useMqttClient((feed, value) => {
+      if (device_id == 1){
+        if (feed == "fan") setIsActive(value == "1"? true :false);
+        if (feed == "fanspeed"){
+          const newValue = Number(value)
+          setSpeed(newValue)
+        }
       }
-    }
-    //"on-off-light", "lightcolor", "lightlevel"
-    if (device_id==2) {
-      if (feed == "on_off_light" ) setIsActive(value == "1"? true :false);
-      if (feed == "lightcolor") setSelectLightColor(value);
-      if (feed == "lightlevel") setSpeed(Number(value))
-    }
+      //"on-off-light", "lightcolor", "lightlevel"
+      if (device_id==2) {
+        if (feed == "on_off_light" ) setIsActive(value == "1"? true :false);
+        if (feed == "lightcolor") setSelectLightColor(value);
+        if (feed == "lightlevel") setSpeed(Number(value))
+      }
   });
 
   const { isOn, selectedRoom, setSelectedRoom, toggleDeviceState} = useDeviceState(name,user_id,

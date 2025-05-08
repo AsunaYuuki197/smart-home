@@ -13,7 +13,6 @@ export function useMqttClient(onMessage: (feed: string, value: string) => void) 
     const client = mqtt.connect("wss://io.adafruit.com", {
       username: AIO_USERNAME,
       password: AIO_KEY,
-      reconnectPeriod: 1000,
     });
 
     client.on("connect", () => {
