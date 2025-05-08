@@ -1,7 +1,7 @@
 import asyncio
 import functools
 import requests
-from datetime import datetime 
+from datetime import datetime, timezone, timedelta
 
 timeRule_fields = ['start_time', 'end_time', 'repeat']
 htsensorRule_fields = ['level', 'humidity', 'temperature', 'mode']
@@ -47,7 +47,7 @@ async def in_time_frame(rule: dict):
         start_time_dt = time_rule.get("start_time")
         end_time_dt = time_rule.get("end_time")
         if start_time_dt and end_time_dt:
-            now = datetime.now().time()
+            now = datetime.now(timezone(timedelta(hours=7))).time()
             start_time = start_time_dt.time()
             end_time = end_time_dt.time()
             in_time_range = start_time <= now <= end_time if start_time <= end_time else None
