@@ -13,6 +13,7 @@ from config.ai_cfg import *
 from .model import LLM_FuncCall
 from routes.control import *
 from utils.general_helper import *
+import time 
 
 load_dotenv()
 LOGGER = Logger(__file__, log_file="generator.log")
@@ -63,7 +64,7 @@ class Generator:
             },
             {"role": "user", "content": f"user_id của tôi là {user_id}, {msg}"},
         ]
-
+        start_time = time.time()
 
         if model_name in ['gemini-2.5-pro-preview-03-25','gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.5-flash-8b']: # Add more Gemini Model
             self.LLM_FuncCall = client.chats.create(
@@ -81,8 +82,9 @@ class Generator:
                 return {"assistant": assistant.text, "calling_result": [""]}
      
             calling_results = await self.call_function(assistant.function_calls)     
+            process_time = time.time() - start_time
             LOGGER.log_model(model_name)
-            LOGGER.log_response(str(assistant), str(calling_results))
+            LOGGER.log_response(str(assistant), str(calling_results), process_time)
 
             final_response = self.LLM_FuncCall.send_message(
                 message=calling_results,
@@ -117,9 +119,9 @@ class Generator:
         assistant = self.LLM_FuncCall.tokenizer.batch_decode(out_ids[:, input_ids.size(1): ], skip_special_tokens=True)[0].strip()
 
         calling_results = await self.call_function(await self.process_command(assistant))
-
+        process_time = time.time() - start_time
         LOGGER.log_model(LLMConfig.MODEL_NAME)
-        LOGGER.log_response(assistant, str(calling_results))
+        LOGGER.log_response(assistant, str(calling_results), process_time)
 
         torch.cuda.empty_cache()
 
