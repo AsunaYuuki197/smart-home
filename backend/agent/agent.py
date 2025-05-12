@@ -296,7 +296,7 @@ async def control_by_time():
                             action=0,
                             command_mode="auto"
                         )) 
-                        print("Out timeframe, Turn off fan")
+                        print("Out timeframe, Turn off light")
 
                 await db.AutomationRule.update_one(
                     {'_id': rule['_id']},

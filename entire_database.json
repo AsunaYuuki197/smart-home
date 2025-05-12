@@ -1,0 +1,158 @@
+{
+  "SensorData": [
+    {
+      "_id": "67f1210b946d628c33afaab8",
+      "user_id": 1,
+      "device_id": 4,
+      "value": "60.7",
+      "timestamp": "2025-03-17T10:00:00Z"
+    },
+    {
+      "_id": "67f12157946d628c33afaab9",
+      "user_id": 1,
+      "device_id": 5,
+      "value": "27.4",
+      "timestamp": "2025-03-17T10:00:00Z"
+    }
+  ],
+  "AutomationRule": [
+    {
+      "_id": "67f12229946d628c33afaaba",
+      "user_id": 1,
+      "device_id": 1,
+      "type": "Light",
+      "start_time": "2025-03-17T10:00:00Z",
+      "repeat": "",
+      "end_time": "2025-03-17T11:00:00Z",
+      "light_intensity": "",
+      "color": "",
+      "light_level": "",
+      "humidity": "60",
+      "temperature": "35",
+      "level": "3",
+      "motion_trigger": ""
+    },
+    {
+      "user_id": 1,
+      "device_id": 1,
+      "type": "Fan",
+      "start_time": "2025-03-17T10:00:00Z",
+      "repeat": 3,
+      "end_time": "2025-03-18T11:00:00Z",
+      "humidity": 70,
+      "temperature": 30,
+      "level": 100
+    },
+    {
+      "user_id": 1,
+      "device_id": 2,
+      "type": "Light",
+      "start_time": "2025-03-17T10:00:00Z",
+      "repeat": 3,
+      "end_time": "2025-03-18T11:00:00Z",
+      "motion_trigger": "on",
+      "light_intensity": 100,
+      "color": "blue",
+      "light_level": 3
+    }
+  ],
+  "Devices": [
+    {
+      "_id": "67f11cd0946d628c33afaab1",
+      "device_id": 1,
+      "name": "fan 1",
+      "location": "bedroom",
+      "type": "Fan"
+    },
+    {
+      "_id": "67f11e3d946d628c33afaab2",
+      "device_id": 2,
+      "name": "light 1",
+      "location": "bedroom",
+      "type": "Light"
+    },
+    {
+      "_id": "67f11e42946d628c33afaab3",
+      "device_id": 3,
+      "name": "light sensor 1",
+      "location": "bedroom",
+      "type": "Light sensor"
+    },
+    {
+      "_id": "67f11e49946d628c33afaab4",
+      "device_id": 4,
+      "name": "humidity sensor 1",
+      "location": "bedroom",
+      "type": "Humidity sensor"
+    },
+    {
+      "_id": "67f11e4e946d628c33afaab5",
+      "device_id": 5,
+      "name": "temperature sensor 1",
+      "location": "bedroom",
+      "type": "Temperature sensor"
+    },
+    {
+      "_id": "67f11e54946d628c33afaab6",
+      "device_id": 6,
+      "name": "pump 1",
+      "location": "bedroom",
+      "type": "Pump"
+    }
+  ],
+  "ActionLog": [
+    {
+      "_id": "67f12067946d628c33afaab7",
+      "user_id": 1,
+      "device_id": 1,
+      "action": "1",
+      "level": "100",
+      "color": "",
+      "timestamp": "2025-03-17T10:00:00Z"
+    }
+  ],
+  "Notifications": [
+    {
+      "user_id":1,
+      "device_id":1,"timestamp":"2025-03-17T10:00:00Z","message":"Turn on"
+    }
+  ],
+  "Users": [
+    {
+      "user_id": 1,
+      "birth": "2000-01-01T00:00:00Z",
+      "email": "admin@gmail.com",
+      "phone": "0123456789",
+      "gender": "male",
+      "noti": {
+        "status": "on",
+        "temp": "40",
+        "platform": "all",
+        "hot_notif": "on"
+      },
+      "countdown": {
+        "status": "on",
+        "time": "5",
+        "task_id": null,
+        "eta": null
+      },
+      "wake_work": {
+        "status": "on",
+        "text": "Hey"
+      },
+      "devices": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "fcm_token": [],
+      "created_at": "2025-03-17T10:00:00Z",
+      "fname": "Hau",
+      "lname": "Kieu",
+      "password": "$2a$12$wDEtofnNtATDUcvx2epOS.K5oFYNsfh/WqimpEYkS3mcwDXULeuUS"
+    }
+  ]
+}
