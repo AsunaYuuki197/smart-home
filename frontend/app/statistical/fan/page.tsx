@@ -52,12 +52,15 @@ import { useMemo } from "react";
 
 export default function Statistical() {
   const [activeDevice, setActiveDevice] = useState("fan");
+  const getDeviceID = () => {
+    return activeDevice === "fan" ? 1 : 2;  // 1 cho fan, 2 cho light
+  };
   const deviceOptions = ["fan", "light"];
   const router = useRouter();
   const [filter, setFilter] = useState("week");
   const filterOptions = ["week", "month"];
   interface Notify {
-    device_id: string;
+    device_id: number;
     message: string;
     timestamp: string;
   }
@@ -83,6 +86,7 @@ export default function Statistical() {
   };
 
   // const DeviceComponent = lazy(() => import(`./${activeDevice}/page.tsx`));
+  console.log("Active device: ", activeDevice);
   const { data, isLoading, error } = useDeviceUsage(activeDevice as "fan" | "light");
   console.log("Dataaa: ",data);
   const barData = data && data[activeDevice == "fan" ? "1" : "2"] 
@@ -91,7 +95,7 @@ export default function Statistical() {
       hours: hoursObj["all"] || 0,
     }))
   : [];
-  // console.log ("Bar data: ", barData);
+  console.log ("Bar data: ", barData);
   const { data: tempData } = useSensorStatistics("temp_sensor");
   const { data: humidData } = useSensorStatistics("humid_sensor");
 
@@ -234,27 +238,32 @@ export default function Statistical() {
           <div className="bg-white p-4 rounded-lg  shadow-md flex flex-col">
             <h3 className="text-lg  font-semibold mb-2">Nhật ký hoạt động</h3>
             <div className="grid grid-cols-2 gap-4">
-              {notifies
-                .filter((noti) => {
-                  // Chỉ lấy thông báo bật tắt thiết bị fan hoặc light
-                  return (
-                    (noti.message.toLowerCase().includes("turn on") && noti.message.toLowerCase().includes("fan")) ||
-                    (noti.message.toLowerCase().includes("turn off") && noti.message.toLowerCase().includes("fan")) 
-                  );
-                })
-                .map((noti) => {
-                  // Định dạng thời gian hiển thị
-                  const time = new Date(noti.timestamp).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
-                  return (
-                    <div
-                      key={noti.timestamp}
-                      className="flex justify-between items-center p-2 border rounded-md bg-gray-100 w-full"
-                    >
-                      <span>Hôm nay • {time}</span>
-                      <span>{noti.message.includes("fan") ? "💨" : "💡"}</span>
-                    </div>
-                  );
-                })}
+            {notifies
+              .filter((noti) => {
+                const deviceID = getDeviceID(); // Lấy deviceID từ activeDevice
+                return (
+                  (noti.message.toLowerCase().includes("turn on") ||
+                    noti.message.toLowerCase().includes("turn off")) &&
+                  noti.device_id === deviceID // Kiểm tra device_id có khớp với activeDevice
+                );
+              })
+              .map((noti) => {
+                // Xác định device là "fan" hoặc "light" dựa trên device_id
+                const device = noti.device_id === 1 ? "fan" : "light";
+                const time = new Date(noti.timestamp).toLocaleTimeString("vi-VN", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
+                return (
+                  <div
+                    key={noti.timestamp}
+                    className="flex justify-between items-center p-2 border rounded-md bg-gray-100 w-full"
+                  >
+                    <span>Hôm nay • {time}</span>
+                    <span>{device === "fan" ? "💨" : "💡"}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
           <div className="flex-1 flex items-center bg-white flex-col rounded-[20px] ">
