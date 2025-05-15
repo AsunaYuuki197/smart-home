@@ -18,7 +18,7 @@ export const useAuth = () => {
                   
       const messaging = await getFirebaseMessaging();
       if (!messaging) {
-        console.warn("🚫 Messaging not supported in this browser.");
+        alert("🚫 Messaging not supported in this browser.");
         return;
       }
       //  Nhận device token
@@ -26,7 +26,7 @@ export const useAuth = () => {
           vapidKey: API_VAPID_KEY,
         });
 
-      // console.log("deviceToken", deviceToken);
+      console.log("deviceToken", deviceToken);
       if (deviceToken) {
         await axiosClient.post(`${API_BASE_URL}/register_token?token=${deviceToken}`, {
         });
@@ -57,7 +57,13 @@ export const useAuth = () => {
     }
   }
   const handleLogout = async () => {
-    await authService.logout();
+    // await authService.logout();
+    if (typeof window !== "undefined") {
+      const storedToken = sessionStorage.getItem("access_token");
+      if (storedToken) {
+        sessionStorage.removeItem("access_token");
+      }
+    }
   };
 
   return { handleLogin,handleSignup, handleLogout };

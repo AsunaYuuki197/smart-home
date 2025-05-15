@@ -13,7 +13,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const showSidebar = !pathname.startsWith("/login");
 
   const [token, setToken] = useState<string | null>(null);
-
+  const [isChecking, setIsChecking] = useState(true);
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedToken = localStorage.getItem("access_token");
@@ -21,9 +21,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       if (!storedToken) {
         router.replace("/login");
       }
+      else {
+        setIsChecking(false);
+      }
     }
   }, [router]);
-
+  if (isChecking) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-gray-500">Đang kiểm tra đăng nhập...</p>
+      </div>
+    );
+  }
   useEffect(() => {
     const setupFCM = async () => {
       if (typeof window === "undefined") return;

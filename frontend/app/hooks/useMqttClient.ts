@@ -1,4 +1,5 @@
 // hooks/useMqttClient.ts
+"use client";
 import { useEffect, useRef } from "react";
 import mqtt from "mqtt";
 
@@ -8,7 +9,8 @@ const FEEDS = [ "fan", "fanspeed", "huminity", "temperature", "on_off_light", "l
 
 export function useMqttClient(onMessage: (feed: string, value: string) => void) {
   const clientRef = useRef<mqtt.MqttClient | null>(null);
-
+  console.log("AIO_USERNAME", AIO_USERNAME);
+  console.log("AIO_KEY", AIO_KEY);
   useEffect(() => {
     const client = mqtt.connect("wss://io.adafruit.com", {
       username: AIO_USERNAME,
@@ -36,7 +38,7 @@ export function useMqttClient(onMessage: (feed: string, value: string) => void) 
       // console.log(`📥 Received message from ${topic}: ${value}`);
     });
     client.on("error", (err) => {
-      console.error("❌ MQTT Connection Error:", err);
+      console.error("❌ MQTT Connection Error:", err?.message);
     });
 
     client.on("reconnect", () => {
