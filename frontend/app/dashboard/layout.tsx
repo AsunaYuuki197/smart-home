@@ -6,7 +6,7 @@ export default function DashboardLayout({
 }) {
   return (
     <div>
-      <AppLayout>{children}</AppLayout> {/* AppLayout chỉ được dùng ở đây */}
+      <AppLayout>{children}</AppLayout> 
     </div>
   );
 }   
