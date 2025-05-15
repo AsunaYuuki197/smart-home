@@ -16,7 +16,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [isChecking, setIsChecking] = useState(true);
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const storedToken = localStorage.getItem("access_token");
+      const storedToken = sessionStorage.getItem("access_token");
       setToken(storedToken);
       if (storedToken=="undefined" || storedToken==null) {
         router.replace("/login");
@@ -26,13 +26,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       }
     }
   }, [router]);
-  if (isChecking) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-gray-500">Đang kiểm tra đăng nhập...</p>
-      </div>
-    );
-  }
+
   useEffect(() => {
     const setupFCM = async () => {
       if (typeof window === "undefined") return;
@@ -71,7 +65,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
     setupFCM();
   }, [token]);
-
+  if (isChecking) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-gray-500">Đang kiểm tra đăng nhập...</p>
+      </div>
+    );
+  }
   return (
     <div className={`min-h-screen bg-[#DCE9FC] p-5 flex flex-row `}>
       {showSidebar && (

@@ -10,7 +10,6 @@ export function useDeviceStatistics(deviceType: string) {
     const fetchStatistics = useCallback(async () => {
       setIsLoading(true);
       try {
-        // Lấy user_id từ localStorage, xử lý tình huống localStorage không khả dụng
         let userId;
         try {
           userId =1 //parseInt(localStorage.getItem("user_id")|| "1");
