@@ -338,6 +338,9 @@ To login:
 * Password: `123456`
 
 You are now ready to explore our application! -->
+## Deployment
+Link Website [https://smart-home-one-theta.vercel.app/]
+
 
 ## Voice-based device control using AI
 
