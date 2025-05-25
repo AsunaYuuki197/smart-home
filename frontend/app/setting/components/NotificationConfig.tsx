@@ -49,7 +49,7 @@ function DeviceNotification({isActive,platform,deviceNotify,setDeviceNotify}:{is
     const [isOpen,setIsOpen ] = useState(false)
     const devices = ["Website", "Mail", "All"]
     const handleDeviceNotifyChange = async (device:string) => {
-        await autoruleService.postNotify(isActive ? "on": "off", device);
+        await autoruleService.postNotify(isActive ? "on": "off", device.toLowerCase());
     }
 
     return (
