@@ -339,7 +339,7 @@ To login:
 
 You are now ready to explore our application! -->
 ## Deployment
-Link Website [https://smart-home-one-theta.vercel.app/]
+Link Website [https://smart-home-vnt1.vercel.app/]
 
 
 ## Voice-based device control using AI

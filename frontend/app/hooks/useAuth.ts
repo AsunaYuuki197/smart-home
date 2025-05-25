@@ -30,10 +30,12 @@ export const useAuth = () => {
       if (deviceToken) {
         await axiosClient.post(`${API_BASE_URL}/register_token?token=${deviceToken}`, {
         });
+        
       } else {
         alert("Đăng nhập không thành công. Vui lòng thử lại sau.");
         throw new Error("No registration token available. Request permission to generate one.");
       }
+      alert("Đăng nhập thành công. Chào mừng bạn đến với hệ thống!");
       router.push('/dashboard');  // Chuyển hướng đến Dashboard
 
     } catch (err) {
