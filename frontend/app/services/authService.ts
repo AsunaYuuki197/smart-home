@@ -58,12 +58,7 @@ export const authService = {
   logout: () => {
     // Xóa token khỏi sessionStorage
     // axiosClient.post(`${API_BASE_URL}/logout`);
-    if (typeof window !== "undefined") {
-      const storedToken = sessionStorage.getItem("access_token");
-      if (storedToken) {
-        sessionStorage.removeItem("access_token");
-      }
-    }
+    
     return ;
   },
 };
